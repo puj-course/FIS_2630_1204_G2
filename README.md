@@ -13,7 +13,7 @@ El problema que busca solucionar es la falta de organización y trazabilidad que
 | Nombre        | Rol                   | GitHub / Perfil |
 |--------------|-----------------------|-----------------|
 | Mariana Niño | Scrum Master          | ninov.mariana@javeriana.edu.co/mariananvv16 |
-| Gabriel Quiroga | Product Owner         | gabrielestebanquiroga.com/Quirogaaaa |
+| Gabriel Quiroga | Product Owner         | gabrielestebanquiroga@gmail.com/Quirogaaaa |
 | Mariana Niño | Sprint Planner        | ninov.mariana@javeriana.edu.co/mariananvv16 |
 | Samuel Zeudec | Configuration Manager | samuelzeudec@gmail.com/szml-PUJ |
 | Julian Parra | QA Lead               | santiagoleal807@gmail.com/JulianLeal12 |
