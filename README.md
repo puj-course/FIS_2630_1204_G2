@@ -12,12 +12,12 @@ El problema que busca solucionar es la falta de organización y trazabilidad que
 ## Equipo del Proyecto
 | Nombre        | Rol                   | GitHub / Perfil |
 |--------------|-----------------------|-----------------|
-| Mariana Niño | Scrum Master          | ninov.mariana@javeriana.edu.co/mariananvv16 |
-| Gabriel Quiroga | Product Owner         | gabrielestebanquiroga@gmail.com/Quirogaaaa |
-| Mariana Niño | Sprint Planner        | ninov.mariana@javeriana.edu.co/mariananvv16 |
-| Samuel Zeudec | Configuration Manager | samuelzeudec@gmail.com/szml-PUJ |
-| Julian Parra | QA Lead               | santiagoleal807@gmail.com/JulianLeal12 |
-| Nassin Suz | DevOps Engineer       | suz.nassinn@javeriana.edu.co/zeuznnss |
+| Mariana Niño | Scrum Master          | github.com/mariananvv16 |
+| Gabriel Quiroga | Product Owner         | github.com/Quirogaaaa |
+| Mariana Niño | Sprint Planner        | github.com/mariananvv16 |
+| Samuel Zeudec | Configuration Manager | github.com/szml-PUJ |
+| Julian Parra | QA Lead               | github.com/JulianLeal12 |
+| Nassin Suz | DevOps Engineer       | github.com/zeuznnss |
 
 ---
 
