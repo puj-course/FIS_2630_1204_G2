@@ -5,15 +5,13 @@
 ## Descripción
 GastroFlow es un sistema de software orientado a la gestión integral de restaurantes. Su objetivo es centralizar en una sola plataforma procesos como el control de inventario, gestión de mesas, registro de pedidos, envío de comandas a cocina, administración de productos, recetas, usuarios y generación de reportes.
 
-El problema que busca solucionar es la falta de organización y trazabilidad que puede presentarse cuando estos procesos se manejan de forma manual o mediante herramientas separadas. Esto puede generar errores en los pedidos, desactualización del inventario, pérdida de información, dificultades en la comunicación entre meseros y cocina, y poca visibilidad sobre la operación del restaurante.
-
-El proyecto se plantea como una solución modular y escalable, de manera que puedan incorporarse nuevas funcionalidades a futuro sin afectar la estructura principal del sistema. GastroFlow busca mejorar la eficiencia operativa, facilitar el control de los recursos y proporcionar información más clara para apoyar la gestión y la toma de decisiones dentro del restaurante.
+El problema que busca solucionar es la falta de organización y trazabilidad que puede presentarse cuando estos procesos se manejan de forma manual o mediante herramientas separadas. Esto puede generar errores en los pedidos, desactualización del inventario, pérdida de información, dificultades en la comunicación entre meseros y cocina, y poca visibilidad sobre la operación del restaurante. El proyecto se plantea como una solución modular y escalable, de manera que puedan incorporarse nuevas funcionalidades a futuro sin afectar la estructura principal del sistema. GastroFlow busca mejorar la eficiencia operativa, facilitar el control de los recursos y proporcionar información más clara para apoyar la gestión y la toma de decisiones dentro del restaurante.
 ---
 
 ## Equipo del Proyecto
 | Nombre        | Rol                   | GitHub / Perfil |
 |--------------|-----------------------|-----------------|
-| Mariana Niño | Scrum Master          | github.com/mariananvv16 |
+| Mariana Niño | Scrum Master          | ninov.mariana@javeriana.edu.co/mariananvv16 |
 | Gabriel Quiroga | Product Owner         | gabrielestebanquiroga.com/Quirogaaaa |
 | Mariana Niño | Sprint Planner        | ninov.mariana@javeriana.edu.co/mariananvv16 |
 | Samuel Zeudec | Configuration Manager | samuelzeudec@gmail.com/szml-PUJ |
