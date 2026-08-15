@@ -1,21 +1,24 @@
 # Plantilla del README del proyecto 2610
 
-# Nombre de la Aplicación
+# GastroFlow
 
 ## Descripción
-Breve descripción del sistema de software, el problema que busca solucionar y el contexto general del proyecto.
+GastroFlow es un sistema de software orientado a la gestión integral de restaurantes. Su objetivo es centralizar en una sola plataforma procesos como el control de inventario, gestión de mesas, registro de pedidos, envío de comandas a cocina, administración de productos, recetas, usuarios y generación de reportes.
 
+El problema que busca solucionar es la falta de organización y trazabilidad que puede presentarse cuando estos procesos se manejan de forma manual o mediante herramientas separadas. Esto puede generar errores en los pedidos, desactualización del inventario, pérdida de información, dificultades en la comunicación entre meseros y cocina, y poca visibilidad sobre la operación del restaurante.
+
+El proyecto se plantea como una solución modular y escalable, de manera que puedan incorporarse nuevas funcionalidades a futuro sin afectar la estructura principal del sistema. GastroFlow busca mejorar la eficiencia operativa, facilitar el control de los recursos y proporcionar información más clara para apoyar la gestión y la toma de decisiones dentro del restaurante.
 ---
 
 ## Equipo del Proyecto
 | Nombre        | Rol                   | GitHub / Perfil |
 |--------------|-----------------------|-----------------|
-| Estudiante 1 | Scrum Master          | github.com/usuario1 |
-| Estudiante 2 | Product Owner         | github.com/usuario2 |
-| Estudiante 3 | Sprint Planner        | github.com/usuario3 |
-| Estudiante 4 | Configuration Manager | github.com/usuario4 |
-| Estudiante 5 | QA Lead               | github.com/usuario5 |
-| Estudiante 6 | DevOps Engineer       | github.com/usuario6 |
+| Mariana Niño | Scrum Master          | github.com/mariananvv16 |
+| Gabriel Quiroga | Product Owner         | gabrielestebanquiroga.com/Quirogaaaa |
+| Mariana Niño | Sprint Planner        | ninov.mariana@javeriana.edu.co/mariananvv16 |
+| Samuel Zeudec | Configuration Manager | samuelzeudec@gmail.com/szml-PUJ |
+| Julian Parra | QA Lead               | santiagoleal807@gmail.com/JulianLeal12 |
+| Nassin Suz | DevOps Engineer       | suz.nassinn@javeriana.edu.co/zeuznnss |
 
 ---
 
@@ -155,14 +158,25 @@ docker-compose run ai-model pytest
 
 **Equipo de desarrollo:**
 
-**Estudiante 1**  
-Estudiante de Ciencia de Datos, Pontificia Universidad Javeriana  
-📧 est1.u@javeriana.edu.co  
+**Gabriel Quiroga**  
+Estudiante de Ingenieria en Sistemas, Pontificia Universidad Javeriana  
+📧 quirogarg@javeriana.edu.co  
 
-**Estudiante 2**  
+**Julian Parra**  
 Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
-📧 est2@javeriana.edu.co  
+📧 julians_parra@javeriana.edu.co
 
+**Samuel Zeudec**  
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 malaverl-sz@javeriana.edu.co 
+
+**Nassin Suz**  
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 suz.nassinn@javeriana.edu.co
+
+**Mariana Niño**  
+Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
+📧 ninov.mariana@javeriana.edu.co
 --- 
 
 ## Licencia
