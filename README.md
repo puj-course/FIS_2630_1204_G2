@@ -181,3 +181,4 @@ Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana
 
 ## Licencia
 Proyecto desarrollado con fines académicos.
+* Ana Torres: Backend Developer - https://github.com/anatorres
