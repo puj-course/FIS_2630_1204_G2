@@ -26,7 +26,7 @@ El problema que busca solucionar es la falta de organización y trazabilidad que
 - **Backend:** Java – Spring Boot
 - **Base de Datos:** PostgreSQL
 - **IA / Data Science:** Python, Pandas, Scikit-learn
-- **DevOps:** GitHub Actions, Docker, SonarQube
+- **DevOps:** GitHub Actions, Docker
 - **Control de versiones:** Git
 
 ---
@@ -129,8 +129,8 @@ project-name/
 
 ## Clonar el repositorio
 ```text
-git clone https://github.com/organizacion/proyecto.git
-cd proyecto
+git clone https://github.com/puj-course/FIS_2630_1204_G2.git
+cd FIS_2630_1204_G2
 ```
 
 ## Ejecución con Docker
