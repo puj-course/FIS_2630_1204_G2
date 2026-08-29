@@ -7,6 +7,7 @@ GastroFlow es un sistema de software orientado a la gestión integral de restaur
 
 El problema que busca solucionar es la falta de organización y trazabilidad que puede presentarse cuando estos procesos se manejan de forma manual o mediante herramientas separadas. Esto puede generar errores en los pedidos, desactualización del inventario, pérdida de información, dificultades en la comunicación entre meseros y cocina, y poca visibilidad sobre la operación del restaurante. El proyecto se plantea como una solución modular y escalable, de manera que puedan incorporarse nuevas funcionalidades a futuro sin afectar la estructura principal del sistema. GastroFlow busca mejorar la eficiencia operativa, facilitar el control de los recursos y proporcionar información más clara para apoyar la gestión y la toma de decisiones dentro del restaurante.
 
+
 ---
 
 ## Equipo del Proyecto
@@ -26,7 +27,7 @@ El problema que busca solucionar es la falta de organización y trazabilidad que
 - **Backend:** Java – Spring Boot
 - **Base de Datos:** PostgreSQL
 - **IA / Data Science:** Python, Pandas, Scikit-learn
-- **DevOps:** GitHub Actions, Docker, SonarQube
+- **DevOps:** GitHub Actions, Docker
 - **Control de versiones:** Git
 
 ---
@@ -129,8 +130,8 @@ project-name/
 
 ## Clonar el repositorio
 ```text
-git clone https://github.com/organizacion/proyecto.git
-cd proyecto
+git clone https://github.com/puj-course/FIS_2630_1204_G2.git
+cd FIS_2630_1204_G2
 ```
 
 ## Ejecución con Docker
