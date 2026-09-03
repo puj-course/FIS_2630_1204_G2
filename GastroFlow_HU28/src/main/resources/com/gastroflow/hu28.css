@@ -1,0 +1,14 @@
+.root { -fx-font-family: "Arial"; -fx-background-color: #f7f7f7; }
+.header { -fx-padding: 18; -fx-background-color: white; }
+.titulo { -fx-font-size: 25px; -fx-font-weight: bold; }
+.subtitulo { -fx-text-fill: #666666; }
+.resumen-disponible, .disponible, .estado-disponible { -fx-text-fill: #16823b; -fx-font-weight: bold; }
+.resumen-agotado, .agotado, .estado-agotado { -fx-text-fill: #b42318; -fx-font-weight: bold; }
+.table-view { -fx-background-color: white; }
+.menu-container { -fx-padding: 22; }
+.categoria-titulo { -fx-font-size: 21px; -fx-font-weight: bold; }
+.producto-card { -fx-background-color: white; -fx-padding: 14; -fx-background-radius: 9; -fx-border-radius: 9; -fx-border-color: #dddddd; }
+.producto-nombre { -fx-font-size: 15px; -fx-font-weight: bold; }
+.pedido-container { -fx-padding: 20; -fx-background-color: white; }
+.titulo-seccion { -fx-font-size: 21px; -fx-font-weight: bold; }
+.total-texto, .total { -fx-font-size: 18px; -fx-font-weight: bold; }

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.gastroflow.controller.DisponibilidadAdminController">
+    <top>
+        <VBox spacing="8" styleClass="header" BorderPane.alignment="CENTER">
+            <Label text="Disponibilidad automática de platos" styleClass="titulo"/>
+            <Label text="El estado se calcula con base en la receta y el stock actual de ingredientes." styleClass="subtitulo"/>
+            <HBox spacing="20">
+                <Label fx:id="lblDisponibles" text="Disponibles: 0" styleClass="resumen-disponible"/>
+                <Label fx:id="lblAgotados" text="Agotados: 0" styleClass="resumen-agotado"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="Recalcular ahora" onAction="#recalcularYCargar"/>
+            </HBox>
+        </VBox>
+    </top>
+    <center>
+        <TableView fx:id="tablaProductos" BorderPane.alignment="CENTER">
+            <columns>
+                <TableColumn fx:id="colCodigo" text="Código" prefWidth="100"/>
+                <TableColumn fx:id="colNombre" text="Producto" prefWidth="220"/>
+                <TableColumn fx:id="colCategoria" text="Categoría" prefWidth="150"/>
+                <TableColumn fx:id="colEstado" text="Estado" prefWidth="120"/>
+                <TableColumn fx:id="colMotivo" text="Detalle de disponibilidad" prefWidth="470"/>
+            </columns>
+        </TableView>
+    </center>
+</BorderPane>
