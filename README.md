@@ -182,3 +182,7 @@ Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana
 
 ## Licencia
 Proyecto desarrollado con fines académicos.
+* Nassin Suz : DevOps - https://github.com/zeuznnss
+* Gabriel Quiroga: Product Owner - https://github.com/Quirogaaaa
+* Ana Torres: Backend Developer - https://github.com/anatorres
+
