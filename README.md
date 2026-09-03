@@ -182,3 +182,7 @@ Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana
 
 ## Licencia
 Proyecto desarrollado con fines académicos.
+* Nassim Suz : DevOps - https://github.com/zeuznnss
+* Cristian Quiroga: Product Owner - https://github.com/Quirogaaaa
+* Ana Torres: Backend Developer - https://github.com/anatorres
+* Samuel Malaver: Configuration Manager - https://github.com/szml-PUJ
