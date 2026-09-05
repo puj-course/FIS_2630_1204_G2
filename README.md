@@ -1,5 +1,3 @@
-# Plantilla del README del proyecto 2610
-
 # GastroFlow
 
 ## Descripción
@@ -182,3 +180,6 @@ Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana
 
 ## Licencia
 Proyecto desarrollado con fines académicos.
+* Gabriel Quiroga: Product Owner - https://github.com/Quirogaaaa
+* Ana Torres: Backend Developer - https://github.com/anatorres
+
