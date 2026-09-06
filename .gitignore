@@ -6,9 +6,14 @@ out/
 *.jar
 *.war
 
-# Maven
-.mvn/
-!.mvn/wrapper/maven-wrapper.properties
+# Maven wrapper: se versiona el wrapper, no el resto de .mvn
+.mvn/*
+!.mvn/wrapper/
+dependency-reduced-pom.xml
+
+# Node (queda app/package.json en el repositorio)
+node_modules/
+npm-debug.log*
 
 # IDE
 .idea/
@@ -21,6 +26,11 @@ out/
 .classpath
 nbproject/private/
 
+# Logs y volcados de la JVM
+*.log
+hs_err_pid*.log
+replay_pid*.log
+
 # Sistema operativo
 .DS_Store
 Thumbs.db
@@ -29,3 +39,4 @@ desktop.ini
 # Entorno local
 .env
 *.local
+temp/
