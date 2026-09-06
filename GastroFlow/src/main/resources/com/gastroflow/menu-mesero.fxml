@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.gastroflow.controller.MenuMeseroController">
+    <top>
+        <HBox spacing="15" alignment="CENTER_LEFT" styleClass="header">
+            <Label text="Menú" styleClass="titulo"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Actualizar disponibilidad" onAction="#cargarMenu"/>
+        </HBox>
+    </top>
+    <center>
+        <SplitPane dividerPositions="0.72">
+            <ScrollPane fitToWidth="true">
+                <VBox fx:id="categoriasBox" spacing="24" styleClass="menu-container"/>
+            </ScrollPane>
+            <VBox spacing="15" styleClass="pedido-container">
+                <Label text="Pedido" styleClass="titulo-seccion"/>
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+                    <VBox fx:id="pedidoBox" spacing="10"/>
+                </ScrollPane>
+                <Separator/>
+                <HBox alignment="CENTER_RIGHT" spacing="10">
+                    <Label text="Total:" styleClass="total-texto"/>
+                    <Label fx:id="totalLabel" text="$0" styleClass="total"/>
+                </HBox>
+                <Button text="Confirmar pedido" maxWidth="Infinity" onAction="#confirmarPedido"/>
+            </VBox>
+        </SplitPane>
+    </center>
+</BorderPane>
