@@ -3,8 +3,9 @@ CREATE TABLE movimientos_inventario (
     producto_id        BIGINT,
     ingrediente_id     BIGINT,
     tipo_movimiento    VARCHAR(20) NOT NULL,
-    cantidad           NUMERIC(12,3) NOT NULL,
+    cantidad           NUMERIC(12,4) NOT NULL,
     motivo             VARCHAR(255) NOT NULL,
+    usuario_id         BIGINT NOT NULL,
     fecha_movimiento   TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 
     CONSTRAINT pk_movimientos_inventario
@@ -17,6 +18,10 @@ CREATE TABLE movimientos_inventario (
     CONSTRAINT fk_movimientos_ingrediente
         FOREIGN KEY (ingrediente_id)
         REFERENCES ingredientes(ingrediente_id),
+
+    CONSTRAINT fk_movimientos_usuario
+        FOREIGN KEY (usuario_id)
+        REFERENCES usuarios(id_usuario),
 
     CONSTRAINT chk_movimientos_tipo
         CHECK (tipo_movimiento IN ('ENTRADA', 'SALIDA')),
@@ -31,3 +36,13 @@ CREATE TABLE movimientos_inventario (
             (producto_id IS NULL AND ingrediente_id IS NOT NULL)
         )
 );
+
+-- Trazabilidad: consultas de kardex por insumo y por responsable.
+CREATE INDEX ix_movimientos_ingrediente
+    ON movimientos_inventario (ingrediente_id, fecha_movimiento);
+
+CREATE INDEX ix_movimientos_producto
+    ON movimientos_inventario (producto_id, fecha_movimiento);
+
+CREATE INDEX ix_movimientos_usuario
+    ON movimientos_inventario (usuario_id, fecha_movimiento);
