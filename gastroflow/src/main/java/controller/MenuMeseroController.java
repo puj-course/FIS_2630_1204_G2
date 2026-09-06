@@ -1,9 +1,12 @@
 package controller;
 
+import dao.DisponibilidadDAO;
 import dao.ProductoDAO;
 import dto.ItemPedido;
 import entity.Producto;
+import util.TextoBusqueda;
 import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -12,7 +15,6 @@ import javafx.scene.layout.*;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.text.NumberFormat;
-import java.text.Normalizer;
 import java.util.*;
 
 public class MenuMeseroController {
@@ -29,8 +31,9 @@ public class MenuMeseroController {
     private static final String TODAS_LAS_CATEGORIAS = "Todas";
 
     private final ProductoDAO productoDAO = new ProductoDAO();
+    private final DisponibilidadDAO disponibilidadDAO = new DisponibilidadDAO();
     private final Map<Long, ItemPedido> pedido = new LinkedHashMap<>();
-    private final NumberFormat moneda = NumberFormat.getCurrencyInstance(new Locale("es", "CO"));
+    private final NumberFormat moneda = NumberFormat.getCurrencyInstance(Locale.of("es", "CO"));
 
     /** Menú completo tal como vino de la base. Los filtros trabajan sobre esta copia. */
     private Map<String, List<Producto>> menuCompleto = new LinkedHashMap<>();
@@ -46,18 +49,35 @@ public class MenuMeseroController {
     }
 
     /**
-     * Relee el menú desde la base de datos y vuelve a pintarlo respetando los
-     * filtros que el mesero tenga puestos.
+     * Relee el menú desde la base y vuelve a pintarlo respetando los filtros.
+     *
+     * Va en un hilo aparte: recalcular la disponibilidad recorre todo el
+     * catálogo, y si se hiciera en el hilo de JavaFX la ventana quedaría
+     * congelada mientras tanto — y para siempre si la base no responde.
      */
     @FXML
     private void cargarMenu() {
-        try {
-            menuCompleto = productoDAO.obtenerMenuPorCategorias();
+        Task<Map<String, List<Producto>>> tarea = new Task<>() {
+            @Override
+            protected Map<String, List<Producto>> call() throws SQLException {
+                return productoDAO.obtenerMenuPorCategorias();
+            }
+        };
+
+        tarea.setOnSucceeded(e -> {
+            menuCompleto = tarea.getValue();
             actualizarCategorias();
             mostrarMenuFiltrado();
-        } catch (SQLException e) {
-            mostrarError(e);
-        }
+        });
+
+        tarea.setOnFailed(e -> {
+            categoriasBox.getChildren().clear();
+            resultadosLabel.setText("");
+            mostrarError(tarea.getException());
+        });
+
+        mostrarMensajeEnMenu("Cargando menú…");
+        iniciar(tarea, "carga-menu");
     }
 
     @FXML
@@ -84,7 +104,7 @@ public class MenuMeseroController {
     private void mostrarMenuFiltrado() {
         categoriasBox.getChildren().clear();
 
-        String busqueda = normalizar(busquedaField.getText());
+        String busqueda = busquedaField.getText();
         String categoria = categoriaCombo.getValue();
         boolean soloDisponibles = soloDisponiblesCheck.isSelected();
 
@@ -100,7 +120,9 @@ public class MenuMeseroController {
             List<Producto> coincidencias = new ArrayList<>();
             for (Producto p : entrada.getValue()) {
                 if (soloDisponibles && !p.isDisponible()) continue;
-                if (coincide(p, busqueda)) coincidencias.add(p);
+                if (TextoBusqueda.coincide(p.getNombre(), p.getDescripcion(), busqueda)) {
+                    coincidencias.add(p);
+                }
             }
 
             if (coincidencias.isEmpty()) continue;
@@ -120,29 +142,16 @@ public class MenuMeseroController {
         }
 
         if (visibles == 0) {
-            Label vacio = new Label("Ningún producto coincide con la búsqueda.");
-            vacio.getStyleClass().add("subtitulo");
-            categoriasBox.getChildren().add(vacio);
+            mostrarMensajeEnMenu("Ningún producto coincide con la búsqueda.");
         }
 
         resultadosLabel.setText(visibles == 1 ? "1 producto" : visibles + " productos");
     }
 
-    /** Busca el texto en el nombre y en la descripción, sin distinguir tildes ni mayúsculas. */
-    private boolean coincide(Producto producto, String busquedaNormalizada) {
-        if (busquedaNormalizada.isEmpty()) return true;
-
-        return normalizar(producto.getNombre()).contains(busquedaNormalizada)
-                || normalizar(producto.getDescripcion()).contains(busquedaNormalizada);
-    }
-
-    /** Pasa a minúsculas y quita tildes, para que "Ají" encuentre "aji". */
-    private String normalizar(String texto) {
-        if (texto == null) return "";
-
-        return Normalizer.normalize(texto.trim().toLowerCase(new Locale("es", "CO")),
-                        Normalizer.Form.NFD)
-                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+    private void mostrarMensajeEnMenu(String mensaje) {
+        Label etiqueta = new Label(mensaje);
+        etiqueta.getStyleClass().add("subtitulo");
+        categoriasBox.getChildren().setAll(etiqueta);
     }
 
     private VBox crearTarjeta(Producto producto) {
@@ -183,19 +192,28 @@ public class MenuMeseroController {
             int cantidadSolicitada = existente == null ? 1 : existente.getCantidad() + 1;
 
             if (!productoDAO.estaDisponible(producto.getProductoId(), cantidadSolicitada)) {
-                pedido.remove(producto.getProductoId());
-                actualizarPedido();
-                cargarMenu();
+                // Solo se rechaza la unidad que no alcanza. Las que ya estaban en
+                // el pedido se conservan: antes se borraba la línea entera y el
+                // mesero perdía las tres hamburguesas por pedir una cuarta.
                 Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setHeaderText("Producto agotado");
-                alert.setContentText(producto.getNombre() + " ya no tiene ingredientes suficientes y no puede agregarse.");
+                alert.setHeaderText("No hay inventario suficiente");
+
+                if (existente == null) {
+                    alert.setContentText(producto.getNombre()
+                            + " ya no tiene ingredientes suficientes y no puede agregarse.");
+                    cargarMenu();
+                } else {
+                    alert.setContentText("No alcanza para " + cantidadSolicitada + " unidades de "
+                            + producto.getNombre() + ". Se mantienen las "
+                            + existente.getCantidad() + " que ya tenía en el pedido.");
+                }
+
                 alert.showAndWait();
                 return;
             }
 
-            ItemPedido item = pedido.get(producto.getProductoId());
-            if (item == null) pedido.put(producto.getProductoId(), new ItemPedido(producto));
-            else item.aumentarCantidad();
+            if (existente == null) pedido.put(producto.getProductoId(), new ItemPedido(producto));
+            else existente.aumentarCantidad();
             actualizarPedido();
         } catch (SQLException e) {
             mostrarError(e);
@@ -233,6 +251,13 @@ public class MenuMeseroController {
         totalLabel.setText(moneda.format(total));
     }
 
+    /**
+     * Valida el pedido completo contra el inventario.
+     *
+     * Se pregunta una sola vez por todo el pedido, no producto por producto:
+     * dos platos distintos pueden compartir un ingrediente y pasar cada uno por
+     * separado aunque juntos no alcancen.
+     */
     @FXML
     private void confirmarPedido() {
         if (pedido.isEmpty()) {
@@ -240,36 +265,51 @@ public class MenuMeseroController {
             return;
         }
 
-        List<Long> agotados = new ArrayList<>();
-        try {
-            for (ItemPedido item : pedido.values()) {
-                if (!productoDAO.estaDisponible(
-                        item.getProducto().getProductoId(), item.getCantidad())) {
-                    agotados.add(item.getProducto().getProductoId());
-                }
+        Map<Long, Integer> lineas = new LinkedHashMap<>();
+        for (ItemPedido item : pedido.values()) {
+            lineas.put(item.getProducto().getProductoId(), item.getCantidad());
+        }
+
+        Task<List<String>> tarea = new Task<>() {
+            @Override
+            protected List<String> call() throws SQLException {
+                return disponibilidadDAO.faltantesDelPedido(lineas);
             }
-        } catch (SQLException e) {
-            mostrarError(e);
-            return;
-        }
+        };
 
-        if (!agotados.isEmpty()) {
-            agotados.forEach(pedido::remove);
-            actualizarPedido();
+        tarea.setOnSucceeded(e -> {
+            List<String> faltantes = tarea.getValue();
+
+            if (faltantes.isEmpty()) {
+                new Alert(Alert.AlertType.INFORMATION,
+                        "Todos los productos siguen disponibles. El pedido puede continuar "
+                                + "con la HU de registro de pedidos.").showAndWait();
+                return;
+            }
+
+            Alert alerta = new Alert(Alert.AlertType.WARNING);
+            alerta.setHeaderText("El pedido completo no se puede preparar");
+            alerta.setContentText("Falta inventario para:\n\n• " + String.join("\n• ", faltantes));
+            alerta.showAndWait();
+
             cargarMenu();
-            new Alert(Alert.AlertType.WARNING,
-                    "Uno o más productos se agotaron antes de confirmar. Fueron retirados del pedido.").showAndWait();
-            return;
-        }
+        });
 
-        new Alert(Alert.AlertType.INFORMATION,
-                "Todos los productos siguen disponibles. El pedido puede continuar con la HU de registro de pedidos.").showAndWait();
+        tarea.setOnFailed(e -> mostrarError(tarea.getException()));
+
+        iniciar(tarea, "validar-pedido");
     }
 
-    private void mostrarError(SQLException e) {
+    private void iniciar(Task<?> tarea, String nombreHilo) {
+        Thread hilo = new Thread(tarea, nombreHilo);
+        hilo.setDaemon(true);
+        hilo.start();
+    }
+
+    private void mostrarError(Throwable e) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setHeaderText("Error de base de datos");
-        alert.setContentText(e.getMessage());
+        alert.setContentText(e == null ? "Error desconocido" : e.getMessage());
         alert.showAndWait();
     }
 }
