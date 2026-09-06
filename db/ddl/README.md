@@ -1,7 +1,7 @@
 # Esquema de base de datos — GastroFlow
 
 Definiciones DDL de las tablas del sistema, en PostgreSQL. Cada archivo contiene una
-sola sentencia `CREATE TABLE` con sus llaves, restricciones y valores por defecto.
+sola sentencia `CREATE TABLE` con sus llaves, restricciones e índices.
 
 Las funciones almacenadas están en `../functions/` y los cambios sobre bases ya
 creadas en `../migrations/`.
@@ -10,13 +10,16 @@ creadas en `../migrations/`.
 
 ## Contenido
 
-| Archivo | Tabla | Descripción |
-|---|---|---|
-| `productos.ddl` | `productos` | Catálogo de platos y bebidas: precio, costo, receta (`ingredientes` JSONB) y estado de disponibilidad. |
-| `ingredientes.ddl` | `ingredientes` | Insumos del inventario: unidad de medida, costo unitario, stock actual/mínimo/máximo, proveedor y vencimiento. |
-| `pedidos.ddl` | `pedidos` | Pedidos del restaurante: mesa, mesero, líneas del pedido (`productos` JSONB), estado, totales, propina y cancelación. |
-| `movimientos_inventario.ddl` | `movimientos_inventario` | Kardex de entradas y salidas. Cada fila afecta **o** un producto **o** un ingrediente, nunca ambos. |
-| `pagos.ddl` | `pagos` | Registro de cobros (HU-35): subtotal, descuento con su motivo, impuestos, propina y total pagado. |
+| Archivo | Tabla | Historia | Descripción |
+|---|---|---|---|
+| `unidades_medida.ddl` | `unidades_medida` | HU-04 | Catálogo de unidades (kilogramo, litro, unidad…) con código, abreviatura y tipo. |
+| `ingredientes.ddl` | `ingredientes` | HU-04 | Insumos del inventario: costo, stock actual/mínimo/máximo, proveedor y vencimiento. |
+| `categorias.ddl` | `categorias` | HU-05 | Categorías del menú que administra el restaurante, con su orden de presentación. |
+| `productos.ddl` | `productos` | HU-05 | Catálogo de platos y bebidas: precio vigente, receta (`ingredientes` JSONB) y estado. |
+| `precios_producto.ddl` | `precios_producto` | HU-05 | Historial de precios. `productos.precio_venta` sigue siendo el precio vigente. |
+| `pedidos.ddl` | `pedidos` | HU-07 | Pedidos: mesa, mesero, líneas (`productos` JSONB), estado, totales y propina. |
+| `movimientos_inventario.ddl` | `movimientos_inventario` | HU-014 | Kardex de entradas y salidas, con el usuario responsable de cada movimiento. |
+| `pagos.ddl` | `pagos` | HU-35 | Cobros: subtotal, descuento con motivo, impuestos, propina y total pagado. |
 
 ---
 
@@ -25,27 +28,30 @@ creadas en `../migrations/`.
 El orden importa: hay llaves foráneas entre las tablas.
 
 ```
-1. clientes, mesas, usuarios, roles   ← no están en esta carpeta (ver "Dependencias externas")
-2. productos.ddl
-3. ingredientes.ddl
-4. pedidos.ddl                        ← depende de clientes, mesas, usuarios
-5. movimientos_inventario.ddl         ← depende de productos e ingredientes
-6. pagos.ddl                          ← depende de pedidos y usuarios
-7. ../functions/hu28_disponibilidad.sql
+1.  clientes, mesas, usuarios, roles   ← no están en esta carpeta (ver "Dependencias externas")
+2.  unidades_medida.ddl
+3.  categorias.ddl
+4.  ingredientes.ddl                   ← depende de unidades_medida
+5.  productos.ddl                      ← depende de categorias
+6.  precios_producto.ddl               ← depende de productos
+7.  pedidos.ddl                        ← depende de clientes, mesas, usuarios
+8.  movimientos_inventario.ddl         ← depende de productos, ingredientes y usuarios
+9.  pagos.ddl                          ← depende de pedidos y usuarios
+10. ../functions/hu28_disponibilidad.sql
 ```
 
 ---
 
 ## Dependencias externas
 
-Cuatro tablas que el sistema usa todavía no están versionadas en el repositorio.
-Estas son las columnas que el código Java espera de ellas:
+Cuatro tablas que el sistema usa no están versionadas en esta carpeta. Estas son las
+columnas que el código Java espera de ellas:
 
 | Tabla | Columnas usadas | Dónde |
 |---|---|---|
 | `clientes` | `id_cliente` | FK `pedidos.cliente_id` |
 | `mesas` | `id_mesa`, `numero_mesa` | FK `pedidos.mesa_id`; `PagoDAO.buscarCuenta` |
-| `usuarios` | `id_usuario`, `id_rol`, `is_active` | FK `pedidos.usuario_id`, `pagos.usuario_id`; validación de cajero |
+| `usuarios` | `id_usuario`, `id_rol`, `is_active` | FK en `pedidos`, `pagos` y `movimientos_inventario` |
 | `roles` | `id_rol`, `nombre_rol` | validación de cajero (`UPPER(nombre_rol) = 'CAJERO'`) |
 
 ---
@@ -55,9 +61,12 @@ Estas son las columnas que el código Java espera de ellas:
 ```bash
 createdb gastroflow
 
-# 1. tablas
-psql -d gastroflow -f productos.ddl
+# 1. tablas, en el orden de arriba
+psql -d gastroflow -f unidades_medida.ddl
+psql -d gastroflow -f categorias.ddl
 psql -d gastroflow -f ingredientes.ddl
+psql -d gastroflow -f productos.ddl
+psql -d gastroflow -f precios_producto.ddl
 psql -d gastroflow -f pedidos.ddl
 psql -d gastroflow -f movimientos_inventario.ddl
 psql -d gastroflow -f pagos.ddl
@@ -66,8 +75,9 @@ psql -d gastroflow -f pagos.ddl
 psql -d gastroflow -f ../functions/hu28_disponibilidad.sql
 ```
 
-Sobre una base **ya creada**, aplicar además los scripts de `../migrations/` en orden
-numérico.
+Sobre una base **ya creada**, aplicar en cambio los scripts de `../migrations/` en
+orden numérico. Los cuatro son idempotentes: correrlos dos veces no duplica datos ni
+falla.
 
 Para verificar:
 
@@ -109,26 +119,22 @@ evalúa por su propio `productos.stock_actual`.
 
 - **Llaves primarias:** `BIGINT GENERATED BY DEFAULT AS IDENTITY`.
 - **Dinero:** `NUMERIC(12,2)`.
-- **Cantidades de inventario:** `NUMERIC(12,4)`.
+- **Cantidades de inventario:** `NUMERIC(12,4)`, tanto en stock como en movimientos.
 - **Estados:** cadenas en mayúsculas validadas con `CHECK`, no enteros ni booleanos.
+  - `unidades_medida.estado`, `categorias.estado`, `ingredientes.estado`: `ACTIVO`, `INACTIVO`
   - `productos.estado`: `DISPONIBLE`, `AGOTADO`, `INACTIVO`
-  - `ingredientes.estado`: `ACTIVO`, `INACTIVO`
   - `pedidos.estado`: `PENDIENTE`, `ASIGNADO_MESA`, `EN_PREPARACION`, `COMPLETADO`, `ENTREGADO`, `CANCELADO`
   - `movimientos_inventario.tipo_movimiento`: `ENTRADA`, `SALIDA`
   - `pagos.estado`: `PAGADO`, `ANULADO`
 - **Auditoría:** `fecha_creacion` y `fecha_actualizacion` en las tablas maestras.
-- **Nombres de restricciones:** `pk_`, `uq_`, `fk_`, `ck_` + tabla + campo.
+- **Nombres:** `pk_`, `uq_`, `fk_`, `ck_` para restricciones; `ix_` para índices.
 
 ---
 
 ## Pendientes conocidos
 
-- Versionar `clientes`, `mesas`, `usuarios` y `roles` en esta misma carpeta.
+- Versionar `clientes`, `mesas`, `usuarios` y `roles`, que corresponden a otras historias.
 - Definir trigger para que `fecha_actualizacion` se actualice sola en cada `UPDATE`.
-- Agregar índices sobre `pedidos(estado)`, `pedidos(fecha_pedido)` y
-  `movimientos_inventario(ingrediente_id, fecha_movimiento)`.
-- Unificar la precisión de cantidades entre `movimientos_inventario.cantidad`
-  `NUMERIC(12,3)` y los campos de stock `NUMERIC(12,4)`.
 - Los `CHECK` sobre columnas JSONB (`ck_producto_ingredientes_json`,
   `ck_pedido_productos_json`) no validan nada: `jsonb_typeof()` nunca devuelve `NULL`
   para un JSONB no nulo. Deberían comparar contra `'array'`.
