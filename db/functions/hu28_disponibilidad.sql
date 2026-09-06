@@ -172,3 +172,83 @@ BEGIN
     RETURN v_cambiados;
 END;
 $$;
+
+
+-- -----------------------------------------------------------------------------
+-- fn_pedido_faltantes: valida el pedido COMPLETO, sumando el consumo de todos
+-- los productos que comparten un mismo ingrediente.
+--
+-- Las funciones anteriores validan un producto a la vez, asi que dos platos
+-- distintos que usan la misma carne pasan cada uno por separado aunque juntos
+-- no alcancen. Esta recibe todas las lineas del pedido y agrega el consumo.
+--
+-- Entrada: [{"producto_id": 1, "cantidad": 2}, {"producto_id": 5, "cantidad": 1}]
+-- Salida : una fila por cada ingrediente o producto que no alcanza.
+--          Sin filas = el pedido completo se puede preparar.
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION fn_pedido_faltantes(p_lineas JSONB)
+RETURNS TABLE (
+    faltante   VARCHAR,
+    requerido  NUMERIC,
+    disponible NUMERIC
+)
+LANGUAGE sql
+STABLE
+AS $$
+    WITH lineas AS (
+        SELECT (l->>'producto_id')::BIGINT AS producto_id,
+               (l->>'cantidad')::NUMERIC   AS cantidad
+          FROM jsonb_array_elements(
+                   CASE WHEN jsonb_typeof(p_lineas) = 'array' THEN p_lineas ELSE '[]'::jsonb END
+               ) AS l
+    ),
+
+    -- Productos inactivos o inexistentes: no pueden pedirse en ningun caso.
+    invalidos AS (
+        SELECT COALESCE(p.nombre, 'producto #' || li.producto_id)::VARCHAR AS faltante,
+               li.cantidad                                                 AS requerido,
+               0::NUMERIC                                                  AS disponible
+          FROM lineas li
+          LEFT JOIN productos p ON p.producto_id = li.producto_id
+         WHERE p.producto_id IS NULL
+            OR p.estado = 'INACTIVO'
+    ),
+
+    -- Productos sin receta: se rigen por su propio stock.
+    sin_receta AS (
+        SELECT p.nombre::VARCHAR, li.cantidad, p.stock_actual
+          FROM lineas li
+          JOIN productos p ON p.producto_id = li.producto_id
+         WHERE p.estado <> 'INACTIVO'
+           AND (p.ingredientes IS NULL
+                OR jsonb_typeof(p.ingredientes) <> 'array'
+                OR jsonb_array_length(p.ingredientes) = 0)
+           AND p.stock_actual < li.cantidad
+    ),
+
+    -- Consumo total de cada ingrediente, sumando TODOS los productos del pedido.
+    consumo AS (
+        SELECT (r->>'ingrediente_id')::BIGINT              AS ingrediente_id,
+               SUM((r->>'cantidad')::NUMERIC * li.cantidad) AS requerido
+          FROM lineas li
+          JOIN productos p ON p.producto_id = li.producto_id
+         CROSS JOIN LATERAL jsonb_array_elements(
+                   CASE WHEN jsonb_typeof(p.ingredientes) = 'array' THEN p.ingredientes ELSE '[]'::jsonb END
+               ) AS r
+         WHERE p.estado <> 'INACTIVO'
+         GROUP BY 1
+    )
+
+    SELECT faltante, requerido, disponible FROM invalidos
+    UNION ALL
+    SELECT * FROM sin_receta
+    UNION ALL
+    SELECT COALESCE(i.nombre, 'ingrediente #' || c.ingrediente_id)::VARCHAR,
+           c.requerido,
+           COALESCE(i.stock_actual, 0)
+      FROM consumo c
+      LEFT JOIN ingredientes i ON i.ingrediente_id = c.ingrediente_id
+     WHERE i.ingrediente_id IS NULL
+        OR i.estado = 'INACTIVO'
+        OR i.stock_actual < c.requerido;
+$$;

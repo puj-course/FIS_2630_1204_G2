@@ -6,6 +6,7 @@ import com.gastroflow.model.ProductoDisponibilidad;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class DisponibilidadDAO {
 
@@ -44,6 +45,51 @@ public class DisponibilidadDAO {
                 return rs.next() && rs.getBoolean(1);
             }
         }
+    }
+
+    /**
+     * Valida el pedido COMPLETO en una sola consulta, sumando el consumo de los
+     * productos que comparten ingrediente.
+     *
+     * Preguntar producto por producto no sirve: con 400 g de carne, una
+     * hamburguesa de 200 g y una lasana de 300 g pasan las dos por separado,
+     * pero juntas no alcanzan.
+     *
+     * @param lineas producto_id -> cantidad pedida
+     * @return descripcion de lo que falta; vacia si el pedido se puede preparar
+     */
+    public List<String> faltantesDelPedido(Map<Long, Integer> lineas) throws SQLException {
+        List<String> faltantes = new ArrayList<>();
+
+        if (lineas == null || lineas.isEmpty()) {
+            return faltantes;
+        }
+
+        StringBuilder json = new StringBuilder("[");
+        for (Map.Entry<Long, Integer> linea : lineas.entrySet()) {
+            if (json.length() > 1) json.append(',');
+            json.append("{\"producto_id\":").append(linea.getKey())
+                .append(",\"cantidad\":").append(linea.getValue()).append('}');
+        }
+        json.append(']');
+
+        String sql = "SELECT faltante, requerido, disponible FROM fn_pedido_faltantes(?::jsonb)";
+
+        try (Connection cn = ConexionBD.conectar();
+             PreparedStatement ps = cn.prepareStatement(sql)) {
+            ps.setString(1, json.toString());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    faltantes.add(String.format(
+                            "%s — se necesitan %s y hay %s",
+                            rs.getString("faltante"),
+                            rs.getBigDecimal("requerido").stripTrailingZeros().toPlainString(),
+                            rs.getBigDecimal("disponible").stripTrailingZeros().toPlainString()));
+                }
+            }
+        }
+        return faltantes;
     }
 
     public List<ProductoDisponibilidad> listarProductos() throws SQLException {
