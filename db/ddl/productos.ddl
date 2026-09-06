@@ -3,7 +3,7 @@ CREATE TABLE productos (
     codigo                VARCHAR(30) NOT NULL,
     nombre                VARCHAR(120) NOT NULL,
     descripcion           VARCHAR(500),
-    categoria             VARCHAR(100),
+    categoria_id          BIGINT NOT NULL,
     precio_venta          NUMERIC(12,2) NOT NULL,
     costo                 NUMERIC(12,2) DEFAULT 0 NOT NULL,
     ingredientes          JSONB,
@@ -22,6 +22,10 @@ CREATE TABLE productos (
 
     CONSTRAINT uq_productos_nombre
         UNIQUE (nombre),
+
+    CONSTRAINT fk_productos_categoria
+        FOREIGN KEY (categoria_id)
+        REFERENCES categorias(categoria_id),
 
     CONSTRAINT ck_producto_precio
         CHECK (precio_venta > 0),
@@ -53,3 +57,10 @@ CREATE TABLE productos (
     CONSTRAINT ck_producto_ingredientes_json
         CHECK (ingredientes IS NULL OR jsonb_typeof(ingredientes) IS NOT NULL)
 );
+
+-- Indices para las busquedas del catalogo.
+CREATE INDEX ix_productos_categoria
+    ON productos (categoria_id, nombre);
+
+CREATE INDEX ix_productos_estado
+    ON productos (estado);

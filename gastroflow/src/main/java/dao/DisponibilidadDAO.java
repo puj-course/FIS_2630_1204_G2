@@ -49,15 +49,16 @@ public class DisponibilidadDAO {
     public List<ProductoDisponibilidad> listarProductos() throws SQLException {
         String sql = """
                 SELECT
-                    producto_id,
-                    codigo,
-                    nombre,
-                    COALESCE(categoria, 'Otros') AS categoria,
-                    estado,
-                    fn_motivo_receta(ingredientes) AS motivo
-                FROM productos
-                WHERE estado <> 'INACTIVO'
-                ORDER BY COALESCE(categoria, 'Otros'), nombre
+                    p.producto_id,
+                    p.codigo,
+                    p.nombre,
+                    c.nombre AS categoria,
+                    p.estado,
+                    fn_motivo_receta(p.ingredientes) AS motivo
+                FROM productos p
+                INNER JOIN categorias c ON c.categoria_id = p.categoria_id
+                WHERE p.estado <> 'INACTIVO'
+                ORDER BY c.orden_presentacion, c.nombre, p.nombre
                 """;
 
         List<ProductoDisponibilidad> resultado = new ArrayList<>();

@@ -13,12 +13,14 @@ public class ProductoDAO {
         disponibilidadDAO.recalcularTodos();
 
         String sql = """
-                SELECT producto_id, codigo, nombre, descripcion,
-                       COALESCE(categoria, 'Otros') AS categoria,
-                       precio_venta, estado
-                FROM productos
-                WHERE estado IN ('DISPONIBLE', 'AGOTADO')
-                ORDER BY COALESCE(categoria, 'Otros'), nombre
+                SELECT p.producto_id, p.codigo, p.nombre, p.descripcion,
+                       c.nombre AS categoria,
+                       p.precio_venta, p.estado
+                FROM productos p
+                INNER JOIN categorias c ON c.categoria_id = p.categoria_id
+                WHERE p.estado IN ('DISPONIBLE', 'AGOTADO')
+                  AND c.estado = 'ACTIVO'
+                ORDER BY c.orden_presentacion, c.nombre, p.nombre
                 """;
 
         Map<String, List<Producto>> menu = new LinkedHashMap<>();
