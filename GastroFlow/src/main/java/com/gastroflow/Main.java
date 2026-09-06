@@ -82,12 +82,36 @@ public class Main extends Application {
             ventana.show();
 
         } catch (Exception e) {
+            e.printStackTrace();
+
             Alert alerta = new Alert(Alert.AlertType.ERROR);
             alerta.setTitle("No se pudo abrir el módulo");
             alerta.setHeaderText(titulo);
-            alerta.setContentText(e.getMessage());
+            alerta.setContentText(describirCausa(e));
             alerta.showAndWait();
         }
+    }
+
+    /**
+     * Una FXMLLoadException solo dice archivo y línea; el motivo real está en la
+     * cadena de causas. Esto arma un mensaje con las dos cosas.
+     */
+    private String describirCausa(Throwable error) {
+        StringBuilder mensaje = new StringBuilder();
+
+        Throwable actual = error;
+        while (actual != null) {
+            mensaje.append(actual.getClass().getSimpleName());
+
+            if (actual.getMessage() != null && !actual.getMessage().isBlank()) {
+                mensaje.append(": ").append(actual.getMessage());
+            }
+            mensaje.append('\n');
+
+            actual = actual.getCause() == actual ? null : actual.getCause();
+        }
+
+        return mensaje.toString().trim();
     }
 
     /**

@@ -95,7 +95,7 @@
 
                 <HBox alignment="CENTER_RIGHT" spacing="18" styleClass="total-container">
                     <Label text="TOTAL A PAGAR" styleClass="total-titulo"/>
-                    <Label fx:id="totalLabel" text="$0" styleClass="total-valor"/>
+                    <Label fx:id="totalLabel" text="\$0" styleClass="total-valor"/>
                 </HBox>
 
                 <Button fx:id="cerrarPagoButton"
