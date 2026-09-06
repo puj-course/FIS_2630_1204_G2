@@ -14,7 +14,7 @@ creadas en `../migrations/`.
 |---|---|---|---|
 | `unidades_medida.ddl` | `unidades_medida` | HU-04 | Catálogo de unidades (kilogramo, litro, unidad…) con código, abreviatura y tipo. |
 | `ingredientes.ddl` | `ingredientes` | HU-04 | Insumos del inventario: costo, stock actual/mínimo/máximo, proveedor y vencimiento. |
-| `categorias.ddl` | `categorias` | HU-05 | Categorías del menú que administra el restaurante, con su orden de presentación. |
+| `categorias.ddl` | `categorias` | HU-05 · HU-39 | Categorías del menú que administra el restaurante, con su orden de presentación. |
 | `productos.ddl` | `productos` | HU-05 | Catálogo de platos y bebidas: precio vigente, receta (`ingredientes` JSONB) y estado. |
 | `precios_producto.ddl` | `precios_producto` | HU-05 | Historial de precios. `productos.precio_venta` sigue siendo el precio vigente. |
 | `pedidos.ddl` | `pedidos` | HU-07 | Pedidos: mesa, mesero, líneas (`productos` JSONB), estado, totales y propina. |

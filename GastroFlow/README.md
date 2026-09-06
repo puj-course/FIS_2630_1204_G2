@@ -31,6 +31,16 @@ Vistas: `admin-disponibilidad.fxml`, `menu-mesero.fxml`
 
 Vista: `cajero-pago-view.fxml`
 
+### HU-39 — Menú digital por categorías
+
+- Menú organizado por categorías, en el orden que define el Administrador.
+- Cada producto muestra nombre, precio, descripción y disponibilidad.
+- Buscador por nombre y descripción, que ignora tildes y mayúsculas.
+- Filtro por categoría y casilla para ocultar los productos agotados.
+- Los productos agotados nunca se pueden agregar, ni siquiera encontrándolos con el buscador.
+
+Vista: `menu-mesero.fxml` (compartida con HU-28)
+
 ---
 
 ## Estructura
