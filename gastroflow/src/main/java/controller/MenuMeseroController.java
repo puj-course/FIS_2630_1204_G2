@@ -3,6 +3,7 @@ package controller;
 import dao.ProductoDAO;
 import dto.ItemPedido;
 import entity.Producto;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -11,6 +12,7 @@ import javafx.scene.layout.*;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.text.NumberFormat;
+import java.text.Normalizer;
 import java.util.*;
 
 public class MenuMeseroController {
@@ -18,36 +20,129 @@ public class MenuMeseroController {
     @FXML private VBox pedidoBox;
     @FXML private Label totalLabel;
 
+    // HU-39
+    @FXML private TextField busquedaField;
+    @FXML private ComboBox<String> categoriaCombo;
+    @FXML private CheckBox soloDisponiblesCheck;
+    @FXML private Label resultadosLabel;
+
+    private static final String TODAS_LAS_CATEGORIAS = "Todas";
+
     private final ProductoDAO productoDAO = new ProductoDAO();
     private final Map<Long, ItemPedido> pedido = new LinkedHashMap<>();
     private final NumberFormat moneda = NumberFormat.getCurrencyInstance(new Locale("es", "CO"));
 
+    /** Menú completo tal como vino de la base. Los filtros trabajan sobre esta copia. */
+    private Map<String, List<Producto>> menuCompleto = new LinkedHashMap<>();
+
     @FXML
     public void initialize() {
+        busquedaField.textProperty().addListener((obs, anterior, actual) -> mostrarMenuFiltrado());
+        categoriaCombo.valueProperty().addListener((obs, anterior, actual) -> mostrarMenuFiltrado());
+        soloDisponiblesCheck.selectedProperty().addListener((obs, anterior, actual) -> mostrarMenuFiltrado());
+
         cargarMenu();
         actualizarPedido();
     }
 
+    /**
+     * Relee el menú desde la base de datos y vuelve a pintarlo respetando los
+     * filtros que el mesero tenga puestos.
+     */
     @FXML
     private void cargarMenu() {
-        categoriasBox.getChildren().clear();
         try {
-            Map<String, List<Producto>> menu = productoDAO.obtenerMenuPorCategorias();
-            for (Map.Entry<String, List<Producto>> entrada : menu.entrySet()) {
-                Label titulo = new Label(entrada.getKey());
-                titulo.getStyleClass().add("categoria-titulo");
-
-                TilePane pane = new TilePane();
-                pane.setHgap(14);
-                pane.setVgap(14);
-                pane.setPrefColumns(3);
-
-                for (Producto p : entrada.getValue()) pane.getChildren().add(crearTarjeta(p));
-                categoriasBox.getChildren().addAll(titulo, pane);
-            }
+            menuCompleto = productoDAO.obtenerMenuPorCategorias();
+            actualizarCategorias();
+            mostrarMenuFiltrado();
         } catch (SQLException e) {
             mostrarError(e);
         }
+    }
+
+    @FXML
+    private void limpiarFiltros() {
+        busquedaField.clear();
+        soloDisponiblesCheck.setSelected(false);
+        categoriaCombo.setValue(TODAS_LAS_CATEGORIAS);
+    }
+
+    /** Rellena el combo con las categorías del menú, conservando la selección actual. */
+    private void actualizarCategorias() {
+        String seleccionada = categoriaCombo.getValue();
+
+        List<String> categorias = new ArrayList<>();
+        categorias.add(TODAS_LAS_CATEGORIAS);
+        categorias.addAll(menuCompleto.keySet());
+        categoriaCombo.setItems(FXCollections.observableArrayList(categorias));
+
+        categoriaCombo.setValue(
+                categorias.contains(seleccionada) ? seleccionada : TODAS_LAS_CATEGORIAS);
+    }
+
+    /** Pinta el menú aplicando búsqueda, categoría y el filtro de disponibilidad. */
+    private void mostrarMenuFiltrado() {
+        categoriasBox.getChildren().clear();
+
+        String busqueda = normalizar(busquedaField.getText());
+        String categoria = categoriaCombo.getValue();
+        boolean soloDisponibles = soloDisponiblesCheck.isSelected();
+
+        int visibles = 0;
+
+        for (Map.Entry<String, List<Producto>> entrada : menuCompleto.entrySet()) {
+            if (categoria != null
+                    && !TODAS_LAS_CATEGORIAS.equals(categoria)
+                    && !categoria.equals(entrada.getKey())) {
+                continue;
+            }
+
+            List<Producto> coincidencias = new ArrayList<>();
+            for (Producto p : entrada.getValue()) {
+                if (soloDisponibles && !p.isDisponible()) continue;
+                if (coincide(p, busqueda)) coincidencias.add(p);
+            }
+
+            if (coincidencias.isEmpty()) continue;
+
+            Label titulo = new Label(entrada.getKey() + "  (" + coincidencias.size() + ")");
+            titulo.getStyleClass().add("categoria-titulo");
+
+            TilePane pane = new TilePane();
+            pane.setHgap(14);
+            pane.setVgap(14);
+            pane.setPrefColumns(3);
+
+            for (Producto p : coincidencias) pane.getChildren().add(crearTarjeta(p));
+
+            categoriasBox.getChildren().addAll(titulo, pane);
+            visibles += coincidencias.size();
+        }
+
+        if (visibles == 0) {
+            Label vacio = new Label("Ningún producto coincide con la búsqueda.");
+            vacio.getStyleClass().add("subtitulo");
+            categoriasBox.getChildren().add(vacio);
+        }
+
+        resultadosLabel.setText(visibles == 1 ? "1 producto" : visibles + " productos");
+    }
+
+    /** Busca el texto en el nombre y en la descripción, sin distinguir tildes ni mayúsculas. */
+    private boolean coincide(Producto producto, String busquedaNormalizada) {
+        if (busquedaNormalizada.isEmpty()) return true;
+
+        return normalizar(producto.getNombre()).contains(busquedaNormalizada)
+                || normalizar(producto.getDescripcion()).contains(busquedaNormalizada);
+    }
+
+    /** Pasa a minúsculas y quita tildes, para que "Ají" encuentre "aji". */
+    private String normalizar(String texto) {
+        if (texto == null) return "";
+
+        return Normalizer.normalize(texto.trim().toLowerCase(new Locale("es", "CO")),
+                        Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
     }
 
     private VBox crearTarjeta(Producto producto) {
@@ -68,7 +163,17 @@ public class MenuMeseroController {
         agregar.setDisable(!producto.isDisponible());
         agregar.setOnAction(e -> agregarProducto(producto));
 
-        card.getChildren().addAll(nombre, precio, estado, agregar);
+        card.getChildren().addAll(nombre, precio);
+
+        // HU-39: la descripción ya venía del DAO pero no se mostraba.
+        if (producto.getDescripcion() != null && !producto.getDescripcion().isBlank()) {
+            Label descripcion = new Label(producto.getDescripcion());
+            descripcion.setWrapText(true);
+            descripcion.getStyleClass().add("producto-descripcion");
+            card.getChildren().add(descripcion);
+        }
+
+        card.getChildren().addAll(estado, agregar);
         return card;
     }
 
