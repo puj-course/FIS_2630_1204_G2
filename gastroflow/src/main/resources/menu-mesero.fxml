@@ -39,7 +39,7 @@
                 <Separator/>
                 <HBox alignment="CENTER_RIGHT" spacing="10">
                     <Label text="Total:" styleClass="total-texto"/>
-                    <Label fx:id="totalLabel" text="$0" styleClass="total"/>
+                    <Label fx:id="totalLabel" text="\$0" styleClass="total"/>
                 </HBox>
                 <Button text="Confirmar pedido" maxWidth="Infinity" onAction="#confirmarPedido"/>
             </VBox>
