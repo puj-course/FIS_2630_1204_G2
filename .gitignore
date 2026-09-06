@@ -1,0 +1,31 @@
+# Compilados y salida de build
+target/
+build/
+out/
+*.class
+*.jar
+*.war
+
+# Maven
+.mvn/
+!.mvn/wrapper/maven-wrapper.properties
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+nbproject/private/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Entorno local
+.env
+*.local
