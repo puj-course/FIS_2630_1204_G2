@@ -74,8 +74,12 @@ public class PagoDAO {
                   AND UPPER(r.nombre_rol) = 'CAJERO'
                 """;
 
+        // Se releen los importes DENTRO de la transaccion, no solo el estado:
+        // entre la busqueda de la cuenta y el cierre el mesero pudo agregar un
+        // plato, y cobrar con el subtotal viejo deja plata sin cobrar y la fila
+        // de pedidos incoherente.
         String bloquearPedido = """
-                SELECT estado
+                SELECT estado, subtotal, impuestos
                 FROM pedidos
                 WHERE pedido_id = ?
                 FOR UPDATE
@@ -118,7 +122,7 @@ public class PagoDAO {
 
             try {
                 validarCajero(connection, validarCajero, cajeroId);
-                bloquearYValidarPedido(connection, bloquearPedido, cuenta.getPedidoId());
+                bloquearYValidarPedido(connection, bloquearPedido, cuenta);
                 validarPagoNoDuplicado(connection, verificarPago, cuenta.getPedidoId());
 
                 BigDecimal total = cuenta.calcularTotal();
@@ -197,15 +201,33 @@ public class PagoDAO {
         }
     }
 
-    private void bloquearYValidarPedido(Connection connection, String sql, long pedidoId) throws SQLException {
+    /**
+     * Bloquea el pedido y comprueba que siga siendo cobrable y que los importes
+     * no hayan cambiado desde que el cajero consultó la cuenta.
+     */
+    private void bloquearYValidarPedido(Connection connection, String sql, CuentaPago cuenta)
+            throws SQLException {
+
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setLong(1, pedidoId);
+            ps.setLong(1, cuenta.getPedidoId());
+
             try (ResultSet rs = ps.executeQuery()) {
                 if (!rs.next()) {
                     throw new SQLException("El pedido ya no existe.");
                 }
                 if ("CANCELADO".equalsIgnoreCase(rs.getString("estado"))) {
                     throw new SQLException("No se puede pagar un pedido cancelado.");
+                }
+
+                BigDecimal subtotalActual = rs.getBigDecimal("subtotal");
+                BigDecimal impuestosActual = rs.getBigDecimal("impuestos");
+
+                if (subtotalActual.compareTo(cuenta.getSubtotal()) != 0
+                        || impuestosActual.compareTo(cuenta.getImpuestos()) != 0) {
+                    throw new SQLException(
+                            "La cuenta cambió desde que la consultó: ahora el subtotal es "
+                                    + subtotalActual + " y los impuestos " + impuestosActual
+                                    + ". Vuelva a buscar el pedido antes de cobrarlo.");
                 }
             }
         }
