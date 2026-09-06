@@ -3,6 +3,7 @@ package database;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
 
 public final class ConexionBD {
 
@@ -21,10 +22,25 @@ public final class ConexionBD {
             "postgres"
     );
 
+    /** Segundos que se espera a que la base responda antes de rendirse. */
+    private static final String TIEMPO_CONEXION = "5";
+    private static final String TIEMPO_CONSULTA = "15";
+
     private ConexionBD() {
     }
 
     public static Connection conectar() throws SQLException {
-        return DriverManager.getConnection(URL, USUARIO, PASSWORD);
+        Properties propiedades = new Properties();
+        propiedades.setProperty("user", USUARIO);
+        propiedades.setProperty("password", PASSWORD);
+
+        // Sin estos limites, si el servidor esta caido o la red se cae, la
+        // aplicacion se queda esperando el timeout del sistema operativo:
+        // varios minutos con la ventana congelada.
+        propiedades.setProperty("connectTimeout", TIEMPO_CONEXION);
+        propiedades.setProperty("socketTimeout", TIEMPO_CONSULTA);
+        propiedades.setProperty("loginTimeout", TIEMPO_CONEXION);
+
+        return DriverManager.getConnection(URL, propiedades);
     }
 }
