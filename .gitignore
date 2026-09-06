@@ -40,3 +40,6 @@ desktop.ini
 .env
 *.local
 temp/
+
+# Carpetas de herramientas externas
+Claude outputs/
