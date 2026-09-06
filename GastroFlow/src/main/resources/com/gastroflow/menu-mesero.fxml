@@ -5,11 +5,26 @@
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.gastroflow.controller.MenuMeseroController">
     <top>
-        <HBox spacing="15" alignment="CENTER_LEFT" styleClass="header">
-            <Label text="Menú" styleClass="titulo"/>
-            <Region HBox.hgrow="ALWAYS"/>
-            <Button text="Actualizar disponibilidad" onAction="#cargarMenu"/>
-        </HBox>
+        <VBox>
+            <HBox spacing="15" alignment="CENTER_LEFT" styleClass="header">
+                <Label text="Menú" styleClass="titulo"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="Actualizar disponibilidad" onAction="#cargarMenu"/>
+            </HBox>
+
+            <!-- HU-39: búsqueda y filtro por categoría -->
+            <HBox spacing="10" alignment="CENTER_LEFT" styleClass="filtros">
+                <TextField fx:id="busquedaField"
+                           promptText="Buscar por nombre o descripción"
+                           prefWidth="320"/>
+                <Label text="Categoría:"/>
+                <ComboBox fx:id="categoriaCombo" prefWidth="200"/>
+                <CheckBox fx:id="soloDisponiblesCheck" text="Solo disponibles"/>
+                <Button text="Limpiar" onAction="#limpiarFiltros"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="resultadosLabel" styleClass="subtitulo"/>
+            </HBox>
+        </VBox>
     </top>
     <center>
         <SplitPane dividerPositions="0.72">
