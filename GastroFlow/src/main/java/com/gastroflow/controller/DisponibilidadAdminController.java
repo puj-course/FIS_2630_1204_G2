@@ -3,6 +3,7 @@ package com.gastroflow.controller;
 import com.gastroflow.dao.DisponibilidadDAO;
 import com.gastroflow.model.ProductoDisponibilidad;
 import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -45,27 +46,54 @@ public class DisponibilidadAdminController {
         recalcularYCargar();
     }
 
+    /**
+     * Recalcula el catálogo y refresca la tabla.
+     *
+     * Va en un hilo aparte: el recálculo recorre todos los productos, y si se
+     * hiciera en el hilo de JavaFX la ventana no terminaría de abrirse hasta
+     * que la base respondiera — o nunca, si está caída.
+     */
     @FXML
     private void recalcularYCargar() {
-        try {
-            dao.recalcularTodos();
-            List<ProductoDisponibilidad> productos = dao.listarProductos();
+        Task<List<ProductoDisponibilidad>> tarea = new Task<>() {
+            @Override
+            protected List<ProductoDisponibilidad> call() throws SQLException {
+                dao.recalcularTodos();
+                return dao.listarProductos();
+            }
+        };
+
+        tarea.setOnSucceeded(e -> {
+            List<ProductoDisponibilidad> productos = tarea.getValue();
             tablaProductos.setItems(FXCollections.observableArrayList(productos));
 
             long disponibles = productos.stream().filter(p -> "DISPONIBLE".equals(p.getEstado())).count();
             long agotados = productos.stream().filter(p -> "AGOTADO".equals(p.getEstado())).count();
             lblDisponibles.setText("Disponibles: " + disponibles);
             lblAgotados.setText("Agotados: " + agotados);
-        } catch (SQLException e) {
-            mostrarError(e);
-        }
+            tablaProductos.setPlaceholder(new Label("No hay productos registrados."));
+        });
+
+        tarea.setOnFailed(e -> {
+            tablaProductos.setItems(FXCollections.observableArrayList());
+            tablaProductos.setPlaceholder(new Label("No se pudo consultar la base de datos."));
+            lblDisponibles.setText("Disponibles: —");
+            lblAgotados.setText("Agotados: —");
+            mostrarError(tarea.getException());
+        });
+
+        tablaProductos.setPlaceholder(new Label("Recalculando disponibilidad…"));
+
+        Thread hilo = new Thread(tarea, "recalcular-disponibilidad");
+        hilo.setDaemon(true);
+        hilo.start();
     }
 
-    private void mostrarError(SQLException e) {
+    private void mostrarError(Throwable e) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Error de base de datos");
         alert.setHeaderText("No fue posible validar la disponibilidad");
-        alert.setContentText(e.getMessage());
+        alert.setContentText(e == null ? "Error desconocido" : e.getMessage());
         alert.showAndWait();
     }
 }

@@ -127,7 +127,14 @@ public class Main extends Application {
         }
 
         String nombre = System.getProperty("gastroflow.cajeroNombre", "Cajero");
-        SesionUsuario.iniciarSesion(Integer.parseInt(id), nombre, "CAJERO");
+
+        try {
+            SesionUsuario.iniciarSesion(Integer.parseInt(id.trim()), nombre, "CAJERO");
+        } catch (NumberFormatException e) {
+            // Antes esto tumbaba el arranque entero: la aplicacion no abria
+            // ninguna ventana y solo quedaba el rastro en consola.
+            System.err.println("gastroflow.cajeroId debe ser un numero entero; se recibio: " + id);
+        }
     }
 
     public static void main(String[] args) {
