@@ -18,6 +18,7 @@ CREATE TABLE pedidos (
     subtotal                NUMERIC(12,2) DEFAULT 0 NOT NULL,
     descuento               NUMERIC(12,2) DEFAULT 0 NOT NULL,
     impuestos               NUMERIC(12,2) DEFAULT 0 NOT NULL,
+    propina                 NUMERIC(12,2) DEFAULT 0 NOT NULL,
     total                   NUMERIC(12,2) DEFAULT 0 NOT NULL,
 
     observaciones           VARCHAR(1000),
@@ -76,6 +77,9 @@ CREATE TABLE pedidos (
 
     CONSTRAINT ck_pedido_impuestos
         CHECK (impuestos >= 0),
+
+    CONSTRAINT ck_pedido_propina
+        CHECK (propina >= 0),
 
     CONSTRAINT ck_pedido_total
         CHECK (total >= 0),
