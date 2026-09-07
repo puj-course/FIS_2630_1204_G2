@@ -20,3 +20,6 @@ CREATE TABLE mesas (
     CONSTRAINT chk_mesas_capacidad CHECK (capacidad > 0),
     CONSTRAINT chk_mesas_active CHECK (is_active IN (0, 1))
 );
+
+-- Búsqueda rápida de mesas por zona y por su estado actual (ej. ver mesas 'LIBRES' en 'Terraza')
+CREATE INDEX ix_mesas_zona_estado ON mesas (zona_id, estado_mesa_id);
