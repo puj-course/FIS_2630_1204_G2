@@ -1,4 +1,4 @@
--- HU-014: trazabilidad de los movimientos de inventario.
+-- HU-022: trazabilidad de los movimientos de inventario.
 -- Agrega el usuario responsable que exige el criterio de aceptacion y unifica
 -- la precision de `cantidad` con los campos de stock, que son NUMERIC(12,4).
 --
