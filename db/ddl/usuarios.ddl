@@ -25,3 +25,9 @@ CREATE TABLE usuarios (
     CONSTRAINT chk_usuarios_shift CHECK (is_on_shift IN (0, 1)),
     CONSTRAINT chk_usuarios_active CHECK (is_active IN (0, 1))
 );
+
+-- Acelera la búsqueda por tipo y número de documento (ej. inicio de sesión / verificación)
+CREATE INDEX ix_usuarios_documento ON usuarios (tipo_documento_id, numero_documento);
+
+-- Acelera la carga de usuarios según su rol (ej. listar todos los meseros)
+CREATE INDEX ix_usuarios_rol ON usuarios (rol_id);
