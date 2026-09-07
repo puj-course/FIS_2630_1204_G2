@@ -2,6 +2,7 @@ package com.restaurante.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Entity
 @Table(
@@ -26,9 +27,25 @@ public class Pedido {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mesa_id")
+    private Mesa mesa;
+
+    @Column(
+            nullable = false,
+            precision = 12,
+            scale = 2
+    )
+    private BigDecimal total;
+
+    @Column(name = "pagado", nullable = false)
+    private Boolean pagado;
+
     public Pedido() {
         this.createdAt = LocalDateTime.now();
         this.estado = EstadoPedido.PENDIENTE;
+        this.total = BigDecimal.ZERO;
+        this.pagado = false;
     }
 
     public Long getId() {
@@ -45,5 +62,26 @@ public class Pedido {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+    public Mesa getMesa() {
+        return mesa;
+    }
+    public void setMesa(Mesa mesa) {
+        this.mesa = mesa;
+    }
+    public BigDecimal getTotal() {
+        return total;
+    }
+
+    public void setTotal(BigDecimal total) {
+        this.total = total;
+    }
+
+    public Boolean getPagado() {
+        return pagado;
+    }
+
+    public void setPagado(Boolean pagado) {
+        this.pagado = pagado;
     }
 }
