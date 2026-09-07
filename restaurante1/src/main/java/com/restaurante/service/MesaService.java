@@ -4,6 +4,7 @@ import com.restaurante.entity.EstadoMesa;
 import com.restaurante.entity.Mesa;
 import com.restaurante.entity.Zona;
 import com.restaurante.exception.MesaNotFoundException;
+import com.restaurante.repository.EstadoMesaRepository;
 import com.restaurante.repository.MesaRepository;
 import com.restaurante.repository.ZonaRepository;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,16 @@ public class MesaService {
 
     private final MesaRepository mesaRepository;
     private final ZonaRepository zonaRepository;
+    private final EstadoMesaRepository estadoMesaRepository;
 
-    public MesaService(MesaRepository mesaRepository, ZonaRepository zonaRepository) {
+    public MesaService(
+            MesaRepository mesaRepository,
+            ZonaRepository zonaRepository,
+            EstadoMesaRepository estadoMesaRepository) {
+
         this.mesaRepository = mesaRepository;
         this.zonaRepository = zonaRepository;
+        this.estadoMesaRepository = estadoMesaRepository;
     }
 
     public Mesa registrarMesa(Integer numeroMesa, String codigoMesa, Integer capacidad, Long zonaId) {
@@ -26,8 +33,14 @@ public class MesaService {
         Zona zona =
                 zonaRepository.findById(zonaId)
                         .orElseThrow(
+                                () -> new MesaNotFoundException("Zona no encontrada con id " + zonaId)
+                        );
+
+        EstadoMesa disponible =
+                estadoMesaRepository.findByCodigoEstado("DISPONIBLE")
+                        .orElseThrow(
                                 () -> new MesaNotFoundException(
-                                        "Zona no encontrada con id " + zonaId
+                                        "El código DISPONIBLE no existe en estados_mesa"
                                 )
                         );
 
@@ -36,11 +49,22 @@ public class MesaService {
         mesa.setCodigoMesa(codigoMesa);
         mesa.setCapacidad(capacidad != null ? capacidad : 2);
         mesa.setZona(zona);
+        mesa.setEstado(disponible);
 
         return mesaRepository.save(mesa);
     }
 
-    public List<Mesa> listarMesas(Long zonaId, EstadoMesa estado) {
+    public List<Mesa> listarMesas(Long zonaId, String codigoEstado) {
+
+        EstadoMesa estado =
+                codigoEstado != null
+                        ? estadoMesaRepository.findByCodigoEstado(codigoEstado)
+                        .orElseThrow(
+                                () -> new MesaNotFoundException(
+                                        "Estado no encontrado: " + codigoEstado
+                                )
+                        )
+                        : null;
 
         if (zonaId != null && estado != null) {
             return mesaRepository.findByZonaIdAndEstado(zonaId, estado);
@@ -54,13 +78,19 @@ public class MesaService {
         return mesaRepository.findAll();
     }
 
-    public Mesa actualizarEstado(Long mesaId, EstadoMesa nuevoEstado) {
+    public Mesa actualizarEstado(Long mesaId, String codigoEstadoNuevo) {
 
         Mesa mesa =
                 mesaRepository.findById(mesaId)
                         .orElseThrow(
+                                () -> new MesaNotFoundException("Mesa no encontrada con id " + mesaId)
+                        );
+
+        EstadoMesa nuevoEstado =
+                estadoMesaRepository.findByCodigoEstado(codigoEstadoNuevo)
+                        .orElseThrow(
                                 () -> new MesaNotFoundException(
-                                        "Mesa no encontrada con id " + mesaId
+                                        "Estado no encontrado: " + codigoEstadoNuevo
                                 )
                         );
 
