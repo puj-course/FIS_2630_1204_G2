@@ -18,7 +18,7 @@ creadas en `../migrations/`.
 | `productos.ddl` | `productos` | HU-05 | Catálogo de platos y bebidas: precio vigente, receta (`ingredientes` JSONB) y estado. |
 | `precios_producto.ddl` | `precios_producto` | HU-05 | Historial de precios. `productos.precio_venta` sigue siendo el precio vigente. |
 | `pedidos.ddl` | `pedidos` | HU-07 | Pedidos: mesa, mesero, líneas (`productos` JSONB), estado, totales y propina. |
-| `movimientos_inventario.ddl` | `movimientos_inventario` | HU-014 | Kardex de entradas y salidas, con el usuario responsable de cada movimiento. |
+| `movimientos_inventario.ddl` | `movimientos_inventario` | HU-022 | Kardex de entradas y salidas, con el usuario responsable de cada movimiento. |
 | `pagos.ddl` | `pagos` | HU-35 | Cobros: subtotal, descuento con motivo, impuestos, propina y total pagado. |
 
 ---

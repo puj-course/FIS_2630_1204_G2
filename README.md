@@ -29,7 +29,6 @@ El problema que busca solucionar es la falta de organización y trazabilidad que
 | Base de datos | PostgreSQL 16 |
 | Construcción | Maven |
 | Pruebas | JUnit 5 |
-| Integración continua | GitHub Actions |
 | Control de versiones | Git |
 
 ---
@@ -58,7 +57,6 @@ FIS_2630_1204_G2/
 │   ├── functions/             Funciones almacenadas
 │   └── migrations/            Cambios sobre bases ya creadas
 │
-├── .github/workflows/ci.yml   Compila, corre las pruebas y valida el esquema
 ├── LICENSE
 └── README.md
 ```
@@ -131,7 +129,7 @@ Implementado:
 - **HU-04** modelo de datos de ingredientes y unidades de medida
 - **HU-05** modelo de datos de productos, categorías y precios
 - **HU-07** modelo de datos de pedidos
-- **HU-014** movimientos de inventario con trazabilidad por usuario
+- **HU-022** movimientos de inventario con trazabilidad por usuario
 - **HU-28** bloqueo automático de platos agotados
 - **HU-35** gestión de propinas y descuentos en caja
 - **HU-39** menú digital por categorías con buscador
