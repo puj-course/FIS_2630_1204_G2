@@ -17,7 +17,7 @@ CONSTRAINT fk_alerta_producto
 
 CONSTRAINT chk_alerta_item_unico CHECK (
         (ingrediente_id IS NOT NULL AND producto_id IS NULL) OR
-        (ingrediente_id IS NULL AND producto_id IS NOT NULL)),
+        (ingrediente_id IS NULL AND producto_id IS NOT NULL))
 );
 
 -- Búsqueda de alertas pendientes/sin resolver ordenadas por fecha para el dashboard
