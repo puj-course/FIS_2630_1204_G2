@@ -1,11 +1,10 @@
-# Plantilla del README del proyecto 2610
-
 # GastroFlow
 
 ## Descripción
 GastroFlow es un sistema de software orientado a la gestión integral de restaurantes. Su objetivo es centralizar en una sola plataforma procesos como el control de inventario, gestión de mesas, registro de pedidos, envío de comandas a cocina, administración de productos, recetas, usuarios y generación de reportes.
 
 El problema que busca solucionar es la falta de organización y trazabilidad que puede presentarse cuando estos procesos se manejan de forma manual o mediante herramientas separadas. Esto puede generar errores en los pedidos, desactualización del inventario, pérdida de información, dificultades en la comunicación entre meseros y cocina, y poca visibilidad sobre la operación del restaurante. El proyecto se plantea como una solución modular y escalable, de manera que puedan incorporarse nuevas funcionalidades a futuro sin afectar la estructura principal del sistema. GastroFlow busca mejorar la eficiencia operativa, facilitar el control de los recursos y proporcionar información más clara para apoyar la gestión y la toma de decisiones dentro del restaurante.
+
 
 ---
 
@@ -26,7 +25,7 @@ El problema que busca solucionar es la falta de organización y trazabilidad que
 - **Backend:** Java – Spring Boot
 - **Base de Datos:** PostgreSQL
 - **IA / Data Science:** Python, Pandas, Scikit-learn
-- **DevOps:** GitHub Actions, Docker, SonarQube
+- **DevOps:** GitHub Actions, Docker
 - **Control de versiones:** Git
 
 ---
@@ -129,8 +128,8 @@ project-name/
 
 ## Clonar el repositorio
 ```text
-git clone https://github.com/organizacion/proyecto.git
-cd proyecto
+git clone https://github.com/puj-course/FIS_2630_1204_G2.git
+cd FIS_2630_1204_G2
 ```
 
 ## Ejecución con Docker
@@ -181,7 +180,9 @@ Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana
 
 ## Licencia
 Proyecto desarrollado con fines académicos.
+
 * Nassim Suz : DevOps - https://github.com/zeuznnss
 * Cristian Quiroga: Product Owner - https://github.com/Quirogaaaa
 * Ana Torres: Backend Developer - https://github.com/anatorres
 * Samuel Malaver: Configuration Manager - https://github.com/szml-PUJ
+* Gabriel Quiroga: Product Owner - https://github.com/Quirogaaaa
