@@ -6,7 +6,7 @@ cantidad        NUMERIC(12,4) NOT NULL,
 precio_unitario NUMERIC(12,2) NOT NULL,
 subtotal        NUMERIC(12,2) NOT NULL,
 
-Restricciones de Clave Foránea (Integridad)
+--Restricciones de Clave Foránea (Integridad)
 CONSTRAINT fk_detalle_pedido_pedido
 FOREIGN KEY (pedido_id) REFERENCES pedidos(pedido_id) ON DELETE CASCADE,
 CONSTRAINT fk_detalle_pedido_plato
