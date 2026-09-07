@@ -1,4 +1,4 @@
-package RegistroCliente;
+package models.RegistroCliente;
 
 
 public class Cliente {

@@ -1,4 +1,4 @@
-package RegistrarPlato;
+package models.RegistrarPlato;
 
 
 public class Plato {
