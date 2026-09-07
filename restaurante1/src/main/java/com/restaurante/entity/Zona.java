@@ -3,11 +3,12 @@ package com.restaurante.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "zona")
+@Table(name = "zonas")
 public class Zona {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_zona")
     private Long id;
 
     @Column(name = "nombre_zona", nullable = false)
@@ -17,7 +18,7 @@ public class Zona {
     private String descripcion;
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
+    private Integer isActive = 1;
 
     public Zona() {
     }
@@ -42,11 +43,11 @@ public class Zona {
         this.descripcion = descripcion;
     }
 
-    public Boolean getIsActive() {
+    public Integer getIsActive() {
         return isActive;
     }
 
-    public void setIsActive(Boolean active) {
+    public void setIsActive(Integer active) {
         isActive = active;
     }
 }
