@@ -1,5 +1,3 @@
-# Plantilla del README del proyecto 2610
-
 # GastroFlow
 
 ## Descripción
