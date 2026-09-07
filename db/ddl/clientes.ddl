@@ -20,3 +20,6 @@ CREATE TABLE clientes (
         REFERENCES usuarios(id_usuario),
     CONSTRAINT chk_clientes_active CHECK (is_active IN (0, 1))
 );
+
+-- Búsqueda rápida de clientes al emitir facturas/pagos o buscar por identificación
+CREATE INDEX ix_clientes_documento ON clientes (tipo_documento_id, numero_documento);
