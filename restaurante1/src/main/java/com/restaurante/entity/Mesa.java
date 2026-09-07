@@ -1,25 +1,15 @@
 package com.restaurante.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "mesa",
-        indexes = {
-                @Index(
-                        name = "idx_mesa_zona",
-                        columnList = "zona_id"
-                ),
-                @Index(
-                        name = "idx_mesa_estado",
-                        columnList = "estado"
-                )
-        }
-)
+@Table(name = "mesas")
 public class Mesa {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_mesa")
     private Long id;
 
     @Column(name = "numero_mesa", nullable = false)
@@ -32,18 +22,28 @@ public class Mesa {
     private Integer capacidad = 2;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "zona_id", nullable = false)
+    @JoinColumn(name = "id_zona", nullable = false)
     private Zona zona;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_estado_mesa", nullable = false)
     private EstadoMesa estado;
 
+    @Column(name = "codigo_qr")
+    private String codigoQr;
+
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
+    private Integer isActive = 1;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
     public Mesa() {
-        this.estado = EstadoMesa.DISPONIBLE;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -88,14 +88,30 @@ public class Mesa {
 
     public void setEstado(EstadoMesa estado) {
         this.estado = estado;
+        this.updatedAt = LocalDateTime.now();
     }
 
-    public Boolean getIsActive() {
+    public String getCodigoQr() {
+        return codigoQr;
+    }
+
+    public void setCodigoQr(String codigoQr) {
+        this.codigoQr = codigoQr;
+    }
+
+    public Integer getIsActive() {
         return isActive;
     }
 
-    public void setIsActive(Boolean active) {
+    public void setIsActive(Integer active) {
         isActive = active;
     }
-}
 
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+}
