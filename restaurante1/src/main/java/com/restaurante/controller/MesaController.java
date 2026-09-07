@@ -1,6 +1,5 @@
 package com.restaurante.controller;
 
-import com.restaurante.entity.EstadoMesa;
 import com.restaurante.entity.Mesa;
 import com.restaurante.service.MesaService;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +29,7 @@ public class MesaController {
     @GetMapping
     public List<Mesa> listarMesas(
             @RequestParam(required = false) Long zonaId,
-            @RequestParam(required = false) EstadoMesa estado) {
+            @RequestParam(required = false) String estado) {
 
         return mesaService.listarMesas(zonaId, estado);
     }
@@ -38,7 +37,7 @@ public class MesaController {
     @PatchMapping("/{id}/estado")
     public Mesa actualizarEstado(
             @PathVariable Long id,
-            @RequestParam EstadoMesa estado) {
+            @RequestParam String estado) {
 
         return mesaService.actualizarEstado(id, estado);
     }
