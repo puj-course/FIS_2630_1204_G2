@@ -24,8 +24,8 @@ El problema que busca solucionar es la falta de organización y trazabilidad que
 
 | Capa | Tecnología |
 |---|---|
-| Interfaz | JavaFX 21 |
-| Lógica de aplicación | Java 21, JDBC |
+| Interfaz | JavaFX 17 |
+| Lógica de aplicación | Java 17, JDBC |
 | Base de datos | PostgreSQL 16 |
 | Construcción | Maven |
 | Pruebas | JUnit 5 |
@@ -67,7 +67,7 @@ La documentación detallada está repartida donde corresponde: [`GastroFlow/READ
 
 ## Requisitos
 
-- JDK 21
+- JDK 17
 - Maven 3.9 o superior
 - PostgreSQL 16
 
