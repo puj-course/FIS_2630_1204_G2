@@ -57,8 +57,7 @@ FIS_2630_1204_G2/
 │   ├── functions/             Funciones almacenadas
 │   └── migrations/            Cambios sobre bases ya creadas
 │
-├── app/  src/                 Clases de otros módulos, todavía fuera del build
-├── conf/  docs/  scripts/  temp/    Carpetas de la plantilla inicial
+├── src/main/java/             Clases de otro módulo, todavía fuera del build
 │
 ├── LICENSE
 └── README.md
