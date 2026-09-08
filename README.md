@@ -37,14 +37,14 @@ El problema que busca solucionar es la falta de organización y trazabilidad que
 
 ```text
 FIS_2630_1204_G2/
-├── conf/                      configuracion para generar base de datos
+├── conf/                      Configuracion para generar base de datos
 ├── db/                        Base de datos
 │   ├── ddl/                   Una tabla por archivo, con su README
 │   ├── functions/             Funciones almacenadas
 │   └── migrations/            Cambios sobre bases ya creadas
-├── docs/                      documentacion del proyecto
+├── docs/                      Documentacion del proyecto
 ├── GastroFlow/                Aplicación de escritorio (JavaFX + Maven)
-│   ├── pom.xml
+│   ├── pom.xml                Dependencias usadas en el proyecto
 │   ├── README.md              Módulos implementados y cómo ejecutarlos
 │   ├── src/
 │       ├── main/
@@ -52,12 +52,12 @@ FIS_2630_1204_G2/
 │       │   ├── controller/            Controladores de las vistas
 │       │   ├── dao/                   Acceso a datos con JDBC
 │       │   ├── database/              Conexión a PostgreSQL
-│       │   ├── dto/                   transporte de datos atraves de la aplicacion
-│       │   ├── entity/                entidades de dominio
-│       │   ├── enums/                 enumeradores de estados
-│       │   ├── exceptions/            excepciones del proyecto
-│       │   ├── repository/            repositorios de entidades
-│       │   ├── service/               servicios del proyecto
+│       │   ├── dto/                   Transporte de datos atraves de la aplicacion
+│       │   ├── entity/                Entidades de dominio
+│       │   ├── enums/                 Enumeradores de estados
+│       │   ├── exceptions/            Excepciones del proyecto
+│       │   ├── repository/            Repositorios de entidades
+│       │   ├── service/               Servicios del proyecto
 │       │   ├── session/               Usuario autenticado
 │       │   └── util/                  Utilidades sin dependencias
 │       ├── resources/   Vistas FXML y hojas de estilo
