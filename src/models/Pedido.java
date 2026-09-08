@@ -2,54 +2,80 @@ package com.restaurante.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.math.BigDecimal;
 
 @Entity
 @Table(
-        name = "pedido",
+        name = "pedidos",
         indexes = {
-                @Index(
-                        name = "idx_pedido_estado",
-                        columnList = "estado"
-                )
+                @Index(name = "idx_pedidos_mesa", columnList = "mesa_id")
         }
 )
 public class Pedido {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "pedido_id")
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private EstadoPedido estado;
-
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "numero_pedido", nullable = false, unique = true)
+    private String numeroPedido;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mesa_id")
     private Mesa mesa;
 
-    @Column(
-            nullable = false,
-            precision = 12,
-            scale = 2
-    )
-    private BigDecimal total;
+    @Column(name = "usuario_id", nullable = false)
+    private Long usuarioId;
 
-    @Column(name = "pagado", nullable = false)
-    private Boolean pagado;
+    @Column(nullable = false, columnDefinition = "jsonb")
+    private String productos = "[]";
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EstadoPedido estado;
+
+    @Column(name = "fecha_pedido", nullable = false)
+    private LocalDateTime fechaPedido;
 
     public Pedido() {
-        this.createdAt = LocalDateTime.now();
+        this.fechaPedido = LocalDateTime.now();
         this.estado = EstadoPedido.PENDIENTE;
-        this.total = BigDecimal.ZERO;
-        this.pagado = false;
     }
 
     public Long getId() {
         return id;
+    }
+
+    public String getNumeroPedido() {
+        return numeroPedido;
+    }
+
+    public void setNumeroPedido(String numeroPedido) {
+        this.numeroPedido = numeroPedido;
+    }
+
+    public Mesa getMesa() {
+        return mesa;
+    }
+
+    public void setMesa(Mesa mesa) {
+        this.mesa = mesa;
+    }
+
+    public Long getUsuarioId() {
+        return usuarioId;
+    }
+
+    public void setUsuarioId(Long usuarioId) {
+        this.usuarioId = usuarioId;
+    }
+
+    public String getProductos() {
+        return productos;
+    }
+
+    public void setProductos(String productos) {
+        this.productos = productos;
     }
 
     public EstadoPedido getEstado() {
@@ -60,28 +86,7 @@ public class Pedido {
         this.estado = estado;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-    public Mesa getMesa() {
-        return mesa;
-    }
-    public void setMesa(Mesa mesa) {
-        this.mesa = mesa;
-    }
-    public BigDecimal getTotal() {
-        return total;
-    }
-
-    public void setTotal(BigDecimal total) {
-        this.total = total;
-    }
-
-    public Boolean getPagado() {
-        return pagado;
-    }
-
-    public void setPagado(Boolean pagado) {
-        this.pagado = pagado;
+    public LocalDateTime getFechaPedido() {
+        return fechaPedido;
     }
 }
