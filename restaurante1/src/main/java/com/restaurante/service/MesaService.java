@@ -30,19 +30,19 @@ public class MesaService {
 
     public Mesa registrarMesa(Integer numeroMesa, String codigoMesa, Integer capacidad, Long zonaId) {
 
-        // Validar que la zona exista antes de crear la mesa
-        Zona zona = 
-            zonaRepository.findById(zonaId)
-                .orElseThrow(
-                    () -> new MesaNotFoundException("Zona no encontrada con id " + zonaId)
-                );
+        Zona zona =
+                zonaRepository.findById(zonaId)
+                        .orElseThrow(
+                                () -> new MesaNotFoundException("Zona no encontrada con id " + zonaId)
+                        );
 
-        // Toda mesa nueva nace en estado DISPONIBLE
-        EstadoMesa disponible = 
-            estadoMesaRepository.findByCodigoEstado("DISPONIBLE").
-                orElseThrow(
-                    () -> new MesaNotFoundException("El código DISPONIBLE no existe en estados_mesa")
-                );
+        EstadoMesa disponible =
+                estadoMesaRepository.findByCodigoEstado("DISPONIBLE")
+                        .orElseThrow(
+                                () -> new MesaNotFoundException(
+                                        "El código DISPONIBLE no existe en estados_mesa"
+                                )
+                        );
 
         Mesa mesa = new Mesa();
         mesa.setNumeroMesa(numeroMesa);
@@ -56,16 +56,16 @@ public class MesaService {
 
     public List<Mesa> listarMesas(Long zonaId, String codigoEstado) {
 
-        // Resolver el código de estado recibido contra el catálogo, si vino uno
         EstadoMesa estado =
-            codigoEstado != null
-                ? estadoMesaRepository.findByCodigoEstado(codigoEstado)
-                    .orElseThrow(
-                        () -> new MesaNotFoundException("Estado no encontrado: " + codigoEstado)
-                    )
-                : null;
+                codigoEstado != null
+                        ? estadoMesaRepository.findByCodigoEstado(codigoEstado)
+                        .orElseThrow(
+                                () -> new MesaNotFoundException(
+                                        "Estado no encontrado: " + codigoEstado
+                                )
+                        )
+                        : null;
 
-        // Filtrar según qué combinación de zona/estado llegó
         if (zonaId != null && estado != null) {
             return mesaRepository.findByZonaIdAndEstado(zonaId, estado);
         }
@@ -81,17 +81,18 @@ public class MesaService {
     public Mesa actualizarEstado(Long mesaId, String codigoEstadoNuevo) {
 
         Mesa mesa =
-            mesaRepository.findById(mesaId)
-                .orElseThrow(
-                    () -> new MesaNotFoundException("Mesa no encontrada con id " + mesaId)
-                );
+                mesaRepository.findById(mesaId)
+                        .orElseThrow(
+                                () -> new MesaNotFoundException("Mesa no encontrada con id " + mesaId)
+                        );
 
-        // Validar que el código de estado nuevo exista en el catálogo
         EstadoMesa nuevoEstado =
-            estadoMesaRepository.findByCodigoEstado(codigoEstadoNuevo)
-                .orElseThrow(
-                    () -> new MesaNotFoundException("Estado no encontrado: " + codigoEstadoNuevo)
-                );
+                estadoMesaRepository.findByCodigoEstado(codigoEstadoNuevo)
+                        .orElseThrow(
+                                () -> new MesaNotFoundException(
+                                        "Estado no encontrado: " + codigoEstadoNuevo
+                                )
+                        );
 
         mesa.setEstado(nuevoEstado);
 

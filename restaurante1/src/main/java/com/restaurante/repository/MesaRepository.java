@@ -14,3 +14,5 @@ public interface MesaRepository extends JpaRepository<Mesa, Long> {
 
     List<Mesa> findByZonaIdAndEstado(Long zonaId, EstadoMesa estado);
 }
+
+

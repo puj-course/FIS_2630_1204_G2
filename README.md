@@ -166,5 +166,10 @@ Todos los integrantes son estudiantes de Ingeniería de Sistemas de la Pontifici
 ---
 
 ## Licencia
+Proyecto desarrollado con fines académicos.
 
-Proyecto desarrollado con fines académicos. Ver [LICENSE](LICENSE).
+* Nassim Suz : DevOps - https://github.com/zeuznnss
+* Cristian Quiroga: Product Owner - https://github.com/Quirogaaaa
+* Ana Torres: Backend Developer - https://github.com/anatorres
+* Samuel Malaver: Configuration Manager - https://github.com/szml-PUJ
+* Gabriel Quiroga: Product Owner - https://github.com/Quirogaaaa
