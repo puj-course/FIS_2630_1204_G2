@@ -91,7 +91,12 @@ for f in roles tipos_documento zonas estados_mesa unidades_medida categorias \
 done
 
 psql -d gastroflow -v ON_ERROR_STOP=1 -f ../functions/hu28_disponibilidad.sql
+psql -d gastroflow -v ON_ERROR_STOP=1 -f ../seed.sql
 ```
+
+`../seed.sql` carga datos de prueba para demostrar HU-28, HU-35 y HU-39. Es
+idempotente y resuelve todo por llave natural, así que se puede correr varias
+veces y también sobre una base que ya tenga datos.
 
 Sobre una base **ya creada**, aplicar en cambio los scripts de `../migrations/` en
 orden numérico. Los cuatro son idempotentes: correrlos dos veces no duplica datos ni
@@ -176,4 +181,3 @@ Comunes a todo el esquema:
   validan contra `ingredientes`.
 - Falta un `CHECK` de coherencia de totales en `pedidos`, equivalente al que ya
   tiene `pagos`.
-- No hay datos de carga inicial (`seed`) para los catálogos.
