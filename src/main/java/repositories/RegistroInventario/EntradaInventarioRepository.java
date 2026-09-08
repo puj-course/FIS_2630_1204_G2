@@ -25,4 +25,5 @@ public class EntradaInventarioRepository {
             stmt.executeUpdate();
         }
     }
+    
 }

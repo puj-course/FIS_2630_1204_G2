@@ -27,4 +27,5 @@ public class PlatoRepository {
             stmt.executeUpdate(); //ejecuta la consulta
         }
     }
+    
 }

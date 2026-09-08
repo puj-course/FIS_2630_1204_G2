@@ -38,4 +38,5 @@ public class ReglaDescuentoRepository {
         }
         return reglas;
     }
+    
 }
