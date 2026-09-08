@@ -1,186 +1,170 @@
 # GastroFlow
 
 ## Descripción
+
 GastroFlow es un sistema de software orientado a la gestión integral de restaurantes. Su objetivo es centralizar en una sola plataforma procesos como el control de inventario, gestión de mesas, registro de pedidos, envío de comandas a cocina, administración de productos, recetas, usuarios y generación de reportes.
 
-El problema que busca solucionar es la falta de organización y trazabilidad que puede presentarse cuando estos procesos se manejan de forma manual o mediante herramientas separadas. Esto puede generar errores en los pedidos, desactualización del inventario, pérdida de información, dificultades en la comunicación entre meseros y cocina, y poca visibilidad sobre la operación del restaurante. El proyecto se plantea como una solución modular y escalable, de manera que puedan incorporarse nuevas funcionalidades a futuro sin afectar la estructura principal del sistema. GastroFlow busca mejorar la eficiencia operativa, facilitar el control de los recursos y proporcionar información más clara para apoyar la gestión y la toma de decisiones dentro del restaurante.
-
+El problema que busca solucionar es la falta de organización y trazabilidad que puede presentarse cuando estos procesos se manejan de forma manual o mediante herramientas separadas. Esto puede generar errores en los pedidos, desactualización del inventario, pérdida de información, dificultades en la comunicación entre meseros y cocina, y poca visibilidad sobre la operación del restaurante. El proyecto se plantea como una solución modular y escalable, de manera que puedan incorporarse nuevas funcionalidades a futuro sin afectar la estructura principal del sistema.
 
 ---
 
 ## Equipo del Proyecto
-| Nombre        | Rol                   | GitHub / Perfil |
-|--------------|-----------------------|-----------------|
-| Mariana Niño | Scrum Master          | github.com/mariananvv16 |
-| Gabriel Quiroga | Product Owner         | github.com/Quirogaaaa |
-| Mariana Niño | Sprint Planner        | github.com/mariananvv16 |
+
+| Nombre | Rol | GitHub |
+|---|---|---|
+| Mariana Niño | Scrum Master / Sprint Planner | github.com/mariananvv16 |
+| Gabriel Quiroga | Product Owner | github.com/Quirogaaaa |
 | Samuel Zeudec | Configuration Manager | github.com/szml-PUJ |
-| Julian Parra | QA Lead               | github.com/JulianLeal12 |
-| Nassin Suz | DevOps Engineer       | github.com/zeuznnss |
+| Julian Parra | QA Lead | github.com/JulianLeal12 |
+| Nassin Suz | DevOps Engineer | github.com/zeuznnss |
 
 ---
 
-## Tecnologías Utilizadas
-- **Frontend:** JavaFX
-- **Backend:** Java – Spring Boot
-- **Base de Datos:** PostgreSQL
-- **IA / Data Science:** Python, Pandas, Scikit-learn
-- **DevOps:** GitHub Actions, Docker
-- **Control de versiones:** Git
+## Tecnologías
+
+| Capa | Tecnología |
+|---|---|
+| Interfaz | JavaFX 21 |
+| Lógica de aplicación | Java 21, JDBC |
+| Base de datos | PostgreSQL 16 |
+| Construcción | Maven |
+| Pruebas | JUnit 5 |
+| Control de versiones | Git |
 
 ---
 
-## Estructura del Proyecto
+## Estructura del repositorio
+
 ```text
-project-name/
-├── app/
-│   ├── index.js
-│   │   └── Punto de entrada principal de la aplicación.
-│   ├── package.json
-│   │   └── Define las dependencias, scripts y configuración del proyecto.
-│   ├── routes/
-│   │   ├── index.js
-│   │   └── Define las rutas o endpoints principales de la aplicación.
-│   ├── controllers/
-│   │   ├── userController.js
-│   │   └── Contiene la lógica encargada de procesar las solicitudes.
-│   └── services/
-│       ├── userService.js
-│       └── Contiene la lógica de negocio y servicios reutilizables.
+FIS_2630_1204_G2/
+├── GastroFlow/                Aplicación de escritorio (JavaFX + Maven)
+│   ├── pom.xml
+│   ├── README.md              Módulos implementados y cómo ejecutarlos
+│   └── src/
+│       ├── main/java/com/gastroflow/
+│       │   ├── Main.java              Menú principal: abre cada módulo
+│       │   ├── controller/            Controladores de las vistas
+│       │   ├── dao/                   Acceso a datos con JDBC
+│       │   ├── model/                 Modelos de dominio
+│       │   ├── database/              Conexión a PostgreSQL
+│       │   ├── session/               Usuario autenticado
+│       │   └── util/                  Utilidades sin dependencias
+│       ├── main/resources/com/gastroflow/   Vistas FXML y hojas de estilo
+│       └── test/java/com/gastroflow/        Pruebas unitarias
 │
-├── conf/
-│   ├── config.json
-│   │   └── Contiene parámetros generales de configuración.
-│   ├── database.js
-│   │   └── Configura la conexión con la base de datos.
-│   └── environment.example
-│       └── Ejemplo de las variables de entorno necesarias para ejecutar el proyecto.
-│
-├── docs/
-│   ├── architecture.md
-│   │   └── Describe la arquitectura general del sistema.
-│   ├── api.md
-│   │   └── Documenta los endpoints, parámetros y respuestas de la API.
-│   ├── installation.md
-│   │   └── Explica cómo instalar y configurar el proyecto.
-│   └── user_guide.md
-│       └── Guía básica para el uso de la aplicación.
-│
-├── scripts/
-│   ├── setup.sh
-│   │   └── Automatiza la instalación y configuración inicial del proyecto.
-│   ├── start.sh
-│   │   └── Permite iniciar la aplicación.
-│   ├── test.sh
-│   │   └── Ejecuta las pruebas automatizadas.
-│   └── deploy.sh
-│       └── Automatiza tareas relacionadas con el despliegue.
-│
-├── src/
-│   ├── models/
-│   │   ├── user.js
-│   │   └── Define las estructuras o modelos de datos del sistema.
-│   ├── utils/
-│   │   ├── helpers.js
-│   │   └── Contiene funciones auxiliares reutilizables.
-│   ├── middleware/
-│   │   ├── auth.js
-│   │   └── Contiene funciones que se ejecutan antes o después de una solicitud.
-│   └── tests/
-│       ├── user.test.js
-│       └── Contiene pruebas unitarias o de integración del proyecto.
-│
-├── temp/
-│   ├── .gitkeep
-│   │   └── Permite conservar la carpeta vacía dentro del repositorio.
-│   ├── example.tmp
-│   │   └── Ejemplo de archivo temporal generado durante la ejecución.
-│   └── uploads/
-│       └── Carpeta destinada a almacenar archivos temporales cargados por usuarios.
-│
-├── BOILERPLATE_template.md
-│   └── Documento que explica la estructura base y cómo utilizar este boilerplate.
-│
-├── CONTRIBUTING.md
-│   └── Define las normas y recomendaciones para contribuir al proyecto.
+├── db/                        Base de datos
+│   ├── ddl/                   Una tabla por archivo, con su README
+│   ├── functions/             Funciones almacenadas
+│   └── migrations/            Cambios sobre bases ya creadas
 │
 ├── LICENSE
-│   └── Especifica la licencia bajo la cual se distribuye el proyecto.
-│
-├── README.md
-│   └── Documento principal con la descripción, instalación, uso y características del proyecto.
-│
-├── .gitignore
-│   └── Define los archivos y carpetas que Git no debe versionar.
-│
-└── .env.example
-    └── Plantilla de las variables de entorno necesarias para ejecutar la aplicación.
+└── README.md
 ```
+
+La documentación detallada está repartida donde corresponde: [`GastroFlow/README.md`](GastroFlow/README.md) explica los módulos y cómo ejecutarlos, y [`db/ddl/README.md`](db/ddl/README.md) documenta el esquema, el orden de ejecución y las convenciones.
 
 ---
 
-## Instalación y Ejecución
-**Requisitos**
-- Docker y Docker Compose
-- Git
-- Java 17+
-- Python 3.10+
+## Requisitos
 
-## Clonar el repositorio
-```text
+- JDK 21
+- Maven 3.9 o superior
+- PostgreSQL 16
+
+---
+
+## Instalación
+
+### 1. Clonar el repositorio
+
+```bash
 git clone https://github.com/puj-course/FIS_2630_1204_G2.git
 cd FIS_2630_1204_G2
 ```
 
-## Ejecución con Docker
-```text
-docker-compose up --build
+### 2. Crear la base de datos
+
+```bash
+createdb -U postgres gastroflow
+cd db/ddl
 ```
 
-## Ejecución de pruebas
-```text
-docker-compose run backend mvn test
-docker-compose run ai-model pytest
+Y ejecutar los archivos en el orden que indica [`db/ddl/README.md`](db/ddl/README.md), que respeta las dependencias entre llaves foráneas.
+
+### 3. Configurar la conexión
+
+La aplicación lee estas variables de entorno; si no están, usa los valores por defecto:
+
+| Variable | Valor por defecto |
+|---|---|
+| `GASTROFLOW_DB_URL` | `jdbc:postgresql://localhost:5432/gastroflow` |
+| `GASTROFLOW_DB_USER` | `postgres` |
+| `GASTROFLOW_DB_PASSWORD` | `postgres` |
+
+---
+
+## Ejecución
+
+```bash
+cd GastroFlow
+mvn clean compile
+mvn javafx:run
+```
+
+Se abre un menú desde el que se entra a cada módulo.
+
+## Pruebas
+
+```bash
+cd GastroFlow
+mvn test
 ```
 
 ---
 
-## Contexto Académico
+## Estado actual
+
+Implementado:
+
+- **HU-04** modelo de datos de ingredientes y unidades de medida
+- **HU-05** modelo de datos de productos, categorías y precios
+- **HU-07** modelo de datos de pedidos
+- **HU-022** movimientos de inventario con trazabilidad por usuario
+- **HU-28** bloqueo automático de platos agotados
+- **HU-35** gestión de propinas y descuentos en caja
+- **HU-39** menú digital por categorías con buscador
+
+Pendiente:
+
+- Pantalla de autenticación real (hoy la sesión de caja se pasa por propiedad del sistema)
+- Registro de pedidos en base de datos desde la vista del mesero
+- Módulo de comandas a cocina y reportes
+
+---
+
+## Contexto académico
+
 - **Asignatura:** Fundamentos de Ingeniería de Software
 - **Docente:** Luis Gabriel Moreno Sandoval, PhD
 - **Contacto:** morenoluis@javeriana.edu.co
+- **Institución:** Pontificia Universidad Javeriana
 
 ---
 
 ## Contacto
 
-**Equipo de desarrollo:**
+Todos los integrantes son estudiantes de Ingeniería de Sistemas de la Pontificia Universidad Javeriana.
 
-**Gabriel Quiroga**  
-Estudiante de Ingenieria en Sistemas, Pontificia Universidad Javeriana  
-📧 quirogarg@javeriana.edu.co  
+| Integrante | Correo |
+|---|---|
+| Gabriel Quiroga | quirogarg@javeriana.edu.co |
+| Julian Parra | julians_parra@javeriana.edu.co |
+| Samuel Zeudec | malaverl-sz@javeriana.edu.co |
+| Nassin Suz | suz.nassinn@javeriana.edu.co |
+| Mariana Niño | ninov.mariana@javeriana.edu.co |
 
-**Julian Parra**  
-Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
-📧 julians_parra@javeriana.edu.co
-
-**Samuel Zeudec**  
-Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
-📧 malaverl-sz@javeriana.edu.co 
-
-**Nassin Suz**  
-Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
-📧 suz.nassinn@javeriana.edu.co
-
-**Mariana Niño**  
-Estudiante de Ingeniería en Sistemas, Pontificia Universidad Javeriana  
-📧 ninov.mariana@javeriana.edu.co
-
---- 
+---
 
 ## Licencia
-Proyecto desarrollado con fines académicos.
-* Nassin Suz : DevOps - https://github.com/zeuznnss
-* Gabriel Quiroga: Product Owner - https://github.com/Quirogaaaa
-* Ana Torres: Backend Developer - https://github.com/anatorres
 
+Proyecto desarrollado con fines académicos. Ver [LICENSE](LICENSE).
