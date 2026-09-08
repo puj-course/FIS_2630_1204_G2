@@ -33,26 +33,29 @@ public class PedidoService {
     public Pedido crearPedido(Long mesaId, Long usuarioId) {
 
         Mesa mesa =
-                mesaRepository.findById(mesaId)
-                        .orElseThrow(
-                                () -> new MesaNotFoundException("Mesa no encontrada con id " + mesaId)
-                        );
+            mesaRepository.findById(mesaId)
+                .orElseThrow(
+                    () -> new MesaNotFoundException("Mesa no encontrada con id " + mesaId)
+                );
 
+         // Verificar que la mesa esté libre antes de asignarle una comanda
         if (!"DISPONIBLE".equals(mesa.getEstado().getCodigoEstado())) {
             throw new MesaOcupadaException(
-                    "La mesa " + mesa.getNumeroMesa() + " no está disponible"
+                "La mesa " + mesa.getNumeroMesa() + " no está disponible"
             );
         }
 
+        // Comprobar que no exista ya una comanda activa en esa mesa
         boolean tieneComandaActiva =
-                pedidoRepository.existsByMesaIdAndEstadoNot(mesaId, EstadoPedido.CANCELADO);
+            pedidoRepository.existsByMesaIdAndEstadoNot(mesaId, EstadoPedido.CANCELADO);
 
         if (tieneComandaActiva) {
             throw new MesaOcupadaException(
-                    "La mesa " + mesa.getNumeroMesa() + " ya tiene una comanda activa"
+                "La mesa " + mesa.getNumeroMesa() + " ya tiene una comanda activa"
             );
         }
 
+        // Crear la comanda asociada a la mesa
         Pedido pedido = new Pedido();
         pedido.setMesa(mesa);
         pedido.setUsuarioId(usuarioId);
@@ -60,13 +63,12 @@ public class PedidoService {
 
         Pedido pedidoGuardado = pedidoRepository.save(pedido);
 
+        // Al crear la comanda, la mesa pasa a estar ocupada
         EstadoMesa ocupada =
-                estadoMesaRepository.findByCodigoEstado("OCUPADA")
-                        .orElseThrow(
-                                () -> new MesaNotFoundException(
-                                        "El código OCUPADA no existe en estados_mesa"
-                                )
-                        );
+            estadoMesaRepository.findByCodigoEstado("OCUPADA")
+                .orElseThrow(
+                    () -> new MesaNotFoundException("El código OCUPADA no existe en estados_mesa")
+                );
 
         mesa.setEstado(ocupada);
         mesaRepository.save(mesa);
