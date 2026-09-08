@@ -29,28 +29,28 @@ public class AdicionalService {
     public DetallePedidoAdicional agregarAdicional(
             Long detallePedidoId, Long adicionalId, Integer cantidad) {
 
+        // Validar que la línea de detalle exista
         DetallePedido detallePedido =
-                detallePedidoRepository.findById(detallePedidoId)
-                        .orElseThrow(
-                                () -> new AdicionalNoDisponibleException(
-                                        "Línea de detalle no encontrada con id " + detallePedidoId
-                                )
-                        );
+            detallePedidoRepository.findById(detallePedidoId)
+                .orElseThrow(
+                    () -> new AdicionalNoDisponibleException("Línea de detalle no encontrada con id " + detallePedidoId)
+                );
 
+        // Validar que el adicional exista en el catálogo
         Adicional adicional =
-                adicionalRepository.findById(adicionalId)
-                        .orElseThrow(
-                                () -> new AdicionalNoDisponibleException(
-                                        "Adicional no encontrado con id " + adicionalId
-                                )
-                        );
+            adicionalRepository.findById(adicionalId)
+                .orElseThrow(
+                    () -> new AdicionalNoDisponibleException("Adicional no encontrado con id " + adicionalId)
+                );
 
+        // Rechazar adicionales que fueron desactivados del catálogo
         if (!adicional.getIsActive()) {
             throw new AdicionalNoDisponibleException(
-                    "El adicional " + adicional.getNombre() + " no está disponible"
+                "El adicional " + adicional.getNombre() + " no está disponible"
             );
         }
 
+        // Congelar el precio del adicional al momento de agregarlo
         DetallePedidoAdicional detallePedidoAdicional = new DetallePedidoAdicional();
         detallePedidoAdicional.setDetallePedido(detallePedido);
         detallePedidoAdicional.setAdicional(adicional);
