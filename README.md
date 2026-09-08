@@ -37,6 +37,12 @@ El problema que busca solucionar es la falta de organización y trazabilidad que
 
 ```text
 FIS_2630_1204_G2/
+├── conf/                      configuracion para generar base de datos
+├── db/                        Base de datos
+│   ├── ddl/                   Una tabla por archivo, con su README
+│   ├── functions/             Funciones almacenadas
+│   └── migrations/            Cambios sobre bases ya creadas
+├── docs/                      documentacion del proyecto
 ├── GastroFlow/                Aplicación de escritorio (JavaFX + Maven)
 │   ├── pom.xml
 │   ├── README.md              Módulos implementados y cómo ejecutarlos
@@ -56,13 +62,7 @@ FIS_2630_1204_G2/
 │       │   └── util/                  Utilidades sin dependencias
 │       ├── resources/   Vistas FXML y hojas de estilo
 │       └── test/        Pruebas unitarias
-│
-├── db/                        Base de datos
-│   ├── ddl/                   Una tabla por archivo, con su README
-│   ├── functions/             Funciones almacenadas
-│   └── migrations/            Cambios sobre bases ya creadas
-│
-├── resources/
+├── BOILERPLATE_template.md
 ├── LICENSE
 └── README.md
 ```
