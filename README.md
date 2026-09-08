@@ -169,7 +169,7 @@ Todos los integrantes son estudiantes de Ingeniería de Sistemas de la Pontifici
 Proyecto desarrollado con fines académicos.
 
 * Nassim Suz : DevOps - https://github.com/zeuznnss
-* Julian Parra :
+* Julian Parra : QA Lead - https://github.com/JulianLeal12
 * Mariana Niño
 * Samuel Malaver: Configuration Manager - https://github.com/szml-PUJ
 * Gabriel Quiroga: Product Owner - https://github.com/Quirogaaaa
