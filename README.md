@@ -162,3 +162,9 @@ Todos los integrantes son estudiantes de Ingeniería de Sistemas de la Pontifici
 | Samuel Zeudec | malaverl-sz@javeriana.edu.co |
 | Nassin Suz | suz.nassinn@javeriana.edu.co |
 | Mariana Niño | ninov.mariana@javeriana.edu.co |
+
+---
+
+## Licencia
+
+Proyecto desarrollado con fines académicos. Ver [LICENSE](LICENSE).
