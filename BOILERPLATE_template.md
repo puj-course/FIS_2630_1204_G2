@@ -2,13 +2,26 @@
 ## Descripción de cada directorio y archivos
 ```bash
 FIS_2630_1204_G2/
-├── GastroFlow/   Aplicación de escritorio: interfaz, lógica y acceso a datos
-├── conf/         Configuración y scripts de conexión a la base de datos
-├── db/           Esquema de la base de datos: tablas, funciones y migraciones
-├── docs/         Documentación técnica y diagramas
-├── src/          Módulos en desarrollo, todavía fuera de la construcción
-├── LICENSE
-└── README.md
+├── app/   
+    ├── controllers/
+    ├── roots/
+    ├── services/
+├── conf/         
+├── db/           
+    ├── ddl/
+    ├── functions/
+    ├── migrations/
+├── docs/        
+├── scripts/
+├── src/        
+    ├── main/java/
+    ├── middleware/
+    ├── models/
+    ├── tests/
+    ├── utils/
+├── temp/
+    ├── uploas/
+├── LICENSE/
 ```
 
 
