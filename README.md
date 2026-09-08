@@ -57,6 +57,9 @@ FIS_2630_1204_G2/
 │   ├── functions/             Funciones almacenadas
 │   └── migrations/            Cambios sobre bases ya creadas
 │
+├── app/  src/                 Clases de otros módulos, todavía fuera del build
+├── conf/  docs/  scripts/  temp/    Carpetas de la plantilla inicial
+│
 ├── LICENSE
 └── README.md
 ```
@@ -166,10 +169,5 @@ Todos los integrantes son estudiantes de Ingeniería de Sistemas de la Pontifici
 ---
 
 ## Licencia
-Proyecto desarrollado con fines académicos.
 
-* Nassim Suz : DevOps - https://github.com/zeuznnss
-* Julian Parra : QA Lead - https://github.com/JulianLeal12
-* Mariana Niño
-* Samuel Malaver: Configuration Manager - https://github.com/szml-PUJ
-* Gabriel Quiroga: Product Owner - https://github.com/Quirogaaaa
+Proyecto desarrollado con fines académicos. Ver [LICENSE](LICENSE).
