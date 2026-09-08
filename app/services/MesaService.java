@@ -33,16 +33,16 @@ public class MesaService {
         // Validar que la zona exista antes de crear la mesa
         Zona zona = 
             zonaRepository.findById(zonaId)
-            .orElseThrow(
-                () -> new MesaNotFoundException("Zona no encontrada con id " + zonaId)
-            );
+                .orElseThrow(
+                    () -> new MesaNotFoundException("Zona no encontrada con id " + zonaId)
+                );
 
         // Toda mesa nueva nace en estado DISPONIBLE
         EstadoMesa disponible = 
             estadoMesaRepository.findByCodigoEstado("DISPONIBLE").
-            orElseThrow(
-                () -> new MesaNotFoundException("El código DISPONIBLE no existe en estados_mesa")
-            );
+                orElseThrow(
+                    () -> new MesaNotFoundException("El código DISPONIBLE no existe en estados_mesa")
+                );
 
         Mesa mesa = new Mesa();
         mesa.setNumeroMesa(numeroMesa);
@@ -59,10 +59,10 @@ public class MesaService {
         // Resolver el código de estado recibido contra el catálogo, si vino uno
         EstadoMesa estado =
             codigoEstado != null
-            ? estadoMesaRepository.findByCodigoEstado(codigoEstado)
-            .orElseThrow(
-                () -> new MesaNotFoundException("Estado no encontrado: " + codigoEstado)
-                )
+                ? estadoMesaRepository.findByCodigoEstado(codigoEstado)
+                    .orElseThrow(
+                        () -> new MesaNotFoundException("Estado no encontrado: " + codigoEstado)
+                    )
                 : null;
 
         // Filtrar según qué combinación de zona/estado llegó
@@ -82,16 +82,16 @@ public class MesaService {
 
         Mesa mesa =
             mesaRepository.findById(mesaId)
-            .orElseThrow(
-                () -> new MesaNotFoundException("Mesa no encontrada con id " + mesaId)
-            );
+                .orElseThrow(
+                    () -> new MesaNotFoundException("Mesa no encontrada con id " + mesaId)
+                );
 
         // Validar que el código de estado nuevo exista en el catálogo
         EstadoMesa nuevoEstado =
             estadoMesaRepository.findByCodigoEstado(codigoEstadoNuevo)
-            .orElseThrow(
-                () -> new MesaNotFoundException("Estado no encontrado: " + codigoEstadoNuevo)
-            );
+                .orElseThrow(
+                    () -> new MesaNotFoundException("Estado no encontrado: " + codigoEstadoNuevo)
+                );
 
         mesa.setEstado(nuevoEstado);
 
