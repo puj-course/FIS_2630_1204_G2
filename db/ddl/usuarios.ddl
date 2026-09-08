@@ -27,7 +27,7 @@ CREATE TABLE usuarios (
 );
 
 -- Acelera la búsqueda por tipo y número de documento (ej. inicio de sesión / verificación)
-CREATE INDEX ix_usuarios_documento ON usuarios (tipo_documento_id, numero_documento);
+CREATE INDEX ix_usuarios_documento ON usuarios (id_tipo_documento, numero_documento);
 
 -- Acelera la carga de usuarios según su rol (ej. listar todos los meseros)
-CREATE INDEX ix_usuarios_rol ON usuarios (rol_id);
+CREATE INDEX ix_usuarios_rol ON usuarios (id_rol);
