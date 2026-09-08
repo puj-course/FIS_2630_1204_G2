@@ -20,7 +20,7 @@ FIS_2630_1204_G2/
     ├── tests/
     ├── utils/
 ├── temp/
-    ├── uploas/
+    ├── uploads/
 ├── LICENSE/
 ```
 
