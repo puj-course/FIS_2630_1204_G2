@@ -24,8 +24,8 @@ El problema que busca solucionar es la falta de organización y trazabilidad que
 
 | Capa | Tecnología |
 |---|---|
-| Interfaz | JavaFX 21 |
-| Lógica de aplicación | Java 21, JDBC |
+| Interfaz | JavaFX 17 |
+| Lógica de aplicación | Java 17, JDBC |
 | Base de datos | PostgreSQL 16 |
 | Construcción | Maven |
 | Pruebas | JUnit 5 |
@@ -37,26 +37,32 @@ El problema que busca solucionar es la falta de organización y trazabilidad que
 
 ```text
 FIS_2630_1204_G2/
-├── GastroFlow/                Aplicación de escritorio (JavaFX + Maven)
-│   ├── pom.xml
-│   ├── README.md              Módulos implementados y cómo ejecutarlos
-│   └── src/
-│       ├── main/java/com/gastroflow/
-│       │   ├── Main.java              Menú principal: abre cada módulo
-│       │   ├── controller/            Controladores de las vistas
-│       │   ├── dao/                   Acceso a datos con JDBC
-│       │   ├── model/                 Modelos de dominio
-│       │   ├── database/              Conexión a PostgreSQL
-│       │   ├── session/               Usuario autenticado
-│       │   └── util/                  Utilidades sin dependencias
-│       ├── main/resources/com/gastroflow/   Vistas FXML y hojas de estilo
-│       └── test/java/com/gastroflow/        Pruebas unitarias
-│
+├── conf/                      Configuracion para generar base de datos
 ├── db/                        Base de datos
 │   ├── ddl/                   Una tabla por archivo, con su README
 │   ├── functions/             Funciones almacenadas
 │   └── migrations/            Cambios sobre bases ya creadas
-│
+├── docs/                      Documentacion del proyecto
+├── GastroFlow/                Aplicación de escritorio (JavaFX + Maven)
+│   ├── pom.xml                Dependencias usadas en el proyecto
+│   ├── README.md              Módulos implementados y cómo ejecutarlos
+│   ├── src/
+│       ├── main/
+│       │   ├── Main.java              Menú principal: abre cada módulo
+│       │   ├── controller/            Controladores de las vistas
+│       │   ├── dao/                   Acceso a datos con JDBC
+│       │   ├── database/              Conexión a PostgreSQL
+│       │   ├── dto/                   Transporte de datos atraves de la aplicacion
+│       │   ├── entity/                Entidades de dominio
+│       │   ├── enums/                 Enumeradores de estados
+│       │   ├── exceptions/            Excepciones del proyecto
+│       │   ├── repository/            Repositorios de entidades
+│       │   ├── service/               Servicios del proyecto
+│       │   ├── session/               Usuario autenticado
+│       │   └── util/                  Utilidades sin dependencias
+│       ├── resources/   Vistas FXML y hojas de estilo
+│       └── test/        Pruebas unitarias
+├── BOILERPLATE_template.md
 ├── LICENSE
 └── README.md
 ```
@@ -67,7 +73,7 @@ La documentación detallada está repartida donde corresponde: [`GastroFlow/READ
 
 ## Requisitos
 
-- JDK 21
+- JDK 17
 - Maven 3.9 o superior
 - PostgreSQL 16
 
@@ -162,14 +168,3 @@ Todos los integrantes son estudiantes de Ingeniería de Sistemas de la Pontifici
 | Samuel Zeudec | malaverl-sz@javeriana.edu.co |
 | Nassin Suz | suz.nassinn@javeriana.edu.co |
 | Mariana Niño | ninov.mariana@javeriana.edu.co |
-
----
-
-## Licencia
-Proyecto desarrollado con fines académicos.
-
-* Nassim Suz : DevOps - https://github.com/zeuznnss
-* Cristian Quiroga: Product Owner - https://github.com/Quirogaaaa
-* Ana Torres: Backend Developer - https://github.com/anatorres
-* Samuel Malaver: Configuration Manager - https://github.com/szml-PUJ
-* Gabriel Quiroga: Product Owner - https://github.com/Quirogaaaa
