@@ -1,4 +1,4 @@
-package PlatoInsumo;
+package entity;
 
 public class PlatoInsumo {
     private int id;

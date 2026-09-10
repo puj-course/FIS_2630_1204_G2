@@ -1,4 +1,4 @@
-package PlatoInsumo;
+package repository;
 
 import java.sql.*;
 import java.util.*;

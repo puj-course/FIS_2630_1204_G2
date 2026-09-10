@@ -1,4 +1,4 @@
-package PlatoInsumo;
+package service;
 
 import java.sql.*;
 import java.util.*;

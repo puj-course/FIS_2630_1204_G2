@@ -1,4 +1,4 @@
-package models.RegistrarPlato;
+package entity;
 
 
 public class Plato {

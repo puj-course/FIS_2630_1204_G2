@@ -1,4 +1,4 @@
-package repositories.ReglasDescuento;//hecho con ayuda de una LLM, sujeto a cambios para hacer pruebas con la base de datos gracias por entender
+package repository;//hecho con ayuda de una LLM, sujeto a cambios para hacer pruebas con la base de datos gracias por entender
 
 import java.sql.*;
 import java.util.*;

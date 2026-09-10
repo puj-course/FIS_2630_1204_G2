@@ -1,4 +1,4 @@
-package models.ReglasDescuento;
+package entity;
 
 public class ReglaDescuento {
     // Atributos
@@ -30,4 +30,5 @@ public class ReglaDescuento {
     public boolean isEsPorcentaje() { return esPorcentaje; }
     
     public void setEsPorcentaje(boolean esPorcentaje) { this.esPorcentaje = esPorcentaje; }
+    
 }

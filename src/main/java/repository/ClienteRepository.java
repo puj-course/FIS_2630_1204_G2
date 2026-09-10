@@ -1,4 +1,4 @@
-package repositories.RegistroCliente;//hecho con ayuda de una LLM, sujeto a cambios para hacer pruebas con la base de datos gracias por entender
+package repository;//hecho con ayuda de una LLM, sujeto a cambios para hacer pruebas con la base de datos gracias por entender
 
 import conf.ConexionDB; //importa la conexión a la base de datos
 import java.sql.Connection; // Importa Connection de Java SQL.

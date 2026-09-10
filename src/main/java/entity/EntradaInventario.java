@@ -1,4 +1,4 @@
-package models.RegistroInventario; // Indica que esta clase pertenece al paquete "RegistroInventario".
+package entity; // Indica que esta clase pertenece al paquete "RegistroInventario".
 
 // Declara la clase EntradaInventario.
 // Esta clase representa una entrada de un ingrediente al inventario.
