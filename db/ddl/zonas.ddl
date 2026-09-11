@@ -7,3 +7,5 @@ CREATE TABLE zonas (
     CONSTRAINT uk_zonas_nombre UNIQUE (nombre_zona),
     CONSTRAINT chk_zonas_active CHECK (is_active IN (0, 1))
 );
+
+

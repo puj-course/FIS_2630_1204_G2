@@ -23,3 +23,5 @@ CREATE TABLE mesas (
 
 -- Búsqueda rápida de mesas por zona y por su estado actual (ej. ver mesas 'LIBRES' en 'Terraza')
 CREATE INDEX ix_mesas_zona_estado ON mesas (zona_id, estado_mesa_id);
+
+
