@@ -23,3 +23,5 @@ CREATE TABLE clientes (
 
 -- Búsqueda rápida de clientes al emitir facturas/pagos o buscar por identificación
 CREATE INDEX ix_clientes_documento ON clientes (tipo_documento_id, numero_documento);
+
+
