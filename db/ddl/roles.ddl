@@ -5,3 +5,5 @@ CREATE TABLE roles (
     CONSTRAINT pk_roles PRIMARY KEY (id_rol),
     CONSTRAINT uk_roles_nombre UNIQUE (nombre_rol)
 );
+
+

@@ -31,3 +31,5 @@ CREATE INDEX ix_usuarios_documento ON usuarios (tipo_documento_id, numero_docume
 
 -- Acelera la carga de usuarios según su rol (ej. listar todos los meseros)
 CREATE INDEX ix_usuarios_rol ON usuarios (rol_id);
+
+
