@@ -158,7 +158,6 @@ public class MapaSalonController {
             case "LIBRE" -> "#4CAF50";
             case "OCUPADA" -> "#F44336";
             case "RESERVADA" -> "#FF9800";
-            case "MANTENIMIENTO" -> "#9E9E9E";
             default -> "#2196F3";
         };
     }
@@ -279,8 +278,7 @@ public class MapaSalonController {
         List<String> estados = List.of(
                 "LIBRE",
                 "OCUPADA",
-                "RESERVADA",
-                "MANTENIMIENTO"
+                "RESERVADA"
         );
 
         ChoiceDialog<String> dialog = new ChoiceDialog<>(
