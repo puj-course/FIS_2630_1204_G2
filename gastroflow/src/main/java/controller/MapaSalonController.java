@@ -7,6 +7,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
 import entity.Mesa;
 import repository.MesaRepository;
@@ -29,7 +31,7 @@ public class MapaSalonController {
     private static final double MESA_ANCHO = 120;
     private static final double MESA_ALTO = 78;
     private static final double INICIO_X = 24;
-    private static final double INICIO_Y = 150;
+    private static final double INICIO_Y = 210;
     private static final double ESPACIO_X = 18;
     private static final double ESPACIO_Y = 18;
     private static final int COLUMNAS = 3;
@@ -40,14 +42,31 @@ public class MapaSalonController {
     @FXML
     private VBox leyendaEstados;
 
+    @FXML
+    private ToggleButton filtroTodas;
+
+    @FXML
+    private ToggleButton filtroLibres;
+
+    @FXML
+    private ToggleButton filtroOcupadas;
+
+    @FXML
+    private ToggleButton filtroReservadas;
+
+    @FXML
+    private Label mensajeFiltro;
+
     private final MesaRepository mesaRepository = new MesaRepository();
     private final Map<Integer, Button> botonesPorMesa = new HashMap<>();
 
     private Mesa mesaSeleccionada;
     private Timeline actualizadorEstados;
+    private EstadoMesaVisual filtroActivo;
 
     @FXML
     public void initialize() {
+        configurarFiltros();
         construirLeyenda();
         cargarMesas();
         iniciarActualizacionAutomatica();
@@ -56,30 +75,40 @@ public class MapaSalonController {
     private void cargarMesas() {
         try {
             List<Mesa> mesas = mesaRepository.obtenerTodas();
-            Set<Integer> mesasActivas = new HashSet<>();
+            Set<Integer> mesasVisibles = new HashSet<>();
+            int posicionVisible = 0;
 
-            for (int i = 0; i < mesas.size(); i++) {
-                Mesa mesa = mesas.get(i);
-                mesasActivas.add(mesa.getIdMesa());
+            for (Mesa mesa : mesas) {
+                if (!cumpleFiltro(mesa)) {
+                    continue;
+                }
 
+                mesasVisibles.add(mesa.getIdMesa());
                 Button boton = botonesPorMesa.get(mesa.getIdMesa());
                 if (boton == null) {
-                    boton = crearBotonMesa(mesa, i);
+                    boton = crearBotonMesa(mesa, posicionVisible);
                     botonesPorMesa.put(mesa.getIdMesa(), boton);
                     panelMesas.getChildren().add(boton);
                 } else {
-                    actualizarBotonMesa(boton, mesa, i);
+                    actualizarBotonMesa(boton, mesa, posicionVisible);
                 }
 
                 if (mesaSeleccionada != null && mesaSeleccionada.getIdMesa() == mesa.getIdMesa()) {
                     mesaSeleccionada = mesa;
                 }
+
+                posicionVisible++;
             }
 
-            quitarMesasInactivas(mesasActivas);
+            quitarMesasNoVisibles(mesasVisibles);
+            actualizarMensajeFiltro(posicionVisible);
         } catch (SQLException e) {
             mostrarError("Error al cargar mesas: " + e.getMessage());
         }
+    }
+
+    private boolean cumpleFiltro(Mesa mesa) {
+        return filtroActivo == null || filtroActivo == EstadoMesaVisual.desdeCodigo(mesa.getCodigoEstado());
     }
 
     private Button crearBotonMesa(Mesa mesa, int posicion) {
@@ -131,18 +160,48 @@ public class MapaSalonController {
                 "-fx-border-radius: 8;";
     }
 
-    private void quitarMesasInactivas(Set<Integer> mesasActivas) {
+    private void quitarMesasNoVisibles(Set<Integer> mesasVisibles) {
         botonesPorMesa.entrySet().removeIf(entry -> {
-            boolean inactiva = !mesasActivas.contains(entry.getKey());
-            if (inactiva) {
+            boolean noVisible = !mesasVisibles.contains(entry.getKey());
+            if (noVisible) {
                 panelMesas.getChildren().remove(entry.getValue());
             }
-            return inactiva;
+            return noVisible;
         });
 
-        if (mesaSeleccionada != null && !mesasActivas.contains(mesaSeleccionada.getIdMesa())) {
+        if (mesaSeleccionada != null && !mesasVisibles.contains(mesaSeleccionada.getIdMesa())) {
             mesaSeleccionada = null;
         }
+    }
+
+    private void actualizarMensajeFiltro(int cantidadVisible) {
+        if (cantidadVisible == 0) {
+            mensajeFiltro.setText("No se encontraron mesas para el filtro seleccionado.");
+            mensajeFiltro.setVisible(true);
+        } else {
+            mensajeFiltro.setText("");
+            mensajeFiltro.setVisible(false);
+        }
+    }
+
+    private void configurarFiltros() {
+        ToggleGroup grupoFiltros = new ToggleGroup();
+        filtroTodas.setToggleGroup(grupoFiltros);
+        filtroLibres.setToggleGroup(grupoFiltros);
+        filtroOcupadas.setToggleGroup(grupoFiltros);
+        filtroReservadas.setToggleGroup(grupoFiltros);
+        filtroTodas.setSelected(true);
+
+        filtroTodas.setOnAction(event -> aplicarFiltro(null, filtroTodas));
+        filtroLibres.setOnAction(event -> aplicarFiltro(EstadoMesaVisual.DISPONIBLE, filtroLibres));
+        filtroOcupadas.setOnAction(event -> aplicarFiltro(EstadoMesaVisual.OCUPADA, filtroOcupadas));
+        filtroReservadas.setOnAction(event -> aplicarFiltro(EstadoMesaVisual.RESERVADA, filtroReservadas));
+    }
+
+    private void aplicarFiltro(EstadoMesaVisual nuevoFiltro, ToggleButton botonSeleccionado) {
+        filtroActivo = nuevoFiltro;
+        botonSeleccionado.setSelected(true);
+        cargarMesas();
     }
 
     private void construirLeyenda() {
