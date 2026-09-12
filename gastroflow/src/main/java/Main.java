@@ -36,8 +36,9 @@ public class Main extends Application {
         Button btnAdmin = new Button("Administrador — Disponibilidad de platos");
         Button btnMesero = new Button("Mesero — Menú y pedidos");
         Button btnCajero = new Button("Cajero — Pago de cuentas");
+        Button btnMapa = new Button("Mesero — Mapa de salón");
 
-        for (Button boton : new Button[]{btnAdmin, btnMesero, btnCajero}) {
+        for (Button boton : new Button[]{btnAdmin, btnMesero, btnCajero, btnMapa}) {
             boton.setMaxWidth(Double.MAX_VALUE);
             boton.setPrefHeight(44);
         }
@@ -60,12 +61,18 @@ public class Main extends Application {
                 "/cajero-pago.css",
                 900, 760));
 
-        VBox raiz = new VBox(14, titulo, subtitulo, btnAdmin, btnMesero, btnCajero);
+        btnMapa.setOnAction(e -> abrirVista(
+                "Gastroflow - Mapa de salón",
+                "/views/MapaSalon.fxml",
+                null,
+                950, 660));
+
+        VBox raiz = new VBox(14, titulo, subtitulo, btnAdmin, btnMesero, btnCajero, btnMapa);
         raiz.setAlignment(Pos.CENTER_LEFT);
         raiz.setPadding(new Insets(32));
 
         stage.setTitle("GastroFlow");
-        stage.setScene(new Scene(raiz, 460, 320));
+        stage.setScene(new Scene(raiz, 460, 380));
         stage.show();
     }
 
@@ -74,7 +81,9 @@ public class Main extends Application {
             Parent raiz = FXMLLoader.load(Main.class.getResource(fxml));
 
             Scene escena = new Scene(raiz, ancho, alto);
-            escena.getStylesheets().add(Main.class.getResource(css).toExternalForm());
+            if (css != null) {
+                escena.getStylesheets().add(Main.class.getResource(css).toExternalForm());
+            }
 
             Stage ventana = new Stage();
             ventana.setTitle(titulo);
