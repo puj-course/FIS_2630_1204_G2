@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+
+<?import javax.swing.table.TableColumn?>
+<?import javax.swing.text.html.TableView?>
+<?import java.awt.Button?>
+<VBox spacing="10.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controller.ReservaMeseroController">
+   <children>
+      <TableView fx:id="tablaReservas" prefHeight="300.0" prefWidth="600.0">
+         <columns>
+            <TableColumn fx:id="colMesa" text="Mesa" prefWidth="100.0" />
+            <TableColumn fx:id="colZona" text="Zona" prefWidth="120.0" />
+            <TableColumn fx:id="colHora" text="Hora reserva" prefWidth="150.0" />
+            <TableColumn fx:id="colCliente" text="Cliente" prefWidth="130.0" />
+            <TableColumn fx:id="colPersonas" text="Personas" prefWidth="80.0" />
+         </columns>
+      </TableView>
+      <HBox spacing="10.0">
+         <children>
+            <Button text="Ver todas" onAction="#cargarTodasLasReservas" />
+            <Button text="Solo turno actual" onAction="#filtrarTurnoActual" />
+            <Button text="Archivar seleccionada" onAction="#archivarReservaSeleccionada" />
+         </children>
+      </HBox>
+   </children>
+</VBox>
