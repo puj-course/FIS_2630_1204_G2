@@ -57,4 +57,19 @@ public class MesaRepository {
             stmt.executeUpdate();
         }
     }
+    public void cambiarEstadoMesa(int idMesa, String codigoEstado) throws SQLException {
+        String sql = "UPDATE mesas " +
+                "SET id_estado_mesa = " +
+                "(SELECT id_estado_mesa FROM estados_mesa WHERE codigo_estado = ?) " +
+                "WHERE id_mesa = ?";
+
+        try (Connection conn = ConexionDB.obtenerConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, codigoEstado);
+            stmt.setInt(2, idMesa);
+
+            stmt.executeUpdate();
+        }
+    }
 }

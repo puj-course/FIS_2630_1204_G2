@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.Pane?>
 
-
-<Pane fx:id="panelMesas" prefHeight="371.0" prefWidth="435.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.MapaSalonController">
+<Pane fx:id="panelMesas" prefHeight="611.0" prefWidth="762.0" style="-fx-background-image: url(&quot;@images/Salon_img.jpg&quot;);" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.MapaSalonController">
    <children>
-      <Button alignment="CENTER" layoutX="14.0" layoutY="333.0" mnemonicParsing="false" onAction="#agregarMesa" prefHeight="30.0" prefWidth="150.0" text="Agregar Mesa" />
-      <Button alignment="CENTER" layoutX="254.0" layoutY="333.0" mnemonicParsing="false" onAction="#quitarMesa" prefHeight="30.0" prefWidth="150.0" text="Quitar Mesa" />
+      <Button alignment="CENTER" layoutX="14.0" layoutY="567.0" mnemonicParsing="false" onAction="#agregarMesa" prefHeight="30.0" prefWidth="150.0" text="Agregar Mesa" />
+      <Button alignment="CENTER" layoutX="598.0" layoutY="567.0" mnemonicParsing="false" onAction="#quitarMesa" prefHeight="30.0" prefWidth="150.0" text="Quitar Mesa" />
+      <Label fx:id="lblMesasLibres" layoutX="652.0" layoutY="54.0" prefHeight="30.0" prefWidth="84.0" style="-fx-background-color: #e0e0e0;" text="Label" />
+      <Label fx:id="lblMesasOcupadas" layoutX="652.0" layoutY="101.0" prefHeight="30.0" prefWidth="84.0" style="-fx-background-color: #e0e0e0;" text="Label" />
+      <Label fx:id="lblMesasReservadas" layoutX="652.0" layoutY="139.0" prefHeight="30.0" prefWidth="84.0" style="-fx-background-color: #e0e0e0;" text="Label" />
    </children>
 </Pane>
