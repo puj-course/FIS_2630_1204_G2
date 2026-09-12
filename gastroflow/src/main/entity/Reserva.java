@@ -1,80 +1,40 @@
 package com.restaurante.entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(
-        name = "reserva",
-        indexes = {
-                @Index(name = "idx_reserva_mesa", columnList = "mesa_id")
-        }
-)
 public class Reserva {
+    private int idReserva;
+    private int idMesa;
+    private int numeroMesa;
+    private String nombreZona;
+    private LocalDateTime fechaHoraReserva;
+    private String nombreCliente;
+    private int cantidadPersonas;
+    private boolean activa;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    public Reserva() {}
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "mesa_id", nullable = false)
-    private Mesa mesa;
+    public int getIdReserva() { return idReserva; }
+    public void setIdReserva(int idReserva) { this.idReserva = idReserva; }
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private EstadoReserva estado;
+    public int getIdMesa() { return idMesa; }
+    public void setIdMesa(int idMesa) { this.idMesa = idMesa; }
 
-    @Column(name = "fecha_reserva", nullable = false)
-    private LocalDateTime fechaReserva;
+    public int getNumeroMesa() { return numeroMesa; }
+    public void setNumeroMesa(int numeroMesa) { this.numeroMesa = numeroMesa; }
 
-    @Column(name = "motivo_cancelacion")
-    private String motivoCancelacion;
+    public String getNombreZona() { return nombreZona; }
+    public void setNombreZona(String nombreZona) { this.nombreZona = nombreZona; }
 
-    @Column(name = "fecha_cancelacion")
-    private LocalDateTime fechaCancelacion;
+    public LocalDateTime getFechaHoraReserva() { return fechaHoraReserva; }
+    public void setFechaHoraReserva(LocalDateTime fechaHoraReserva) { this.fechaHoraReserva = fechaHoraReserva; }
 
-    public Reserva() {
-        this.fechaReserva = LocalDateTime.now();
-        this.estado = EstadoReserva.ACTIVA;
-    }
+    public String getNombreCliente() { return nombreCliente; }
+    public void setNombreCliente(String nombreCliente) { this.nombreCliente = nombreCliente; }
 
-    public Long getId() {
-        return id;
-    }
+    public int getCantidadPersonas() { return cantidadPersonas; }
+    public void setCantidadPersonas(int cantidadPersonas) { this.cantidadPersonas = cantidadPersonas; }
 
-    public Mesa getMesa() {
-        return mesa;
-    }
-
-    public void setMesa(Mesa mesa) {
-        this.mesa = mesa;
-    }
-
-    public EstadoReserva getEstado() {
-        return estado;
-    }
-
-    public void setEstado(EstadoReserva estado) {
-        this.estado = estado;
-    }
-
-    public LocalDateTime getFechaReserva() {
-        return fechaReserva;
-    }
-
-    public String getMotivoCancelacion() {
-        return motivoCancelacion;
-    }
-
-    public void setMotivoCancelacion(String motivoCancelacion) {
-        this.motivoCancelacion = motivoCancelacion;
-    }
-
-    public LocalDateTime getFechaCancelacion() {
-        return fechaCancelacion;
-    }
-
-    public void setFechaCancelacion(LocalDateTime fechaCancelacion) {
-        this.fechaCancelacion = fechaCancelacion;
-    }
+    public boolean isActiva() { return activa; }
+    public void setActiva(boolean activa) { this.activa = activa; }
 }
