@@ -57,6 +57,30 @@ public class MapaSalonController {
     @FXML
     private Label mensajeFiltro;
 
+    @FXML
+    private Label tituloDetalleMesa;
+
+    @FXML
+    private Label detalleNumero;
+
+    @FXML
+    private Label detalleEstado;
+
+    @FXML
+    private Label detalleCapacidad;
+
+    @FXML
+    private Label detalleComensales;
+
+    @FXML
+    private Label detallePedido;
+
+    @FXML
+    private Label detalleMesero;
+
+    @FXML
+    private Label detalleCodigo;
+
     private final MesaRepository mesaRepository = new MesaRepository();
     private final Map<Integer, Button> botonesPorMesa = new HashMap<>();
 
@@ -68,6 +92,7 @@ public class MapaSalonController {
     public void initialize() {
         configurarFiltros();
         construirLeyenda();
+        limpiarDetalleMesa();
         cargarMesas();
         iniciarActualizacionAutomatica();
     }
@@ -102,6 +127,9 @@ public class MapaSalonController {
 
             quitarMesasNoVisibles(mesasVisibles);
             actualizarMensajeFiltro(posicionVisible);
+            if (mesaSeleccionada != null) {
+                actualizarDetalleMesa(mesaSeleccionada);
+            }
         } catch (SQLException e) {
             mostrarError("Error al cargar mesas: " + e.getMessage());
         }
@@ -135,27 +163,31 @@ public class MapaSalonController {
         );
         btn.setLayoutX(INICIO_X + (posicion % COLUMNAS) * (MESA_ANCHO + ESPACIO_X));
         btn.setLayoutY(INICIO_Y + (posicion / COLUMNAS) * (MESA_ALTO + ESPACIO_Y));
-        btn.setStyle(estado != null ? estiloMesa(estado) : estiloEstadoNoValido());
+        boolean seleccionada = mesaSeleccionada != null && mesaSeleccionada.getIdMesa() == mesa.getIdMesa();
+        btn.setStyle(estado != null ? estiloMesa(estado, seleccionada) : estiloEstadoNoValido(seleccionada));
         btn.setOnAction(e -> {
             mesaSeleccionada = mesa;
-            mostrarDetalleMesa(mesa);
+            actualizarDetalleMesa(mesa);
+            cargarMesas();
         });
     }
 
-    private String estiloMesa(EstadoMesaVisual estado) {
+    private String estiloMesa(EstadoMesaVisual estado, boolean seleccionada) {
         return "-fx-background-color: " + estado.color + ";" +
                 "-fx-text-fill: white;" +
                 "-fx-font-weight: bold;" +
+                "-fx-border-color: " + (seleccionada ? "#111111" : estado.color) + ";" +
+                "-fx-border-width: " + (seleccionada ? "3" : "1") + ";" +
                 "-fx-background-radius: 8;" +
                 "-fx-border-radius: 8;";
     }
 
-    private String estiloEstadoNoValido() {
+    private String estiloEstadoNoValido(boolean seleccionada) {
         return "-fx-background-color: white;" +
                 "-fx-text-fill: #B00020;" +
                 "-fx-font-weight: bold;" +
-                "-fx-border-color: #B00020;" +
-                "-fx-border-width: 2;" +
+                "-fx-border-color: " + (seleccionada ? "#111111" : "#B00020") + ";" +
+                "-fx-border-width: " + (seleccionada ? "3" : "2") + ";" +
                 "-fx-background-radius: 8;" +
                 "-fx-border-radius: 8;";
     }
@@ -171,6 +203,7 @@ public class MapaSalonController {
 
         if (mesaSeleccionada != null && !mesasVisibles.contains(mesaSeleccionada.getIdMesa())) {
             mesaSeleccionada = null;
+            limpiarDetalleMesa();
         }
     }
 
@@ -202,6 +235,42 @@ public class MapaSalonController {
         filtroActivo = nuevoFiltro;
         botonSeleccionado.setSelected(true);
         cargarMesas();
+    }
+
+    private void actualizarDetalleMesa(Mesa mesa) {
+        EstadoMesaVisual estado = EstadoMesaVisual.desdeCodigo(mesa.getCodigoEstado());
+        boolean ocupada = estado == EstadoMesaVisual.OCUPADA;
+
+        tituloDetalleMesa.setText("Detalle de Mesa " + mesa.getNumeroMesa());
+        detalleNumero.setText("Numero: " + mesa.getNumeroMesa());
+        detalleEstado.setText("Estado: " + (estado != null ? estado.etiqueta : "Estado no valido"));
+        detalleCapacidad.setText("Capacidad maxima: " + mesa.getCapacidad() + " personas");
+        detalleComensales.setText("Comensales: " + textoComensales(mesa, ocupada));
+        detallePedido.setText("Pedido activo: " + textoOpcional(mesa.getPedidoActivo(), "Sin pedido activo"));
+        detalleMesero.setText("Mesero responsable: " + textoOpcional(mesa.getMeseroResponsable(), "Sin mesero asignado"));
+        detalleCodigo.setText("Codigo: " + textoOpcional(mesa.getCodigoMesa(), "N/A"));
+    }
+
+    private void limpiarDetalleMesa() {
+        tituloDetalleMesa.setText("Seleccione una mesa");
+        detalleNumero.setText("Numero: -");
+        detalleEstado.setText("Estado: -");
+        detalleCapacidad.setText("Capacidad maxima: -");
+        detalleComensales.setText("Comensales: -");
+        detallePedido.setText("Pedido activo: -");
+        detalleMesero.setText("Mesero responsable: -");
+        detalleCodigo.setText("Codigo: -");
+    }
+
+    private String textoComensales(Mesa mesa, boolean ocupada) {
+        if (!ocupada) {
+            return "No aplica";
+        }
+        return mesa.getCantidadComensales() != null ? mesa.getCantidadComensales().toString() : "No registrado";
+    }
+
+    private String textoOpcional(String valor, String textoVacio) {
+        return valor != null && !valor.isBlank() ? valor : textoVacio;
     }
 
     private void construirLeyenda() {
@@ -275,26 +344,6 @@ public class MapaSalonController {
         } catch (SQLException e) {
             mostrarError("Error al quitar mesa: " + e.getMessage());
         }
-    }
-
-    private void mostrarDetalleMesa(Mesa mesa) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        EstadoMesaVisual estado = EstadoMesaVisual.desdeCodigo(mesa.getCodigoEstado());
-
-        alert.setTitle("Detalle de Mesa");
-        alert.setHeaderText("Mesa " + mesa.getNumeroMesa());
-
-        alert.setContentText(
-                "Zona: " + mesa.getNombreZona() + "\n" +
-                        "Capacidad: " + mesa.getCapacidad() + " personas\n" +
-                        "Estado: " + (estado != null ? estado.etiqueta : "Estado no valido") + "\n" +
-                        "Codigo de estado: " + mesa.getCodigoEstado() + "\n" +
-                        "Código: " +
-                        (mesa.getCodigoMesa() != null ?
-                                mesa.getCodigoMesa() : "N/A")
-        );
-
-        alert.showAndWait();
     }
 
     private void mostrarError(String mensaje) {
