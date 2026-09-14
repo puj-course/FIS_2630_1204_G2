@@ -32,6 +32,10 @@ public class Mesa {
     @Column(nullable = false)
     private EstadoMesa estado;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mesero_id")
+    private Mesero mesero;
+
     public Mesa() {
         this.estado = EstadoMesa.DISPONIBLE;
     }
@@ -55,4 +59,13 @@ public class Mesa {
     public void setEstado(EstadoMesa estado) {
         this.estado = estado;
     }
+
+    public Mesero getMesero() {
+        return mesero;
+    }
+
+    public void setMesero(Mesero mesero) {
+        this.mesero = mesero;
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.restaurante.service;
 
 import com.restaurante.entity.DetallePedido;
+import com.restaurante.entity.Mesero;
 import com.restaurante.enums.EstadoMesa;
 import com.restaurante.entity.Mesa;
 import com.restaurante.entity.Pedido;
@@ -302,5 +303,26 @@ public class MesaService {
         }
 
         return resultado.toString();
+    }
+    @Transactional(readOnly = true)
+    public String consultarMesero(Long mesaId) {
+
+        Mesa mesa = mesaRepository.findById(mesaId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Mesa no encontrada con ID: " + mesaId
+                        )
+                );
+
+        if (mesa.getMesero() == null) {
+            return "La mesa " + mesa.getNumero()
+                    + " no tiene un mesero asignado.";
+        }
+
+        Mesero mesero = mesa.getMesero();
+
+        return "Mesa: " + mesa.getNumero()
+                + "\nMesero: " + mesero.getNombre()
+                + "\nID del mesero: " + mesero.getId();
     }
 }

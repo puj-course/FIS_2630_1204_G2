@@ -2,7 +2,9 @@ package com.restaurante.controller;
 
 import com.restaurante.enums.EstadoMesa;
 import com.restaurante.entity.Mesa;
+import com.restaurante.entity.Mesero;
 import com.restaurante.repository.MesaRepository;
+import com.restaurante.repository.MeseroRepository;
 import com.restaurante.service.MesaService;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,13 +16,16 @@ public class MesaController {
 
     private final MesaService mesaService;
     private final MesaRepository mesaRepository;
+    private final MeseroRepository meseroRepository;
 
     public MesaController(
             MesaService mesaService,
-            MesaRepository mesaRepository
+            MesaRepository mesaRepository,
+            MeseroRepository meseroRepository
     ) {
         this.mesaService = mesaService;
         this.mesaRepository = mesaRepository;
+        this.meseroRepository = meseroRepository;
     }
 
     // Crear una mesa
@@ -101,5 +106,21 @@ public class MesaController {
         } catch (RuntimeException e) {
             return "Error: " + e.getMessage();
         }
+    }
+    @GetMapping("/mesero/{mesaId}")
+    public String consultarMesero(@PathVariable Long mesaId) {
+        try {
+            return mesaService.consultarMesero(mesaId);
+        } catch (RuntimeException e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+    @GetMapping("/mesero/crear/{nombre}")
+    public String crearMesero(@PathVariable String nombre) {
+        Mesero mesero = new Mesero();
+        mesero.setNombre(nombre);
+        meseroRepository.save(mesero);
+        return "Mesero creado correctamente. ID: "
+                + mesero.getId();
     }
 }
