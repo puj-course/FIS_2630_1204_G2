@@ -8,10 +8,13 @@ import com.restaurante.repository.MesaRepository;
 import com.restaurante.repository.PedidoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class MesaService {
-
+    private static final long TIEMPO_MAXIMO_MINUTOS = 60;
     private final MesaRepository mesaRepository;
     private final PedidoRepository pedidoRepository;
 
@@ -74,5 +77,132 @@ public class MesaService {
         // 8. Asociar el pedido con la nueva mesa
         pedido.setMesa(nuevaMesa);
         pedidoRepository.save(pedido);
+    }
+    @Transactional(readOnly = true)
+    public String verificarDemora(Long mesaId) {
+
+        Mesa mesa = mesaRepository.findById(mesaId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Mesa no encontrada con ID: " + mesaId
+                        )
+                );
+
+        // Si la mesa está disponible, no existe demora
+        if (mesa.getEstado() != EstadoMesa.OCUPADA) {
+            return "La mesa " + mesa.getNumero()
+                    + " está disponible. No hay alerta de demora.";
+        }
+
+        // Buscar el pedido activo de la mesa
+        Pedido pedido = pedidoRepository
+                .findByMesaAndEstado(
+                        mesa,
+                        EstadoPedido.PENDIENTE
+                )
+                .orElse(null);
+
+        // Si no hay pedido pendiente, buscar uno confirmado
+        if (pedido == null) {
+            pedido = pedidoRepository
+                    .findByMesaAndEstado(
+                            mesa,
+                            EstadoPedido.CONFIRMADO
+                    )
+                    .orElse(null);
+        }
+
+        if (pedido == null) {
+            return "La mesa " + mesa.getNumero()
+                    + " está ocupada, pero no tiene un pedido activo.";
+        }
+
+        // Calcular cuánto tiempo lleva el pedido activo
+        LocalDateTime ahora = LocalDateTime.now();
+
+        long minutosOcupada = Duration.between(
+                pedido.getCreatedAt(),
+                ahora
+        ).toMinutes();
+
+        // Verificar si supera el límite
+        if (minutosOcupada >= TIEMPO_MAXIMO_MINUTOS) {
+
+            return "ALERTA: La mesa " + mesa.getNumero()
+                    + " lleva " + minutosOcupada
+                    + " minutos ocupada.";
+        }
+
+        return "La mesa " + mesa.getNumero()
+                + " lleva " + minutosOcupada
+                + " minutos ocupada. No hay alerta.";
+    }
+
+    // Revisar todas las mesas ocupadas
+    @Transactional(readOnly = true)
+    public String verificarTodasLasDemoras() {
+
+        List<Mesa> mesas = mesaRepository.findByEstado(
+                EstadoMesa.OCUPADA
+        );
+
+        if (mesas.isEmpty()) {
+            return "No hay mesas ocupadas.";
+        }
+
+        StringBuilder resultado = new StringBuilder();
+
+        for (Mesa mesa : mesas) {
+
+            Pedido pedido = pedidoRepository
+                    .findByMesaAndEstado(
+                            mesa,
+                            EstadoPedido.PENDIENTE
+                    )
+                    .orElse(null);
+
+            if (pedido == null) {
+                pedido = pedidoRepository
+                        .findByMesaAndEstado(
+                                mesa,
+                                EstadoPedido.CONFIRMADO
+                        )
+                        .orElse(null);
+            }
+
+            if (pedido == null) {
+                continue;
+            }
+
+            long minutos = Duration.between(
+                    pedido.getCreatedAt(),
+                    LocalDateTime.now()
+            ).toMinutes();
+
+            if (minutos >= TIEMPO_MAXIMO_MINUTOS) {
+
+                resultado.append(
+                        "ALERTA: Mesa "
+                );
+
+                resultado.append(mesa.getNumero());
+
+                resultado.append(
+                        " lleva "
+                );
+
+                resultado.append(minutos);
+
+                resultado.append(
+                        " minutos ocupada.\n"
+                );
+            }
+        }
+
+        if (resultado.length() == 0) {
+            return "No hay mesas con demora.";
+        }
+
+        return resultado.toString();
     }
 }

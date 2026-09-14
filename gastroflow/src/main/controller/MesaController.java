@@ -25,9 +25,7 @@ public class MesaController {
 
     // Crear una mesa
     @GetMapping("/crear/{numero}")
-    public String crearMesa(
-            @PathVariable Integer numero
-    ) {
+    public String crearMesa(@PathVariable Integer numero) {
 
         if (mesaRepository.existsByNumero(numero)) {
             return "Ya existe una mesa con el numero " + numero;
@@ -61,10 +59,7 @@ public class MesaController {
 
     // Reasignar un pedido a otra mesa
     @GetMapping("/reasignar/{pedidoId}/{nuevaMesaId}")
-    public String reasignarMesa(
-            @PathVariable Long pedidoId,
-            @PathVariable Long nuevaMesaId
-    ) {
+    public String reasignarMesa(@PathVariable Long pedidoId, @PathVariable Long nuevaMesaId) {
 
         try {
 
@@ -80,6 +75,22 @@ public class MesaController {
 
         } catch (RuntimeException e) {
 
+            return "Error: " + e.getMessage();
+        }
+    }
+    @GetMapping("/alerta-demora/{mesaId}")
+    public String verificarDemora(@PathVariable Long mesaId) {
+        try {
+            return mesaService.verificarDemora(mesaId);
+        } catch (RuntimeException e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+    @GetMapping("/alertas-demora")
+    public String verificarTodasLasDemoras() {
+        try {
+            return mesaService.verificarTodasLasDemoras();
+        } catch (RuntimeException e) {
             return "Error: " + e.getMessage();
         }
     }
