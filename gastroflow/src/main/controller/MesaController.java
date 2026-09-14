@@ -94,4 +94,12 @@ public class MesaController {
             return "Error: " + e.getMessage();
         }
     }
+    @GetMapping("/pedido/{mesaId}")
+    public String consultarPedidoDeMesa(@PathVariable Long mesaId) {
+        try {
+            return mesaService.consultarPedidoDeMesa(mesaId);
+        } catch (RuntimeException e) {
+            return "Error: " + e.getMessage();
+        }
+    }
 }

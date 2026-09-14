@@ -1,9 +1,11 @@
 package com.restaurante.service;
 
+import com.restaurante.entity.DetallePedido;
 import com.restaurante.enums.EstadoMesa;
 import com.restaurante.entity.Mesa;
 import com.restaurante.entity.Pedido;
 import com.restaurante.enums.EstadoPedido;
+import com.restaurante.repository.DetallePedidoRepository;
 import com.restaurante.repository.MesaRepository;
 import com.restaurante.repository.PedidoRepository;
 import org.springframework.stereotype.Service;
@@ -17,13 +19,15 @@ public class MesaService {
     private static final long TIEMPO_MAXIMO_MINUTOS = 60;
     private final MesaRepository mesaRepository;
     private final PedidoRepository pedidoRepository;
+    private final DetallePedidoRepository detallePedidoRepository;
 
     public MesaService(
             MesaRepository mesaRepository,
-            PedidoRepository pedidoRepository
+            PedidoRepository pedidoRepository, DetallePedidoRepository detallePedidoRepository
     ) {
         this.mesaRepository = mesaRepository;
         this.pedidoRepository = pedidoRepository;
+        this.detallePedidoRepository = detallePedidoRepository;
     }
 
     @Transactional
@@ -201,6 +205,100 @@ public class MesaService {
 
         if (resultado.length() == 0) {
             return "No hay mesas con demora.";
+        }
+
+        return resultado.toString();
+    }
+    @Transactional(readOnly = true)
+    public String consultarPedidoDeMesa(Long mesaId) {
+
+        // Buscar la mesa
+        Mesa mesa = mesaRepository.findById(mesaId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Mesa no encontrada con ID: " + mesaId
+                        )
+                );
+
+        // Verificar que la mesa esté ocupada
+        if (mesa.getEstado() != EstadoMesa.OCUPADA) {
+            return "La mesa " + mesa.getNumero()
+                    + " no está ocupada.";
+        }
+
+        // Buscar pedido pendiente
+        Pedido pedido = pedidoRepository
+                .findByMesaAndEstado(
+                        mesa,
+                        EstadoPedido.PENDIENTE
+                )
+                .orElse(null);
+
+        // Si no existe, buscar pedido confirmado
+        if (pedido == null) {
+            pedido = pedidoRepository
+                    .findByMesaAndEstado(
+                            mesa,
+                            EstadoPedido.CONFIRMADO
+                    )
+                    .orElse(null);
+        }
+
+        // No existe pedido activo
+        if (pedido == null) {
+            return "La mesa " + mesa.getNumero()
+                    + " está ocupada pero no tiene un pedido activo.";
+        }
+
+        // Obtener los detalles del pedido
+        List<DetallePedido> detalles =
+                detallePedidoRepository.findByPedidoId(
+                        pedido.getId()
+                );
+
+        StringBuilder resultado = new StringBuilder();
+
+        resultado.append("===== PEDIDO DE LA MESA =====\n");
+        resultado.append("Mesa: ")
+                .append(mesa.getNumero())
+                .append("\n");
+
+        resultado.append("Pedido ID: ")
+                .append(pedido.getId())
+                .append("\n");
+
+        resultado.append("Estado: ")
+                .append(pedido.getEstado())
+                .append("\n");
+
+        resultado.append("Total: ")
+                .append(pedido.getTotal())
+                .append("\n");
+
+        resultado.append("Fecha de creación: ")
+                .append(pedido.getCreatedAt())
+                .append("\n");
+
+        resultado.append("\n===== PRODUCTOS =====\n");
+
+        if (detalles.isEmpty()) {
+
+            resultado.append("El pedido no tiene productos.\n");
+
+        } else {
+
+            for (DetallePedido detalle : detalles) {
+
+                resultado.append("Producto: ")
+                        .append(detalle.getPlato().getNombre())
+                        .append("\n");
+
+                resultado.append("Cantidad: ")
+                        .append(detalle.getCantidad())
+                        .append("\n");
+
+                resultado.append("--------------------\n");
+            }
         }
 
         return resultado.toString();
