@@ -1,4 +1,4 @@
-package repositories.RegistrarPlato;
+package repository;
 
 import conf.ConexionDB; //importa la conexión a la base de datos
 import java.sql.Connection; // Importa Connection de Java SQL.
@@ -27,4 +27,5 @@ public class PlatoRepository {
             stmt.executeUpdate(); //ejecuta la consulta
         }
     }
+    
 }

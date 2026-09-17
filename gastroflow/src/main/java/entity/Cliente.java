@@ -1,4 +1,4 @@
-package models.RegistroCliente;
+package entity;
 
 
 public class Cliente {
