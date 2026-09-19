@@ -18,4 +18,13 @@ public class PedidoController {
     public Pedido crearPedido(@RequestParam Long mesaId, @RequestParam Long usuarioId) {
         return pedidoService.crearPedido(mesaId, usuarioId);
     }
+
+    @PatchMapping("/{id}/cerrar")
+    public Pedido cerrarPedido(
+            @PathVariable Long id,
+            @RequestParam(required = false) String estadoMesaDestino) {
+
+        return pedidoService.cerrarPedido(id, estadoMesaDestino);
+    }
 }
+
