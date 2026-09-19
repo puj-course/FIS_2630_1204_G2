@@ -12,21 +12,29 @@ import com.restaurante.repository.PedidoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
+
 @Service
 public class PedidoService {
 
+    private static final Set<EstadoPedido> ESTADOS_YA_CERRADOS = Set.of(
+            EstadoPedido.COMPLETADO,
+            EstadoPedido.ENTREGADO,
+            EstadoPedido.CANCELADO
+    );
+
     private final PedidoRepository pedidoRepository;
     private final MesaRepository mesaRepository;
-    private final EstadoMesaRepository estadoMesaRepository;
+    private final MesaService mesaService;
 
     public PedidoService(
             PedidoRepository pedidoRepository,
             MesaRepository mesaRepository,
-            EstadoMesaRepository estadoMesaRepository) {
+            MesaService mesaService) {
 
         this.pedidoRepository = pedidoRepository;
         this.mesaRepository = mesaRepository;
-        this.estadoMesaRepository = estadoMesaRepository;
+        this.mesaService = mesaService;
     }
 
     @Transactional
@@ -63,16 +71,35 @@ public class PedidoService {
 
         Pedido pedidoGuardado = pedidoRepository.save(pedido);
 
-        // Al crear la comanda, la mesa pasa a estar ocupada
-        EstadoMesa ocupada =
-            estadoMesaRepository.findByCodigoEstado("OCUPADA")
-                .orElseThrow(
-                    () -> new MesaNotFoundException("El código OCUPADA no existe en estados_mesa")
-                );
-
-        mesa.setEstado(ocupada);
-        mesaRepository.save(mesa);
+        // Apertura de comanda: la mesa pasa a OCUPADA, con auditoría del cambio
+        mesaService.cambiarEstado(mesaId, "OCUPADA", "APERTURA_PEDIDO");
 
         return pedidoGuardado;
+    }
+
+    @Transactional
+    public Pedido cerrarPedido(Long pedidoId, String codigoEstadoDestinoMesa) {
+
+        Pedido pedido =
+                pedidoRepository.findById(pedidoId)
+                        .orElseThrow(
+                                () -> new MesaNotFoundException("Pedido no encontrado con id " + pedidoId)
+                        );
+
+        if (ESTADOS_YA_CERRADOS.contains(pedido.getEstado())) {
+            throw new PedidoNoEditableException(
+                    "El pedido " + pedido.getNumeroPedido() +
+                            " ya está en estado " + pedido.getEstado()
+            );
+        }
+
+        pedido.setEstado(EstadoPedido.COMPLETADO);
+        Pedido pedidoCerrado = pedidoRepository.save(pedido);
+
+        // Cierre de comanda: la mesa pasa a DISPONIBLE (o EN_LIMPIEZA si se indica),
+        String destino = codigoEstadoDestinoMesa != null ? codigoEstadoDestinoMesa : "DISPONIBLE";
+        mesaService.cambiarEstado(pedido.getMesa().getId(), destino, "CIERRE_PEDIDO");
+
+        return pedidoCerrado;
     }
 }
