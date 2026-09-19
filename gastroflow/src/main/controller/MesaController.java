@@ -1,5 +1,6 @@
 package com.restaurante.controller;
 
+import com.restaurante.entity.HistorialEstadoMesa;
 import com.restaurante.entity.Mesa;
 import com.restaurante.service.MesaService;
 import org.springframework.web.bind.annotation.*;
@@ -40,5 +41,10 @@ public class MesaController {
             @RequestParam String estado) {
 
         return mesaService.actualizarEstado(id, estado);
+    }
+
+    @GetMapping("/{id}/historial")
+    public List<HistorialEstadoMesa> consultarHistorial(@PathVariable Long id) {
+        return mesaService.consultarHistorial(id);
     }
 }
