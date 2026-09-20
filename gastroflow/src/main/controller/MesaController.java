@@ -131,4 +131,12 @@ public class MesaController {
             return "Error: " + e.getMessage();
         }
     }
+    @GetMapping("/cerrar-forzoso/{mesaId}")
+    public String cerrarMesaForzosamente(@PathVariable Long mesaId) {
+        try {
+            return mesaService.cerrarMesaForzosamente(mesaId);
+        } catch (RuntimeException e) {
+            return "Error: " + e.getMessage();
+        }
+    }
 }

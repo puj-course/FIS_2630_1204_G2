@@ -500,4 +500,70 @@ public class MesaService {
 
         return recibo.toString();
     }
+    @Transactional
+    public String cerrarMesaForzosamente(Long mesaId) {
+
+        // 1. Buscar la mesa
+        Mesa mesa = mesaRepository.findById(mesaId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Mesa no encontrada con ID: " + mesaId
+                        )
+                );
+
+        // 2. Verificar que la mesa esté ocupada
+        if (mesa.getEstado() != EstadoMesa.OCUPADA) {
+            throw new RuntimeException(
+                    "La mesa " + mesa.getNumero()
+                            + " no está ocupada."
+            );
+        }
+
+        // 3. Buscar el pedido activo
+        Pedido pedido = pedidoRepository
+                .findByMesaAndEstado(
+                        mesa,
+                        EstadoPedido.PENDIENTE
+                )
+                .orElse(null);
+
+        // Si no hay pedido pendiente, buscar uno confirmado
+        if (pedido == null) {
+            pedido = pedidoRepository
+                    .findByMesaAndEstado(
+                            mesa,
+                            EstadoPedido.CONFIRMADO
+                    )
+                    .orElse(null);
+        }
+
+        // 4. Cancelar el pedido activo si existe
+        if (pedido != null) {
+
+            pedido.setEstado(EstadoPedido.CANCELADO);
+
+            pedidoRepository.save(pedido);
+        }
+
+        // 5. Liberar la mesa
+        mesa.setEstado(EstadoMesa.DISPONIBLE);
+
+        // 6. Quitar el mesero asociado
+        mesa.setMesero(null);
+
+        mesaRepository.save(mesa);
+
+        // 7. Retornar confirmación
+        if (pedido != null) {
+
+            return "Mesa " + mesa.getNumero()
+                    + " cerrada forzosamente. "
+                    + "El pedido " + pedido.getId()
+                    + " fue cancelado y la mesa quedó disponible.";
+        } else {
+            return "Mesa " + mesa.getNumero()
+                    + " cerrada forzosamente. "
+                    + "No tenía un pedido activo y ahora está disponible.";
+        }
+    }
 }
