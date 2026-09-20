@@ -9,6 +9,9 @@ import com.restaurante.enums.EstadoPedido;
 import com.restaurante.repository.DetallePedidoRepository;
 import com.restaurante.repository.MesaRepository;
 import com.restaurante.repository.PedidoRepository;
+import com.restaurante.entity.Pago;
+import com.restaurante.repository.PagoRepository;
+import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
@@ -21,14 +24,16 @@ public class MesaService {
     private final MesaRepository mesaRepository;
     private final PedidoRepository pedidoRepository;
     private final DetallePedidoRepository detallePedidoRepository;
+    private final PagoRepository pagoRepository;
 
     public MesaService(
             MesaRepository mesaRepository,
-            PedidoRepository pedidoRepository, DetallePedidoRepository detallePedidoRepository
+            PedidoRepository pedidoRepository, DetallePedidoRepository detallePedidoRepository, PagoRepository pagoRepository
     ) {
         this.mesaRepository = mesaRepository;
         this.pedidoRepository = pedidoRepository;
         this.detallePedidoRepository = detallePedidoRepository;
+        this.pagoRepository = pagoRepository;
     }
 
     @Transactional
@@ -142,8 +147,6 @@ public class MesaService {
                 + " lleva " + minutosOcupada
                 + " minutos ocupada. No hay alerta.";
     }
-
-    // Revisar todas las mesas ocupadas
     @Transactional(readOnly = true)
     public String verificarTodasLasDemoras() {
 
@@ -324,5 +327,177 @@ public class MesaService {
         return "Mesa: " + mesa.getNumero()
                 + "\nMesero: " + mesero.getNombre()
                 + "\nID del mesero: " + mesero.getId();
+    }
+    @Transactional(readOnly = true)
+    public String obtenerReciboDeMesa(Long mesaId) {
+
+        // Buscar la mesa
+        Mesa mesa = mesaRepository.findById(mesaId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Mesa no encontrada con ID: " + mesaId
+                        )
+                );
+
+        // Verificar que esté ocupada
+        if (mesa.getEstado() != EstadoMesa.OCUPADA) {
+            return "La mesa " + mesa.getNumero()
+                    + " no está ocupada.";
+        }
+
+        // Buscar pedido pendiente
+        Pedido pedido = pedidoRepository
+                .findByMesaAndEstado(
+                        mesa,
+                        EstadoPedido.PENDIENTE
+                )
+                .orElse(null);
+
+        // Si no hay pendiente, buscar confirmado
+        if (pedido == null) {
+            pedido = pedidoRepository
+                    .findByMesaAndEstado(
+                            mesa,
+                            EstadoPedido.CONFIRMADO
+                    )
+                    .orElse(null);
+        }
+
+        // Si no hay pedido activo
+        if (pedido == null) {
+            return "La mesa " + mesa.getNumero()
+                    + " está ocupada pero no tiene un pedido activo.";
+        }
+
+        // Obtener productos
+        List<DetallePedido> detalles =
+                detallePedidoRepository.findByPedidoId(
+                        pedido.getId()
+                );
+
+        // Obtener pagos
+        List<Pago> pagos =
+                pagoRepository.findByPedidoId(
+                        pedido.getId()
+                );
+
+        // Calcular total pagado
+        BigDecimal totalPagado = pagos.stream()
+                .map(Pago::getMonto)
+                .reduce(
+                        BigDecimal.ZERO,
+                        BigDecimal::add
+                );
+
+        // Calcular saldo
+        BigDecimal saldoPendiente =
+                pedido.getTotal().subtract(totalPagado);
+
+        StringBuilder recibo = new StringBuilder();
+
+        recibo.append("========================================\n");
+        recibo.append("              RECIBO\n");
+        recibo.append("========================================\n");
+
+        recibo.append("Mesa: ")
+                .append(mesa.getNumero())
+                .append("\n");
+
+        recibo.append("Pedido: ")
+                .append(pedido.getId())
+                .append("\n");
+
+        recibo.append("Estado: ")
+                .append(pedido.getEstado())
+                .append("\n");
+
+        if (mesa.getMesero() != null) {
+            recibo.append("Mesero: ")
+                    .append(mesa.getMesero().getNombre())
+                    .append("\n");
+        } else {
+            recibo.append("Mesero: Sin asignar\n");
+        }
+
+        recibo.append("Fecha: ")
+                .append(pedido.getCreatedAt())
+                .append("\n");
+
+        recibo.append("\n");
+        recibo.append("============== PRODUCTOS ===============\n");
+
+        if (detalles.isEmpty()) {
+
+            recibo.append("El pedido no tiene productos.\n");
+
+        } else {
+
+            for (DetallePedido detalle : detalles) {
+
+                recibo.append("Producto: ")
+                        .append(detalle.getPlato().getNombre())
+                        .append("\n");
+
+                recibo.append("Cantidad: ")
+                        .append(detalle.getCantidad())
+                        .append("\n");
+
+                recibo.append("----------------------------------------\n");
+            }
+        }
+
+        recibo.append("\n");
+        recibo.append("============== RESUMEN =================\n");
+
+        recibo.append("Total del pedido: $")
+                .append(pedido.getTotal())
+                .append("\n");
+
+        recibo.append("Total pagado: $")
+                .append(totalPagado)
+                .append("\n");
+
+        recibo.append("Saldo pendiente: $")
+                .append(saldoPendiente)
+                .append("\n");
+
+        recibo.append("Estado del pago: ")
+                .append(
+                        Boolean.TRUE.equals(pedido.getPagado())
+                                ? "PAGADO"
+                                : "PENDIENTE"
+                )
+                .append("\n");
+
+        recibo.append("\n");
+        recibo.append("================ PAGOS =================\n");
+
+        if (pagos.isEmpty()) {
+
+            recibo.append("No se han registrado pagos.\n");
+
+        } else {
+
+            for (Pago pago : pagos) {
+
+                recibo.append("Metodo: ")
+                        .append(pago.getMetodo())
+                        .append("\n");
+
+                recibo.append("Monto: $")
+                        .append(pago.getMonto())
+                        .append("\n");
+
+                recibo.append("Fecha: ")
+                        .append(pago.getCreatedAt())
+                        .append("\n");
+
+                recibo.append("----------------------------------------\n");
+            }
+        }
+
+        recibo.append("========================================\n");
+
+        return recibo.toString();
     }
 }

@@ -123,4 +123,12 @@ public class MesaController {
         return "Mesero creado correctamente. ID: "
                 + mesero.getId();
     }
+    @GetMapping("/recibo/{mesaId}")
+    public String obtenerRecibo(@PathVariable Long mesaId) {
+        try {
+            return mesaService.obtenerReciboDeMesa(mesaId);
+        } catch (RuntimeException e) {
+            return "Error: " + e.getMessage();
+        }
+    }
 }
