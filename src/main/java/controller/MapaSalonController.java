@@ -30,9 +30,6 @@ public class MapaSalonController {
     @FXML
     private Label lblMesasReservadas;
 
-    @FXML
-    private TextField txtBuscarMesa;
-
     private final MesaRepository mesaRepository = new MesaRepository();
 
     private Mesa mesaSeleccionada;
@@ -153,8 +150,6 @@ public class MapaSalonController {
             mostrarDetalleMesa(mesa);
         });
 
-        NotaMesaHelper.aplicarBadgeSiTieneNota(btn, mesa.getIdMesa());
-
         return btn;
     }
 
@@ -215,11 +210,6 @@ public class MapaSalonController {
     @FXML
     private void filtrarReservadas() {
         mostrarMesas("RESERVADA");
-    }
-
-    @FXML
-    private void buscarMesa() {
-        BusquedaMesaHelper.buscarYResaltarMesa(panelMesas, txtBuscarMesa.getText());
     }
 
     @FXML
@@ -291,6 +281,7 @@ public class MapaSalonController {
 
         alert.setTitle("Detalle de Mesa");
         alert.setHeaderText("Mesa " + mesa.getNumeroMesa());
+
         alert.setContentText(
                 "Zona: " + mesa.getNombreZona() + "\n" +
                         "Capacidad: " + mesa.getCapacidad() + " personas\n" +
@@ -305,7 +296,6 @@ public class MapaSalonController {
         alert.getButtonTypes().addAll(
                 new javafx.scene.control.ButtonType("Cambiar estado"),
                 new javafx.scene.control.ButtonType("Cambiar capacidad"),
-                new javafx.scene.control.ButtonType("Nota"),
                 new javafx.scene.control.ButtonType("Cerrar")
         );
 
@@ -319,10 +309,6 @@ public class MapaSalonController {
 
             } else if (resultado.get().getText().equals("Cambiar capacidad")) {
                 cambiarCapacidadMesa(mesa);
-            } else if (resultado.get().getText().equals("Nota")) {
-                NotaMesaHelper.mostrarDialogoNota(
-                        mesa.getIdMesa(), mesa.getNumeroMesa(), this::cargarMesas
-                );
             }
         }
     }

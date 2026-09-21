@@ -1,117 +1,38 @@
-package com.restaurante.entity;
+package entity;
 
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
-
-@Entity
-@Table(name = "mesas")
 public class Mesa {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_mesa")
-    private Long id;
-
-    @Column(name = "numero_mesa", nullable = false)
-    private Integer numeroMesa;
-
-    @Column(name = "codigo_mesa")
+    private int idMesa;
+    private int numeroMesa;
     private String codigoMesa;
+    private int capacidad;
+    private int idZona;
+    private String nombreZona;
+    private int idEstadoMesa;
+    private String codigoEstado;
 
-    @Column(nullable = false)
-    private Integer capacidad = 2;
+    public Mesa() {}
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_zona", nullable = false)
-    private Zona zona;
+    public int getIdMesa() { return idMesa; }
+    public void setIdMesa(int idMesa) { this.idMesa = idMesa; }
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_estado_mesa", nullable = false)
-    private EstadoMesa estado;
+    public int getNumeroMesa() { return numeroMesa; }
+    public void setNumeroMesa(int numeroMesa) { this.numeroMesa = numeroMesa; }
 
-    @Column(name = "codigo_qr")
-    private String codigoQr;
+    public String getCodigoMesa() { return codigoMesa; }
+    public void setCodigoMesa(String codigoMesa) { this.codigoMesa = codigoMesa; }
 
-    @Column(name = "is_active", nullable = false)
-    private Integer isActive = 1;
+    public int getCapacidad() { return capacidad; }
+    public void setCapacidad(int capacidad) { this.capacidad = capacidad; }
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    public int getIdZona() { return idZona; }
+    public void setIdZona(int idZona) { this.idZona = idZona; }
 
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    public String getNombreZona() { return nombreZona; }
+    public void setNombreZona(String nombreZona) { this.nombreZona = nombreZona; }
 
-    public Mesa() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
+    public int getIdEstadoMesa() { return idEstadoMesa; }
+    public void setIdEstadoMesa(int idEstadoMesa) { this.idEstadoMesa = idEstadoMesa; }
 
-    public Long getId() {
-        return id;
-    }
-
-    public Integer getNumeroMesa() {
-        return numeroMesa;
-    }
-
-    public void setNumeroMesa(Integer numeroMesa) {
-        this.numeroMesa = numeroMesa;
-    }
-
-    public String getCodigoMesa() {
-        return codigoMesa;
-    }
-
-    public void setCodigoMesa(String codigoMesa) {
-        this.codigoMesa = codigoMesa;
-    }
-
-    public Integer getCapacidad() {
-        return capacidad;
-    }
-
-    public void setCapacidad(Integer capacidad) {
-        this.capacidad = capacidad;
-    }
-
-    public Zona getZona() {
-        return zona;
-    }
-
-    public void setZona(Zona zona) {
-        this.zona = zona;
-    }
-
-    public EstadoMesa getEstado() {
-        return estado;
-    }
-
-    public void setEstado(EstadoMesa estado) {
-        this.estado = estado;
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    public String getCodigoQr() {
-        return codigoQr;
-    }
-
-    public void setCodigoQr(String codigoQr) {
-        this.codigoQr = codigoQr;
-    }
-
-    public Integer getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(Integer active) {
-        isActive = active;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+    public String getCodigoEstado() { return codigoEstado; }
+    public void setCodigoEstado(String codigoEstado) { this.codigoEstado = codigoEstado; }
 }
