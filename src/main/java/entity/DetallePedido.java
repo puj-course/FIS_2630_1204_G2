@@ -38,6 +38,21 @@ public class DetallePedido {
     )
     private BigDecimal cantidad;
 
+    @Column(
+            name = "precio_unitario",
+            nullable = false,
+            precision = 12,
+            scale = 2
+    )
+    private BigDecimal precioUnitario;
+
+    @Column(
+            nullable = false,
+            precision = 12,
+            scale = 2
+    )
+    private BigDecimal subtotal;
+
     public DetallePedido() {
     }
 
@@ -67,5 +82,21 @@ public class DetallePedido {
 
     public void setCantidad(BigDecimal cantidad) {
         this.cantidad = cantidad;
+    }
+
+    public BigDecimal getPrecioUnitario() {
+        return precioUnitario;
+    }
+
+    public void setPrecioUnitario(BigDecimal precioUnitario) {
+        this.precioUnitario = precioUnitario;
+    }
+
+    public BigDecimal getSubtotal() {
+        return subtotal;
+    }
+
+    public void setSubtotal(BigDecimal subtotal) {
+        this.subtotal = subtotal;
     }
 }

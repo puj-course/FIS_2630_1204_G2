@@ -1,614 +1,125 @@
 package com.restaurante.service;
 
-import com.restaurante.entity.DetallePedido;
-import com.restaurante.entity.Mesero;
-import com.restaurante.enums.EstadoMesa;
+import com.restaurante.entity.EstadoMesa;
 import com.restaurante.entity.Mesa;
-import com.restaurante.entity.Pedido;
-import com.restaurante.enums.EstadoPedido;
-import com.restaurante.repository.DetallePedidoRepository;
+import com.restaurante.entity.Zona;
+import com.restaurante.exception.MesaNotFoundException;
+import com.restaurante.repository.EstadoMesaRepository;
 import com.restaurante.repository.MesaRepository;
-import com.restaurante.repository.PedidoRepository;
-import com.restaurante.entity.Pago;
-import com.restaurante.repository.PagoRepository;
-import java.math.BigDecimal;
+import com.restaurante.repository.ZonaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.Duration;
-import java.time.LocalDateTime;
+
 import java.util.List;
 
 @Service
 public class MesaService {
-    private static final long TIEMPO_MAXIMO_MINUTOS = 60;
+
     private final MesaRepository mesaRepository;
-    private final PedidoRepository pedidoRepository;
-    private final DetallePedidoRepository detallePedidoRepository;
-    private final PagoRepository pagoRepository;
+    private final ZonaRepository zonaRepository;
+    private final EstadoMesaRepository estadoMesaRepository;
+    private final HistorialEstadoMesaRepository historialEstadoMesaRepository;
 
     public MesaService(
             MesaRepository mesaRepository,
-            PedidoRepository pedidoRepository, DetallePedidoRepository detallePedidoRepository, PagoRepository pagoRepository
-    ) {
+            ZonaRepository zonaRepository,
+            EstadoMesaRepository estadoMesaRepository,
+            HistorialEstadoMesaRepository historialEstadoMesaRepository) {
+
         this.mesaRepository = mesaRepository;
-        this.pedidoRepository = pedidoRepository;
-        this.detallePedidoRepository = detallePedidoRepository;
-        this.pagoRepository = pagoRepository;
+        this.zonaRepository = zonaRepository;
+        this.estadoMesaRepository = estadoMesaRepository;
+        this.historialEstadoMesaRepository = historialEstadoMesaRepository;
+    }
+
+    public Mesa registrarMesa(Integer numeroMesa, String codigoMesa, Integer capacidad, Long zonaId) {
+
+        // Validar que la zona exista antes de crear la mesa
+        Zona zona = 
+            zonaRepository.findById(zonaId)
+                .orElseThrow(
+                    () -> new MesaNotFoundException("Zona no encontrada con id " + zonaId)
+                );
+
+        // Toda mesa nueva nace en estado DISPONIBLE
+        EstadoMesa disponible = 
+            estadoMesaRepository.findByCodigoEstado("LIBRE").
+                orElseThrow(
+                    () -> new MesaNotFoundException("El código LIBRE no existe en estados_mesa")
+                );
+
+        Mesa mesa = new Mesa();
+        mesa.setNumeroMesa(numeroMesa);
+        mesa.setCodigoMesa(codigoMesa);
+        mesa.setCapacidad(capacidad != null ? capacidad : 2);
+        mesa.setZona(zona);
+        mesa.setEstado(disponible);
+
+        return mesaRepository.save(mesa);
+    }
+
+    public List<Mesa> listarMesas(Long zonaId, String codigoEstado) {
+
+        // Resolver el código de estado recibido contra el catálogo, si vino uno
+        EstadoMesa estado =
+            codigoEstado != null
+                ? estadoMesaRepository.findByCodigoEstado(codigoEstado)
+                    .orElseThrow(
+                        () -> new MesaNotFoundException("Estado no encontrado: " + codigoEstado)
+                    )
+                : null;
+
+        // Filtrar según qué combinación de zona/estado llegó
+        if (zonaId != null && estado != null) {
+            return mesaRepository.findByZonaIdAndEstado(zonaId, estado);
+        }
+        if (zonaId != null) {
+            return mesaRepository.findByZonaId(zonaId);
+        }
+        if (estado != null) {
+            return mesaRepository.findByEstado(estado);
+        }
+        return mesaRepository.findAll();
+    }
+
+    // Cambio manual de estado (uso directo desde el controller de mesas)
+    public Mesa actualizarEstado(Long mesaId, String codigoEstadoNuevo) {
+        return cambiarEstado(mesaId, codigoEstadoNuevo, "MANUAL");
     }
 
     @Transactional
-    public void reasignarMesa(Long pedidoId, Long nuevaMesaId) {
+    public Mesa cambiarEstado(Long mesaId, String codigoEstadoNuevo, String origen) {
 
-        // 1. Buscar el pedido
-        Pedido pedido = pedidoRepository.findById(pedidoId)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Pedido no encontrado con ID: " + pedidoId
-                        )
-                );
+        Mesa mesa =
+                mesaRepository.findById(mesaId)
+                        .orElseThrow(
+                                () -> new MesaNotFoundException("Mesa no encontrada con id " + mesaId)
+                        );
 
-        // 2. Validar que el pedido pueda ser reasignado
-        if (pedido.getEstado() == EstadoPedido.CANCELADO) {
-            throw new RuntimeException(
-                    "No se puede reasignar la mesa de un pedido cancelado"
-            );
-        }
+        EstadoMesa nuevoEstado =
+                estadoMesaRepository.findByCodigoEstado(codigoEstadoNuevo)
+                        .orElseThrow(
+                                () -> new MesaNotFoundException(
+                                        "Estado no encontrado: " + codigoEstadoNuevo
+                                )
+                        );
 
-        // 3. Buscar la nueva mesa
-        Mesa nuevaMesa = mesaRepository.findById(nuevaMesaId)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Mesa no encontrada con ID: " + nuevaMesaId
-                        )
-                );
+        String codigoAnterior = mesa.getEstado().getCodigoEstado();
 
-        // 4. Verificar que la nueva mesa esté disponible
-        if (nuevaMesa.getEstado() != EstadoMesa.DISPONIBLE) {
-            throw new RuntimeException(
-                    "La mesa " + nuevaMesa.getNumero()
-                            + " no está disponible"
-            );
-        }
+        // Registrar la trazabilidad del cambio antes de aplicarlo
+        HistorialEstadoMesa historial = new HistorialEstadoMesa();
+        historial.setMesa(mesa);
+        historial.setEstadoAnterior(codigoAnterior);
+        historial.setEstadoNuevo(codigoEstadoNuevo);
+        historial.setOrigen(origen);
+        historialEstadoMesaRepository.save(historial);
 
-        // 5. Obtener la mesa actual
-        Mesa mesaActual = pedido.getMesa();
+        mesa.setEstado(nuevoEstado);
 
-        // 6. Si el pedido ya tiene una mesa,
-        //    liberar la mesa anterior
-        if (mesaActual != null) {
-            mesaActual.setEstado(EstadoMesa.DISPONIBLE);
-            mesaRepository.save(mesaActual);
-        }
-
-        // 7. Ocupar la nueva mesa
-        nuevaMesa.setEstado(EstadoMesa.OCUPADA);
-        mesaRepository.save(nuevaMesa);
-
-        // 8. Asociar el pedido con la nueva mesa
-        pedido.setMesa(nuevaMesa);
-        pedidoRepository.save(pedido);
+        return mesaRepository.save(mesa);
     }
-    @Transactional(readOnly = true)
-    public String verificarDemora(Long mesaId) {
 
-        Mesa mesa = mesaRepository.findById(mesaId)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Mesa no encontrada con ID: " + mesaId
-                        )
-                );
-
-        // Si la mesa está disponible, no existe demora
-        if (mesa.getEstado() != EstadoMesa.OCUPADA) {
-            return "La mesa " + mesa.getNumero()
-                    + " está disponible. No hay alerta de demora.";
-        }
-
-        // Buscar el pedido activo de la mesa
-        Pedido pedido = pedidoRepository
-                .findByMesaAndEstado(
-                        mesa,
-                        EstadoPedido.PENDIENTE
-                )
-                .orElse(null);
-
-        // Si no hay pedido pendiente, buscar uno confirmado
-        if (pedido == null) {
-            pedido = pedidoRepository
-                    .findByMesaAndEstado(
-                            mesa,
-                            EstadoPedido.CONFIRMADO
-                    )
-                    .orElse(null);
-        }
-
-        if (pedido == null) {
-            return "La mesa " + mesa.getNumero()
-                    + " está ocupada, pero no tiene un pedido activo.";
-        }
-
-        // Calcular cuánto tiempo lleva el pedido activo
-        LocalDateTime ahora = LocalDateTime.now();
-
-        long minutosOcupada = Duration.between(
-                pedido.getCreatedAt(),
-                ahora
-        ).toMinutes();
-
-        // Verificar si supera el límite
-        if (minutosOcupada >= TIEMPO_MAXIMO_MINUTOS) {
-
-            return "ALERTA: La mesa " + mesa.getNumero()
-                    + " lleva " + minutosOcupada
-                    + " minutos ocupada.";
-        }
-
-        return "La mesa " + mesa.getNumero()
-                + " lleva " + minutosOcupada
-                + " minutos ocupada. No hay alerta.";
-    }
-    @Transactional(readOnly = true)
-    public String verificarTodasLasDemoras() {
-
-        List<Mesa> mesas = mesaRepository.findByEstado(
-                EstadoMesa.OCUPADA
-        );
-
-        if (mesas.isEmpty()) {
-            return "No hay mesas ocupadas.";
-        }
-
-        StringBuilder resultado = new StringBuilder();
-
-        for (Mesa mesa : mesas) {
-
-            Pedido pedido = pedidoRepository
-                    .findByMesaAndEstado(
-                            mesa,
-                            EstadoPedido.PENDIENTE
-                    )
-                    .orElse(null);
-
-            if (pedido == null) {
-                pedido = pedidoRepository
-                        .findByMesaAndEstado(
-                                mesa,
-                                EstadoPedido.CONFIRMADO
-                        )
-                        .orElse(null);
-            }
-
-            if (pedido == null) {
-                continue;
-            }
-
-            long minutos = Duration.between(
-                    pedido.getCreatedAt(),
-                    LocalDateTime.now()
-            ).toMinutes();
-
-            if (minutos >= TIEMPO_MAXIMO_MINUTOS) {
-
-                resultado.append(
-                        "ALERTA: Mesa "
-                );
-
-                resultado.append(mesa.getNumero());
-
-                resultado.append(
-                        " lleva "
-                );
-
-                resultado.append(minutos);
-
-                resultado.append(
-                        " minutos ocupada.\n"
-                );
-            }
-        }
-
-        if (resultado.length() == 0) {
-            return "No hay mesas con demora.";
-        }
-
-        return resultado.toString();
-    }
-    @Transactional(readOnly = true)
-    public String consultarPedidoDeMesa(Long mesaId) {
-
-        // Buscar la mesa
-        Mesa mesa = mesaRepository.findById(mesaId)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Mesa no encontrada con ID: " + mesaId
-                        )
-                );
-
-        // Verificar que la mesa esté ocupada
-        if (mesa.getEstado() != EstadoMesa.OCUPADA) {
-            return "La mesa " + mesa.getNumero()
-                    + " no está ocupada.";
-        }
-
-        // Buscar pedido pendiente
-        Pedido pedido = pedidoRepository
-                .findByMesaAndEstado(
-                        mesa,
-                        EstadoPedido.PENDIENTE
-                )
-                .orElse(null);
-
-        // Si no existe, buscar pedido confirmado
-        if (pedido == null) {
-            pedido = pedidoRepository
-                    .findByMesaAndEstado(
-                            mesa,
-                            EstadoPedido.CONFIRMADO
-                    )
-                    .orElse(null);
-        }
-
-        // No existe pedido activo
-        if (pedido == null) {
-            return "La mesa " + mesa.getNumero()
-                    + " está ocupada pero no tiene un pedido activo.";
-        }
-
-        // Obtener los detalles del pedido
-        List<DetallePedido> detalles =
-                detallePedidoRepository.findByPedidoId(
-                        pedido.getId()
-                );
-
-        StringBuilder resultado = new StringBuilder();
-
-        resultado.append("===== PEDIDO DE LA MESA =====\n");
-        resultado.append("Mesa: ")
-                .append(mesa.getNumero())
-                .append("\n");
-
-        resultado.append("Pedido ID: ")
-                .append(pedido.getId())
-                .append("\n");
-
-        resultado.append("Estado: ")
-                .append(pedido.getEstado())
-                .append("\n");
-
-        resultado.append("Total: ")
-                .append(pedido.getTotal())
-                .append("\n");
-
-        resultado.append("Fecha de creación: ")
-                .append(pedido.getCreatedAt())
-                .append("\n");
-
-        resultado.append("\n===== PRODUCTOS =====\n");
-
-        if (detalles.isEmpty()) {
-
-            resultado.append("El pedido no tiene productos.\n");
-
-        } else {
-
-            for (DetallePedido detalle : detalles) {
-
-                resultado.append("Producto: ")
-                        .append(detalle.getPlato().getNombre())
-                        .append("\n");
-
-                resultado.append("Cantidad: ")
-                        .append(detalle.getCantidad())
-                        .append("\n");
-
-                resultado.append("--------------------\n");
-            }
-        }
-
-        return resultado.toString();
-    }
-    @Transactional(readOnly = true)
-    public String consultarMesero(Long mesaId) {
-
-        Mesa mesa = mesaRepository.findById(mesaId)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Mesa no encontrada con ID: " + mesaId
-                        )
-                );
-
-        if (mesa.getMesero() == null) {
-            return "La mesa " + mesa.getNumero()
-                    + " no tiene un mesero asignado.";
-        }
-
-        Mesero mesero = mesa.getMesero();
-
-        return "Mesa: " + mesa.getNumero()
-                + "\nMesero: " + mesero.getNombre()
-                + "\nID del mesero: " + mesero.getId();
-    }
-    @Transactional(readOnly = true)
-    public String obtenerReciboDeMesa(Long mesaId) {
-
-        // Buscar la mesa
-        Mesa mesa = mesaRepository.findById(mesaId)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Mesa no encontrada con ID: " + mesaId
-                        )
-                );
-
-        // Verificar que esté ocupada
-        if (mesa.getEstado() != EstadoMesa.OCUPADA) {
-            return "La mesa " + mesa.getNumero()
-                    + " no está ocupada.";
-        }
-
-        // Buscar pedido pendiente
-        Pedido pedido = pedidoRepository
-                .findByMesaAndEstado(
-                        mesa,
-                        EstadoPedido.PENDIENTE
-                )
-                .orElse(null);
-
-        // Si no hay pendiente, buscar confirmado
-        if (pedido == null) {
-            pedido = pedidoRepository
-                    .findByMesaAndEstado(
-                            mesa,
-                            EstadoPedido.CONFIRMADO
-                    )
-                    .orElse(null);
-        }
-
-        // Si no hay pedido activo
-        if (pedido == null) {
-            return "La mesa " + mesa.getNumero()
-                    + " está ocupada pero no tiene un pedido activo.";
-        }
-
-        // Obtener productos
-        List<DetallePedido> detalles =
-                detallePedidoRepository.findByPedidoId(
-                        pedido.getId()
-                );
-
-        // Obtener pagos
-        List<Pago> pagos =
-                pagoRepository.findByPedidoId(
-                        pedido.getId()
-                );
-
-        // Calcular total pagado
-        BigDecimal totalPagado = pagos.stream()
-                .map(Pago::getMonto)
-                .reduce(
-                        BigDecimal.ZERO,
-                        BigDecimal::add
-                );
-
-        // Calcular saldo
-        BigDecimal saldoPendiente =
-                pedido.getTotal().subtract(totalPagado);
-
-        StringBuilder recibo = new StringBuilder();
-
-        recibo.append("========================================\n");
-        recibo.append("              RECIBO\n");
-        recibo.append("========================================\n");
-
-        recibo.append("Mesa: ")
-                .append(mesa.getNumero())
-                .append("\n");
-
-        recibo.append("Pedido: ")
-                .append(pedido.getId())
-                .append("\n");
-
-        recibo.append("Estado: ")
-                .append(pedido.getEstado())
-                .append("\n");
-
-        if (mesa.getMesero() != null) {
-            recibo.append("Mesero: ")
-                    .append(mesa.getMesero().getNombre())
-                    .append("\n");
-        } else {
-            recibo.append("Mesero: Sin asignar\n");
-        }
-
-        recibo.append("Fecha: ")
-                .append(pedido.getCreatedAt())
-                .append("\n");
-
-        recibo.append("\n");
-        recibo.append("============== PRODUCTOS ===============\n");
-
-        if (detalles.isEmpty()) {
-
-            recibo.append("El pedido no tiene productos.\n");
-
-        } else {
-
-            for (DetallePedido detalle : detalles) {
-
-                recibo.append("Producto: ")
-                        .append(detalle.getPlato().getNombre())
-                        .append("\n");
-
-                recibo.append("Cantidad: ")
-                        .append(detalle.getCantidad())
-                        .append("\n");
-
-                recibo.append("----------------------------------------\n");
-            }
-        }
-
-        recibo.append("\n");
-        recibo.append("============== RESUMEN =================\n");
-
-        recibo.append("Total del pedido: $")
-                .append(pedido.getTotal())
-                .append("\n");
-
-        recibo.append("Total pagado: $")
-                .append(totalPagado)
-                .append("\n");
-
-        recibo.append("Saldo pendiente: $")
-                .append(saldoPendiente)
-                .append("\n");
-
-        recibo.append("Estado del pago: ")
-                .append(
-                        Boolean.TRUE.equals(pedido.getPagado())
-                                ? "PAGADO"
-                                : "PENDIENTE"
-                )
-                .append("\n");
-
-        recibo.append("\n");
-        recibo.append("================ PAGOS =================\n");
-
-        if (pagos.isEmpty()) {
-
-            recibo.append("No se han registrado pagos.\n");
-
-        } else {
-
-            for (Pago pago : pagos) {
-
-                recibo.append("Metodo: ")
-                        .append(pago.getMetodo())
-                        .append("\n");
-
-                recibo.append("Monto: $")
-                        .append(pago.getMonto())
-                        .append("\n");
-
-                recibo.append("Fecha: ")
-                        .append(pago.getCreatedAt())
-                        .append("\n");
-
-                recibo.append("----------------------------------------\n");
-            }
-        }
-
-        recibo.append("========================================\n");
-
-        return recibo.toString();
-    }
-    @Transactional
-    public String cerrarMesaForzosamente(Long mesaId) {
-
-        // 1. Buscar la mesa
-        Mesa mesa = mesaRepository.findById(mesaId)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Mesa no encontrada con ID: " + mesaId
-                        )
-                );
-
-        // 2. Verificar que la mesa esté ocupada
-        if (mesa.getEstado() != EstadoMesa.OCUPADA) {
-            throw new RuntimeException(
-                    "La mesa " + mesa.getNumero()
-                            + " no está ocupada."
-            );
-        }
-
-        // 3. Buscar el pedido activo
-        Pedido pedido = pedidoRepository
-                .findByMesaAndEstado(
-                        mesa,
-                        EstadoPedido.PENDIENTE
-                )
-                .orElse(null);
-
-        // Si no hay pedido pendiente, buscar uno confirmado
-        if (pedido == null) {
-            pedido = pedidoRepository
-                    .findByMesaAndEstado(
-                            mesa,
-                            EstadoPedido.CONFIRMADO
-                    )
-                    .orElse(null);
-        }
-
-        // 4. Cancelar el pedido activo si existe
-        if (pedido != null) {
-
-            pedido.setEstado(EstadoPedido.CANCELADO);
-
-            pedidoRepository.save(pedido);
-        }
-
-        // 5. Liberar la mesa
-        mesa.setEstado(EstadoMesa.DISPONIBLE);
-
-        // 6. Quitar el mesero asociado
-        mesa.setMesero(null);
-
-        mesaRepository.save(mesa);
-
-        // 7. Retornar confirmación
-        if (pedido != null) {
-
-            return "Mesa " + mesa.getNumero()
-                    + " cerrada forzosamente. "
-                    + "El pedido " + pedido.getId()
-                    + " fue cancelado y la mesa quedó disponible.";
-        } else {
-            return "Mesa " + mesa.getNumero()
-                    + " cerrada forzosamente. "
-                    + "No tenía un pedido activo y ahora está disponible.";
-        }
-    }
-    public String obtenerAvisoCierre(Long mesaId) {
-
-        Mesa mesa = mesaRepository.findById(mesaId)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Mesa no encontrada con ID: " + mesaId
-                        )
-                );
-        if (mesa.getEstado() != EstadoMesa.OCUPADA) {
-            throw new RuntimeException(
-                    "La mesa " + mesa.getNumero() + " no está ocupada."
-            );
-        }
-        Pedido pedido = pedidoRepository
-                .findByMesaAndEstado(
-                        mesa,
-                        EstadoPedido.PENDIENTE
-                )
-                .orElse(null);
-        if (pedido == null) {
-            pedido = pedidoRepository
-                    .findByMesaAndEstado(
-                            mesa,
-                            EstadoPedido.CONFIRMADO
-                    )
-                    .orElse(null);
-        }
-        if (pedido != null) {
-            return "ADVERTENCIA: Está a punto de cerrar "
-                    + "forzosamente la mesa "
-                    + mesa.getNumero()
-                    + ". El pedido "
-                    + pedido.getId()
-                    + " será cancelado. "
-                    + "Esta acción liberará la mesa y no podrá deshacerse "
-                    + "desde esta operación. "
-                    + "¿Desea continuar?";
-        } else {
-            return "ADVERTENCIA: Está a punto de cerrar "
-                    + "forzosamente la mesa "
-                    + mesa.getNumero()
-                    + ". La mesa no tiene un pedido activo. "
-                    + "¿Desea continuar?";
-        }
+    public List<HistorialEstadoMesa> consultarHistorial(Long mesaId) {
+        return historialEstadoMesaRepository.findByMesaIdOrderByFechaCambioDesc(mesaId);
     }
 }

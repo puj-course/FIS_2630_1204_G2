@@ -1,196 +1,105 @@
 package com.restaurante.service;
 
-import com.restaurante.entity.DetallePedido;
-import com.restaurante.enums.EstadoPedido;
+import com.restaurante.entity.EstadoMesa;
+import com.restaurante.entity.EstadoPedido;
+import com.restaurante.entity.Mesa;
 import com.restaurante.entity.Pedido;
-import com.restaurante.entity.Plato;
-import com.restaurante.repository.DetallePedidoRepository;
+import com.restaurante.exception.MesaNotFoundException;
+import com.restaurante.exception.MesaOcupadaException;
+import com.restaurante.repository.EstadoMesaRepository;
+import com.restaurante.repository.MesaRepository;
 import com.restaurante.repository.PedidoRepository;
-import com.restaurante.repository.PlatoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.util.List;
+import java.util.Set;
 
 @Service
 public class PedidoService {
 
+    private static final Set<EstadoPedido> ESTADOS_YA_CERRADOS = Set.of(
+            EstadoPedido.COMPLETADO,
+            EstadoPedido.ENTREGADO,
+            EstadoPedido.CANCELADO
+    );
+
     private final PedidoRepository pedidoRepository;
-    private final DetallePedidoRepository detallePedidoRepository;
-    private final PlatoRepository platoRepository;
+    private final MesaRepository mesaRepository;
+    private final MesaService mesaService;
 
     public PedidoService(
             PedidoRepository pedidoRepository,
-            DetallePedidoRepository detallePedidoRepository,
-            PlatoRepository platoRepository
-    ) {
+            MesaRepository mesaRepository,
+            MesaService mesaService) {
+
         this.pedidoRepository = pedidoRepository;
-        this.detallePedidoRepository = detallePedidoRepository;
-        this.platoRepository = platoRepository;
+        this.mesaRepository = mesaRepository;
+        this.mesaService = mesaService;
     }
 
-    // Crear un pedido vacío en estado PENDIENTE
     @Transactional
-    public Pedido crearPedido() {
+    public Pedido crearPedido(Long mesaId, Long usuarioId) {
 
+        Mesa mesa =
+            mesaRepository.findById(mesaId)
+                .orElseThrow(
+                    () -> new MesaNotFoundException("Mesa no encontrada con id " + mesaId)
+                );
+
+         // Verificar que la mesa esté libre antes de asignarle una comanda
+        if (!"LIBRE".equals(mesa.getEstado().getCodigoEstado())) {
+            throw new MesaOcupadaException(
+                "La mesa " + mesa.getNumeroMesa() + " no está disponible"
+            );
+        }
+
+        // Comprobar que no exista ya una comanda activa en esa mesa
+        boolean tieneComandaActiva =
+            pedidoRepository.existsByMesaIdAndEstadoNot(mesaId, EstadoPedido.CANCELADO);
+
+        if (tieneComandaActiva) {
+            throw new MesaOcupadaException(
+                "La mesa " + mesa.getNumeroMesa() + " ya tiene una comanda activa"
+            );
+        }
+
+        // Crear la comanda asociada a la mesa
         Pedido pedido = new Pedido();
+        pedido.setMesa(mesa);
+        pedido.setUsuarioId(usuarioId);
+        pedido.setNumeroPedido("PED-" + System.currentTimeMillis());
 
-        return pedidoRepository.save(pedido);
+        Pedido pedidoGuardado = pedidoRepository.save(pedido);
+
+        // Apertura de comanda: la mesa pasa a OCUPADA, con auditoría del cambio
+        mesaService.cambiarEstado(mesaId, "OCUPADA", "APERTURA_PEDIDO");
+
+        return pedidoGuardado;
     }
 
-    // Agregar un plato al pedido
     @Transactional
-    public DetallePedido agregarPlato(
-            Long pedidoId,
-            Long platoId,
-            BigDecimal cantidad
-    ) {
+    public Pedido cerrarPedido(Long pedidoId, String codigoEstadoDestinoMesa) {
 
-        if (cantidad == null || cantidad.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException(
-                    "La cantidad debe ser mayor que cero"
+        Pedido pedido =
+                pedidoRepository.findById(pedidoId)
+                        .orElseThrow(
+                                () -> new MesaNotFoundException("Pedido no encontrado con id " + pedidoId)
+                        );
+
+        if (ESTADOS_YA_CERRADOS.contains(pedido.getEstado())) {
+            throw new PedidoNoEditableException(
+                    "El pedido " + pedido.getNumeroPedido() +
+                            " ya está en estado " + pedido.getEstado()
             );
         }
 
-        Pedido pedido = pedidoRepository.findById(pedidoId)
-                .orElseThrow(() ->
-                        new RuntimeException("Pedido no encontrado")
-                );
+        pedido.setEstado(EstadoPedido.COMPLETADO);
+        Pedido pedidoCerrado = pedidoRepository.save(pedido);
 
-        if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
-            throw new RuntimeException(
-                    "Solo se pueden modificar pedidos PENDIENTES"
-            );
-        }
+        // Cierre de comanda: la mesa pasa a DISPONIBLE (o EN_LIMPIEZA si se indica),
+        String destino = codigoEstadoDestinoMesa != null ? codigoEstadoDestinoMesa : "LIBRE";
+        mesaService.cambiarEstado(pedido.getMesa().getId(), destino, "CIERRE_PEDIDO");
 
-        Plato plato = platoRepository.findById(platoId)
-                .orElseThrow(() ->
-                        new RuntimeException("Plato no encontrado")
-                );
-
-        if (!Boolean.TRUE.equals(plato.getIsActive())) {
-            throw new RuntimeException(
-                    "El plato no está activo"
-            );
-        }
-
-        List<DetallePedido> detalles =
-                detallePedidoRepository.findByPedidoId(pedidoId);
-
-        // Si el plato ya está en el pedido, aumenta la cantidad
-        for (DetallePedido detalle : detalles) {
-
-            if (detalle.getPlato().getId().equals(platoId)) {
-
-                detalle.setCantidad(
-                        detalle.getCantidad().add(cantidad)
-                );
-
-                return detallePedidoRepository.save(detalle);
-            }
-        }
-
-        // Si no existe, crea un nuevo detalle
-        DetallePedido detalle = new DetallePedido();
-
-        detalle.setPedido(pedido);
-        detalle.setPlato(plato);
-        detalle.setCantidad(cantidad);
-
-        return detallePedidoRepository.save(detalle);
-    }
-
-    // Cambiar directamente la cantidad de un plato
-    @Transactional
-    public DetallePedido cambiarCantidad(
-            Long pedidoId,
-            Long platoId,
-            BigDecimal nuevaCantidad
-    ) {
-
-        if (nuevaCantidad == null ||
-                nuevaCantidad.compareTo(BigDecimal.ZERO) <= 0) {
-
-            throw new RuntimeException(
-                    "La cantidad debe ser mayor que cero"
-            );
-        }
-
-        Pedido pedido = pedidoRepository.findById(pedidoId)
-                .orElseThrow(() ->
-                        new RuntimeException("Pedido no encontrado")
-                );
-
-        if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
-            throw new RuntimeException(
-                    "Solo se pueden modificar pedidos PENDIENTES"
-            );
-        }
-
-        List<DetallePedido> detalles =
-                detallePedidoRepository.findByPedidoId(pedidoId);
-
-        for (DetallePedido detalle : detalles) {
-
-            if (detalle.getPlato().getId().equals(platoId)) {
-
-                detalle.setCantidad(nuevaCantidad);
-
-                return detallePedidoRepository.save(detalle);
-            }
-        }
-
-        throw new RuntimeException(
-                "El plato no pertenece a este pedido"
-        );
-    }
-
-    // Eliminar un plato del pedido
-    @Transactional
-    public void eliminarPlato(
-            Long pedidoId,
-            Long platoId
-    ) {
-
-        Pedido pedido = pedidoRepository.findById(pedidoId)
-                .orElseThrow(() ->
-                        new RuntimeException("Pedido no encontrado")
-                );
-
-        if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
-            throw new RuntimeException(
-                    "Solo se pueden modificar pedidos PENDIENTES"
-            );
-        }
-
-        List<DetallePedido> detalles =
-                detallePedidoRepository.findByPedidoId(pedidoId);
-
-        for (DetallePedido detalle : detalles) {
-
-            if (detalle.getPlato().getId().equals(platoId)) {
-
-                detallePedidoRepository.delete(detalle);
-                return;
-            }
-        }
-
-        throw new RuntimeException(
-                "El plato no pertenece a este pedido"
-        );
-    }
-
-    // Consultar los detalles actuales del pedido
-    @Transactional(readOnly = true)
-    public List<DetallePedido> consultarDetalles(Long pedidoId) {
-
-        if (!pedidoRepository.existsById(pedidoId)) {
-            throw new RuntimeException(
-                    "Pedido no encontrado"
-            );
-        }
-
-        return detallePedidoRepository.findByPedidoId(pedidoId);
+        return pedidoCerrado;
     }
 }
