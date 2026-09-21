@@ -43,9 +43,9 @@ public class MesaService {
 
         // Toda mesa nueva nace en estado DISPONIBLE
         EstadoMesa disponible = 
-            estadoMesaRepository.findByCodigoEstado("DISPONIBLE").
+            estadoMesaRepository.findByCodigoEstado("LIBRE").
                 orElseThrow(
-                    () -> new MesaNotFoundException("El código DISPONIBLE no existe en estados_mesa")
+                    () -> new MesaNotFoundException("El código LIBRE no existe en estados_mesa")
                 );
 
         Mesa mesa = new Mesa();
