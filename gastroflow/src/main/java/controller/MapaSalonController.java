@@ -4,6 +4,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -22,6 +23,7 @@ import repository.MesaRepository;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 
 import java.sql.SQLException;
@@ -108,11 +110,19 @@ public class MapaSalonController {
         try {
             List<Mesa> mesas = mesaRepository.obtenerTodas();
             Set<Integer> mesasVisibles = new HashSet<>();
+            Set<String> identificadoresMostrados = new HashSet<>();
+            boolean hayIdentificadoresDuplicados = false;
             int posicionVisible = 0;
 
             for (Mesa mesa : mesas) {
                 if (!cumpleFiltro(mesa)) {
                     continue;
+                }
+
+                // Se avisa del choque pero la mesa se sigue dibujando: esconderla
+                // dejaria al mesero sin ver una mesa que existe.
+                if (!identificadoresMostrados.add(obtenerIdentificadorMesa(mesa))) {
+                    hayIdentificadoresDuplicados = true;
                 }
 
                 mesasVisibles.add(mesa.getIdMesa());
@@ -133,7 +143,7 @@ public class MapaSalonController {
             }
 
             quitarMesasNoVisibles(mesasVisibles);
-            actualizarMensajeFiltro(posicionVisible);
+            actualizarMensajeFiltro(posicionVisible, hayIdentificadoresDuplicados);
             if (mesaSeleccionada != null) {
                 actualizarDetalleMesa(mesaSeleccionada);
             }
@@ -163,11 +173,9 @@ public class MapaSalonController {
         EstadoMesaVisual estado = EstadoMesaVisual.desdeCodigo(mesa.getCodigoEstado());
         String textoEstado = estado != null ? estado.etiqueta : "Estado no valido";
 
-        btn.setText(
-                "Mesa " + mesa.getNumeroMesa() + "\n" +
-                        textoEstado + "\n" +
-                        Objects.toString(mesa.getNombreZona(), "Sin zona")
-        );
+        String colorTexto = estado != null ? "white" : "#B00020";
+        btn.setText(null);
+        btn.setGraphic(crearContenidoBoton(mesa, textoEstado, colorTexto));
         btn.setLayoutX(INICIO_X + (posicion % COLUMNAS) * (MESA_ANCHO + ESPACIO_X));
         btn.setLayoutY(INICIO_Y + (posicion / COLUMNAS) * (MESA_ALTO + ESPACIO_Y));
         boolean seleccionada = mesaSeleccionada != null && mesaSeleccionada.getIdMesa() == mesa.getIdMesa();
@@ -177,6 +185,52 @@ public class MapaSalonController {
             actualizarDetalleMesa(mesa);
             cargarMesas();
         });
+    }
+
+    /**
+     * El identificador va en su propia linea y mas grande que el resto, para que
+     * sea lo primero que se lee dentro de cada mesa del mapa (HU-047).
+     */
+    private VBox crearContenidoBoton(Mesa mesa, String textoEstado, String colorTexto) {
+        // Solo el identificador: el boton ya es la mesa, anteponerle "Mesa" solo
+        // le roba ancho al dato que el mesero necesita leer de un vistazo.
+        Label identificador = new Label(obtenerIdentificadorMesa(mesa));
+        identificador.setStyle(
+                "-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: " + colorTexto + ";"
+        );
+
+        Label detalle = new Label(
+                textoEstado + "\n" + Objects.toString(mesa.getNombreZona(), "Sin zona")
+        );
+        detalle.setStyle("-fx-font-size: 10px; -fx-text-fill: " + colorTexto + ";");
+
+        // Un codigo de mesa puede tener hasta 20 caracteres: se envuelve en varias
+        // lineas en vez de recortarse, porque recortado deja de identificar.
+        for (Label etiqueta : List.of(identificador, detalle)) {
+            etiqueta.setWrapText(true);
+            etiqueta.setPrefWidth(MESA_ANCHO - 24);
+            etiqueta.setMinHeight(Region.USE_PREF_SIZE);
+            etiqueta.setTextAlignment(TextAlignment.CENTER);
+        }
+
+        VBox contenido = new VBox(2, identificador, detalle);
+        contenido.setAlignment(Pos.CENTER);
+        return contenido;
+    }
+
+    /**
+     * Identificador que se le muestra al mesero: el codigo de la mesa, que la
+     * migracion 006 deja unico y obligatorio. El numero queda como respaldo por
+     * si se corre la aplicacion contra una base sin esa migracion.
+     */
+    private String obtenerIdentificadorMesa(Mesa mesa) {
+        String codigoMesa = mesa.getCodigoMesa();
+
+        if (codigoMesa != null && !codigoMesa.trim().isEmpty()) {
+            return codigoMesa.trim();
+        }
+
+        return String.valueOf(mesa.getNumeroMesa());
     }
 
     private String estiloMesa(EstadoMesaVisual estado, boolean seleccionada) {
@@ -214,14 +268,20 @@ public class MapaSalonController {
         }
     }
 
-    private void actualizarMensajeFiltro(int cantidadVisible) {
+    private void actualizarMensajeFiltro(int cantidadVisible, boolean hayIdentificadoresDuplicados) {
+        String mensaje = "";
+
         if (cantidadVisible == 0) {
-            mensajeFiltro.setText("No se encontraron mesas para el filtro seleccionado.");
-            mensajeFiltro.setVisible(true);
-        } else {
-            mensajeFiltro.setText("");
-            mensajeFiltro.setVisible(false);
+            mensaje = "No se encontraron mesas para el filtro seleccionado.";
+        } else if (hayIdentificadoresDuplicados) {
+            // Con la migracion 006 no deberia ocurrir. El aviso va en pantalla y
+            // no en un dialogo porque este metodo corre dentro del refresco
+            // automatico, donde showAndWait no esta permitido.
+            mensaje = "Hay mesas con el mismo identificador. Revise los codigos de mesa.";
         }
+
+        mensajeFiltro.setText(mensaje);
+        mensajeFiltro.setVisible(!mensaje.isEmpty());
     }
 
     private void configurarFiltros() {
@@ -248,7 +308,7 @@ public class MapaSalonController {
         EstadoMesaVisual estado = EstadoMesaVisual.desdeCodigo(mesa.getCodigoEstado());
         boolean ocupada = estado == EstadoMesaVisual.OCUPADA;
 
-        tituloDetalleMesa.setText("Detalle de Mesa " + mesa.getNumeroMesa());
+        tituloDetalleMesa.setText("Detalle de Mesa " + obtenerIdentificadorMesa(mesa));
         detalleNumero.setText("Numero: " + mesa.getNumeroMesa());
         detalleEstado.setText("Estado: " + (estado != null ? estado.etiqueta : "Estado no valido"));
         detalleCapacidad.setText("Capacidad maxima: " + mesa.getCapacidad() + " personas");
@@ -376,7 +436,7 @@ public class MapaSalonController {
         VBox contenido = new VBox(8);
 
         dialog.setTitle("Asignar mesa");
-        dialog.setHeaderText("Mesa " + mesa.getNumeroMesa());
+        dialog.setHeaderText("Mesa " + obtenerIdentificadorMesa(mesa));
         dialog.getDialogPane().getButtonTypes().addAll(confirmarButtonType, ButtonType.CANCEL);
 
         cantidadComensalesField.setPromptText("Cantidad de comensales");
@@ -463,7 +523,7 @@ public class MapaSalonController {
 
             if (!guardada) {
                 mostrarError(
-                        "No se guardo la asignacion: la mesa " + mesa.getNumeroMesa()
+                        "No se guardo la asignacion: la mesa " + obtenerIdentificadorMesa(mesa)
                                 + " tiene capacidad maxima de " + mesa.getCapacidad() + " personas."
                 );
                 return;
@@ -472,7 +532,7 @@ public class MapaSalonController {
             cargarMesas();
             mostrarInformacion(
                     "Asignacion confirmada",
-                    "Mesa " + mesa.getNumeroMesa() + " asignada para " + cantidadComensales + " comensales."
+                    "Mesa " + obtenerIdentificadorMesa(mesa) + " asignada para " + cantidadComensales + " comensales."
             );
         } catch (SQLException e) {
             mostrarError("Error al asignar la mesa: " + e.getMessage());

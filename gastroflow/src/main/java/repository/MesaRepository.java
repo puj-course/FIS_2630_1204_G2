@@ -7,6 +7,8 @@ import java.util.*;
 
 public class MesaRepository {
 
+    private static final int ZONA_POR_DEFECTO = 1;
+
     public List<Mesa> obtenerTodas() throws SQLException {
         List<Mesa> mesas = new ArrayList<>();
         String sql = "SELECT m.id_mesa, m.numero_mesa, m.codigo_mesa, m.capacidad, " +
@@ -265,15 +267,25 @@ public class MesaRepository {
     }
 
     public void agregarMesa(int numeroMesa) throws SQLException {
-        String sql = "INSERT INTO mesas (numero_mesa, capacidad, id_zona, id_estado_mesa) " +
-                "VALUES (?, 2, 1, 1)";
+        String sql = "INSERT INTO mesas (numero_mesa, codigo_mesa, capacidad, id_zona, id_estado_mesa) " +
+                "VALUES (?, ?, 2, ?, 1)";
 
         try (Connection conn = ConexionDB.obtenerConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, numeroMesa);
+            stmt.setString(2, generarCodigoMesa(ZONA_POR_DEFECTO, numeroMesa));
+            stmt.setInt(3, ZONA_POR_DEFECTO);
             stmt.executeUpdate();
         }
+    }
+
+    /**
+     * Mismo formato que usa la migracion 006, para que el identificador de una
+     * mesa nueva sea consistente con el de las que ya estaban (HU-047).
+     */
+    private String generarCodigoMesa(int idZona, int numeroMesa) {
+        return String.format("M-%02d-%02d", idZona, numeroMesa);
     }
     public void quitarMesa(int idMesa) throws SQLException {
         String sql = "UPDATE mesas SET is_active = 0 WHERE id_mesa = ?";

@@ -76,8 +76,10 @@ psql -d gastroflow -f ../functions/hu28_disponibilidad.sql
 ```
 
 Sobre una base **ya creada**, aplicar en cambio los scripts de `../migrations/` en
-orden numérico. Los cuatro son idempotentes: correrlos dos veces no duplica datos ni
-falla.
+orden numérico. Todos son idempotentes: correrlos dos veces no duplica datos ni
+falla. Los dos últimos tocan `mesas`: `005` agrega `cantidad_comensales` (HU-60) y
+`006` vuelve `codigo_mesa` obligatorio y único, que es el identificador que el mapa
+de salón le muestra al mesero (HU-047).
 
 Para verificar:
 
