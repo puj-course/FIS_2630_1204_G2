@@ -9,6 +9,7 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.Pane;
 import entity.Mesa;
 import repository.MesaRepository;
+import javafx.scene.control.TextInputDialog;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -275,6 +276,44 @@ public class MapaSalonController {
     }
 
     private void mostrarDetalleMesa(Mesa mesa) {
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle("Detalle de Mesa");
+        alert.setHeaderText("Mesa " + mesa.getNumeroMesa());
+
+        alert.setContentText(
+                "Zona: " + mesa.getNombreZona() + "\n" +
+                        "Capacidad: " + mesa.getCapacidad() + " personas\n" +
+                        "Estado: " + mesa.getCodigoEstado() + "\n" +
+                        "Código: " + (mesa.getCodigoMesa() != null
+                        ? mesa.getCodigoMesa()
+                        : "N/A")
+        );
+
+        alert.getButtonTypes().clear();
+
+        alert.getButtonTypes().addAll(
+                new javafx.scene.control.ButtonType("Cambiar estado"),
+                new javafx.scene.control.ButtonType("Cambiar capacidad"),
+                new javafx.scene.control.ButtonType("Cerrar")
+        );
+
+        Optional<javafx.scene.control.ButtonType> resultado =
+                alert.showAndWait();
+
+        if (resultado.isPresent()) {
+
+            if (resultado.get().getText().equals("Cambiar estado")) {
+                cambiarEstadoMesa(mesa);
+
+            } else if (resultado.get().getText().equals("Cambiar capacidad")) {
+                cambiarCapacidadMesa(mesa);
+            }
+        }
+    }
+    private void cambiarEstadoMesa(Mesa mesa) {
+
         List<String> estados = List.of(
                 "LIBRE",
                 "OCUPADA",
@@ -286,32 +325,26 @@ public class MapaSalonController {
                 estados
         );
 
-        dialog.setTitle("Detalle de Mesa");
+        dialog.setTitle("Cambiar estado");
         dialog.setHeaderText("Mesa " + mesa.getNumeroMesa());
-        dialog.setContentText(
-                "Zona: " + mesa.getNombreZona() + "\n" +
-                        "Capacidad: " + mesa.getCapacidad() + " personas\n" +
-                        "Estado actual: " + mesa.getCodigoEstado() + "\n\n" +
-                        "Cambiar estado:"
-        );
+        dialog.setContentText("Seleccione el nuevo estado:");
 
         Optional<String> resultado = dialog.showAndWait();
 
         if (resultado.isPresent()) {
-            cambiarEstadoMesa(mesa, resultado.get());
-        }
-    }
-    private void cambiarEstadoMesa(Mesa mesa, String nuevoEstado) {
-        try {
-            mesaRepository.cambiarEstadoMesa(
-                    mesa.getIdMesa(),
-                    nuevoEstado
-            );
+            try {
+                mesaRepository.cambiarEstadoMesa(
+                        mesa.getIdMesa(),
+                        resultado.get()
+                );
 
-            cargarMesas();
+                cargarMesas();
 
-        } catch (SQLException e) {
-            mostrarError("Error al cambiar el estado: " + e.getMessage());
+            } catch (SQLException e) {
+                mostrarError(
+                        "Error al cambiar el estado: " + e.getMessage()
+                );
+            }
         }
     }
 
@@ -322,5 +355,43 @@ public class MapaSalonController {
         alert.setContentText(mensaje);
 
         alert.showAndWait();
+    }
+
+    private void cambiarCapacidadMesa(Mesa mesa) {
+        TextInputDialog dialog = new TextInputDialog(
+                String.valueOf(mesa.getCapacidad())
+        );
+
+        dialog.setTitle("Cambiar capacidad");
+        dialog.setHeaderText("Mesa " + mesa.getNumeroMesa());
+        dialog.setContentText("Nueva capacidad:");
+
+        Optional<String> resultado = dialog.showAndWait();
+
+        if (resultado.isPresent()) {
+            try {
+                int capacidad = Integer.parseInt(resultado.get());
+
+                if (capacidad <= 0) {
+                    mostrarError("La capacidad debe ser mayor que 0.");
+                    return;
+                }
+
+                mesaRepository.cambiarCapacidadMesa(
+                        mesa.getIdMesa(),
+                        capacidad
+                );
+
+                cargarMesas();
+
+            } catch (NumberFormatException e) {
+                mostrarError("Ingrese un número válido.");
+
+            } catch (SQLException e) {
+                mostrarError(
+                        "Error al cambiar la capacidad: " + e.getMessage()
+                );
+            }
+        }
     }
 }
