@@ -215,6 +215,55 @@ public class MesaRepository {
         }
     }
 
+    /**
+     * Guarda la cantidad de comensales de una mesa y la marca como ocupada (HU-60).
+     *
+     * La comparacion contra la capacidad va dentro del UPDATE, de modo que la regla
+     * no depende de que la interfaz la haya validado antes: si la cantidad no cabe,
+     * no se escribe nada.
+     *
+     * @return true si la asignacion quedo guardada; false si excede la capacidad.
+     */
+    public boolean asignarComensales(int idMesa, int cantidadComensales) throws SQLException {
+        if (cantidadComensales <= 0) {
+            throw new IllegalArgumentException("La cantidad de comensales debe ser mayor a cero.");
+        }
+
+        String sql = "UPDATE mesas " +
+                "SET cantidad_comensales = ?, " +
+                "    id_estado_mesa = COALESCE(?, id_estado_mesa) " +
+                "WHERE id_mesa = ? " +
+                "  AND ? <= capacidad";
+
+        try (Connection conn = ConexionDB.obtenerConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            Integer idOcupada = obtenerIdEstado(conn, "OCUPADA");
+
+            stmt.setInt(1, cantidadComensales);
+            if (idOcupada != null) {
+                stmt.setInt(2, idOcupada);
+            } else {
+                stmt.setNull(2, Types.INTEGER);
+            }
+            stmt.setInt(3, idMesa);
+            stmt.setInt(4, cantidadComensales);
+
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
+    private Integer obtenerIdEstado(Connection conn, String codigoEstado) throws SQLException {
+        String sql = "SELECT id_estado_mesa FROM estados_mesa WHERE UPPER(codigo_estado) = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, codigoEstado.toUpperCase());
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() ? rs.getInt("id_estado_mesa") : null;
+            }
+        }
+    }
+
     public void agregarMesa(int numeroMesa) throws SQLException {
         String sql = "INSERT INTO mesas (numero_mesa, capacidad, id_zona, id_estado_mesa) " +
                 "VALUES (?, 2, 1, 1)";

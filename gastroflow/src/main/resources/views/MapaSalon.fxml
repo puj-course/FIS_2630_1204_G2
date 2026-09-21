@@ -31,7 +31,8 @@
          </children>
       </HBox>
       <Label fx:id="mensajeFiltro" layoutX="24.0" layoutY="184.0" prefWidth="400.0" textFill="#B00020" visible="false" />
-      <Button alignment="CENTER" layoutX="24.0" layoutY="530.0" mnemonicParsing="false" onAction="#agregarMesa" prefHeight="30.0" prefWidth="150.0" text="Agregar Mesa" />
-      <Button alignment="CENTER" layoutX="276.0" layoutY="530.0" mnemonicParsing="false" onAction="#quitarMesa" prefHeight="30.0" prefWidth="150.0" text="Quitar Mesa" />
+      <Button alignment="CENTER" layoutX="24.0" layoutY="530.0" mnemonicParsing="false" onAction="#agregarMesa" prefHeight="30.0" prefWidth="130.0" text="Agregar Mesa" />
+      <Button alignment="CENTER" layoutX="160.0" layoutY="530.0" mnemonicParsing="false" onAction="#asignarComensales" prefHeight="30.0" prefWidth="150.0" text="Asignar comensales" />
+      <Button alignment="CENTER" layoutX="316.0" layoutY="530.0" mnemonicParsing="false" onAction="#quitarMesa" prefHeight="30.0" prefWidth="110.0" text="Quitar Mesa" />
    </children>
 </Pane>

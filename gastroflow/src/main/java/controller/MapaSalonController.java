@@ -2,10 +2,17 @@ package controller;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
@@ -344,6 +351,140 @@ public class MapaSalonController {
         } catch (SQLException e) {
             mostrarError("Error al quitar mesa: " + e.getMessage());
         }
+    }
+
+    /**
+     * HU-60: pide la cantidad de comensales para la mesa seleccionada y advierte
+     * cuando supera la capacidad, sin dejar confirmar mientras eso ocurra.
+     */
+    @FXML
+    private void asignarComensales() {
+        if (mesaSeleccionada == null) {
+            mostrarError("Seleccione una mesa primero.");
+            return;
+        }
+
+        solicitarAsignacionMesa(mesaSeleccionada);
+    }
+
+    private void solicitarAsignacionMesa(Mesa mesa) {
+        Dialog<Integer> dialog = new Dialog<>();
+        ButtonType confirmarButtonType =
+                new ButtonType("Confirmar asignacion", ButtonBar.ButtonData.OK_DONE);
+        TextField cantidadComensalesField = new TextField();
+        Label advertenciaLabel = new Label();
+        VBox contenido = new VBox(8);
+
+        dialog.setTitle("Asignar mesa");
+        dialog.setHeaderText("Mesa " + mesa.getNumeroMesa());
+        dialog.getDialogPane().getButtonTypes().addAll(confirmarButtonType, ButtonType.CANCEL);
+
+        cantidadComensalesField.setPromptText("Cantidad de comensales");
+        advertenciaLabel.setStyle("-fx-text-fill: #D32F2F; -fx-font-weight: bold;");
+        advertenciaLabel.setWrapText(true);
+        // Sin un ancho de referencia el mensaje se corta y deja de mostrar la
+        // capacidad, que es justo lo que pide el criterio de aceptacion.
+        advertenciaLabel.setMinHeight(Region.USE_PREF_SIZE);
+        contenido.setPrefWidth(360);
+
+        contenido.getChildren().addAll(
+                new Label("Capacidad maxima: " + mesa.getCapacidad() + " personas"),
+                cantidadComensalesField,
+                advertenciaLabel
+        );
+        dialog.getDialogPane().setContent(contenido);
+        dialog.setOnShown(event -> Platform.runLater(cantidadComensalesField::requestFocus));
+
+        Node confirmarButton = dialog.getDialogPane().lookupButton(confirmarButtonType);
+        confirmarButton.setDisable(true);
+
+        cantidadComensalesField.textProperty().addListener((observable, anterior, nuevoValor) -> {
+            validarCantidadComensales(nuevoValor, mesa.getCapacidad(), advertenciaLabel, confirmarButton);
+            // El dialogo no crece solo cuando aparece la advertencia y termina
+            // recortando los botones, justo en el momento que importa.
+            ajustarTamanoDialogo(dialog);
+        });
+
+        dialog.setResultConverter(buttonType ->
+                buttonType == confirmarButtonType
+                        ? Integer.valueOf(cantidadComensalesField.getText().trim())
+                        : null
+        );
+
+        dialog.showAndWait().ifPresent(cantidad -> guardarAsignacion(mesa, cantidad));
+    }
+
+    private void validarCantidadComensales(
+            String valorIngresado,
+            int capacidadMaxima,
+            Label advertenciaLabel,
+            Node confirmarButton
+    ) {
+        String valor = valorIngresado.trim();
+
+        if (valor.isEmpty()) {
+            advertenciaLabel.setText("");
+            confirmarButton.setDisable(true);
+            return;
+        }
+
+        try {
+            int cantidadComensales = Integer.parseInt(valor);
+
+            if (cantidadComensales <= 0) {
+                advertenciaLabel.setText("Ingrese una cantidad mayor a cero.");
+                confirmarButton.setDisable(true);
+            } else if (cantidadComensales > capacidadMaxima) {
+                advertenciaLabel.setText(
+                        "Advertencia: la mesa seleccionada tiene capacidad maxima de "
+                                + capacidadMaxima + " personas."
+                );
+                confirmarButton.setDisable(true);
+            } else {
+                advertenciaLabel.setText("");
+                confirmarButton.setDisable(false);
+            }
+        } catch (NumberFormatException e) {
+            advertenciaLabel.setText("Ingrese un numero valido de comensales.");
+            confirmarButton.setDisable(true);
+        }
+    }
+
+    private void ajustarTamanoDialogo(Dialog<?> dialog) {
+        Scene escena = dialog.getDialogPane().getScene();
+        if (escena != null && escena.getWindow() != null) {
+            escena.getWindow().sizeToScene();
+        }
+    }
+
+    private void guardarAsignacion(Mesa mesa, int cantidadComensales) {
+        try {
+            boolean guardada = mesaRepository.asignarComensales(mesa.getIdMesa(), cantidadComensales);
+
+            if (!guardada) {
+                mostrarError(
+                        "No se guardo la asignacion: la mesa " + mesa.getNumeroMesa()
+                                + " tiene capacidad maxima de " + mesa.getCapacidad() + " personas."
+                );
+                return;
+            }
+
+            cargarMesas();
+            mostrarInformacion(
+                    "Asignacion confirmada",
+                    "Mesa " + mesa.getNumeroMesa() + " asignada para " + cantidadComensales + " comensales."
+            );
+        } catch (SQLException e) {
+            mostrarError("Error al asignar la mesa: " + e.getMessage());
+        }
+    }
+
+    private void mostrarInformacion(String titulo, String mensaje) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(titulo);
+        alert.setHeaderText(titulo);
+        alert.setContentText(mensaje);
+        alert.showAndWait();
     }
 
     private void mostrarError(String mensaje) {
