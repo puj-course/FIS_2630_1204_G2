@@ -79,6 +79,9 @@ public class Mesa {
     private String nombreZona;
     private int idEstadoMesa;
     private String codigoEstado;
+    private Integer cantidadComensales;
+    private String pedidoActivo;
+    private String meseroResponsable;
 
     public Mesa() {}
 
@@ -105,4 +108,13 @@ public class Mesa {
 
     public String getCodigoEstado() { return codigoEstado; }
     public void setCodigoEstado(String codigoEstado) { this.codigoEstado = codigoEstado; }
+
+    public Integer getCantidadComensales() { return cantidadComensales; }
+    public void setCantidadComensales(Integer cantidadComensales) { this.cantidadComensales = cantidadComensales; }
+
+    public String getPedidoActivo() { return pedidoActivo; }
+    public void setPedidoActivo(String pedidoActivo) { this.pedidoActivo = pedidoActivo; }
+
+    public String getMeseroResponsable() { return meseroResponsable; }
+    public void setMeseroResponsable(String meseroResponsable) { this.meseroResponsable = meseroResponsable; }
 }
