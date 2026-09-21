@@ -47,7 +47,7 @@ public class PedidoService {
                 );
 
          // Verificar que la mesa esté libre antes de asignarle una comanda
-        if (!"DISPONIBLE".equals(mesa.getEstado().getCodigoEstado())) {
+        if (!"LIBRE".equals(mesa.getEstado().getCodigoEstado())) {
             throw new MesaOcupadaException(
                 "La mesa " + mesa.getNumeroMesa() + " no está disponible"
             );
@@ -97,7 +97,7 @@ public class PedidoService {
         Pedido pedidoCerrado = pedidoRepository.save(pedido);
 
         // Cierre de comanda: la mesa pasa a DISPONIBLE (o EN_LIMPIEZA si se indica),
-        String destino = codigoEstadoDestinoMesa != null ? codigoEstadoDestinoMesa : "DISPONIBLE";
+        String destino = codigoEstadoDestinoMesa != null ? codigoEstadoDestinoMesa : "LIBRE";
         mesaService.cambiarEstado(pedido.getMesa().getId(), destino, "CIERRE_PEDIDO");
 
         return pedidoCerrado;
