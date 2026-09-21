@@ -87,7 +87,7 @@ Tablas: `mesas`, `zonas`, `estados_mesa`
 ## Estructura
 
 ```text
-gastroflow/
+FIS_2630_1204_G2/
 ├── pom.xml
 └── src/
     ├── main/java/

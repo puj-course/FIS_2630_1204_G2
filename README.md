@@ -37,26 +37,24 @@ El problema que busca solucionar es la falta de organización y trazabilidad que
 
 ```text
 FIS_2630_1204_G2/
-├── gastroflow/                Aplicación de escritorio (JavaFX + Maven)
-│   ├── pom.xml
-│   ├── README.md              Módulos implementados y cómo ejecutarlos
-│   └── src/
-│       ├── main/java/
-│       │   ├── Main.java          Menú principal: abre cada módulo en su ventana
-│       │   ├── conf/              Conexión a PostgreSQL del módulo de salón
-│       │   ├── controller/        Controladores de las vistas JavaFX
-│       │   ├── dao/               Acceso a datos con JDBC
-│       │   ├── database/          Conexión a PostgreSQL del resto de módulos
-│       │   ├── dto/               Objetos que se pasan entre capas
-│       │   ├── entity/            Entidades del dominio
-│       │   ├── enums/             Enumeraciones (todavía sin contenido)
-│       │   ├── exceptions/        Excepciones propias (todavía sin contenido)
-│       │   ├── repository/        Consultas del módulo de salón
-│       │   ├── service/           Reglas de negocio del módulo de salón
-│       │   ├── session/           Usuario autenticado
-│       │   └── util/              Utilidades sin dependencias
-│       ├── main/resources/        Vistas FXML y hojas de estilo
-│       └── test/java/             Pruebas unitarias
+├── pom.xml                    Aplicación de escritorio (JavaFX + Maven)
+├── src/
+│   ├── main/java/
+│   │   ├── Main.java          Menú principal: abre cada módulo en su ventana
+│   │   ├── conf/              Conexión a PostgreSQL del módulo de salón
+│   │   ├── controller/        Controladores de las vistas JavaFX
+│   │   ├── dao/               Acceso a datos con JDBC
+│   │   ├── database/          Conexión a PostgreSQL del resto de módulos
+│   │   ├── dto/               Objetos que se pasan entre capas
+│   │   ├── entity/            Entidades del dominio
+│   │   ├── enums/             Enumeraciones (todavía sin contenido)
+│   │   ├── exceptions/        Excepciones propias (todavía sin contenido)
+│   │   ├── repository/        Consultas del módulo de salón
+│   │   ├── service/           Reglas de negocio del módulo de salón
+│   │   ├── session/           Usuario autenticado
+│   │   └── util/              Utilidades sin dependencias
+│   ├── main/resources/        Vistas FXML y hojas de estilo
+│   └── test/java/             Pruebas unitarias
 │
 ├── db/                        Base de datos
 │   ├── ddl/                   Una tabla por archivo, con su README
@@ -64,6 +62,7 @@ FIS_2630_1204_G2/
 │   └── migrations/            Cambios sobre bases ya creadas
 │
 ├── docs/
+│   ├── aplicacion.md          Módulos implementados y cómo ejecutarlos
 │   └── database/              Diagrama entidad-relación y documentación del modelo
 │
 ├── conf/                      Configuración común, reservada en la estructura de main
@@ -73,12 +72,12 @@ FIS_2630_1204_G2/
 ```
 
 Las clases están en paquetes planos (`controller`, `dao`, `entity`…), sin el prefijo
-`com.gastroflow`, y `Main` queda en el paquete por defecto. El módulo sigue la disposición
-estándar de Maven, así que `src/main/java`, `src/main/resources` y `src/test/java` se
+`com.gastroflow`, y `Main` queda en el paquete por defecto. El proyecto Maven vive en la
+raíz del repositorio, así que `src/main/java`, `src/main/resources` y `src/test/java` se
 detectan sin configuración adicional en el `pom.xml`.
 
 La documentación detallada está repartida donde corresponde:
-[`gastroflow/README.md`](gastroflow/README.md) explica los módulos y cómo ejecutarlos, y
+[`docs/aplicacion.md`](docs/aplicacion.md) explica los módulos y cómo ejecutarlos, y
 [`db/ddl/README.md`](db/ddl/README.md) documenta el esquema, el orden de ejecución y las
 convenciones.
 
@@ -140,7 +139,6 @@ misma base hay que definir los dos juegos de variables.
 ## Ejecución
 
 ```bash
-cd gastroflow
 mvn clean compile
 mvn javafx:run
 ```
@@ -150,7 +148,6 @@ Se abre un menú desde el que se entra a cada módulo.
 ## Pruebas
 
 ```bash
-cd gastroflow
 mvn test
 ```
 
