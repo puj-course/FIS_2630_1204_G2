@@ -73,10 +73,10 @@ public class ReservaService {
 
         // Liberar la mesa: pasa de RESERVADA a DISPONIBLE
         EstadoMesa disponible =
-                estadoMesaRepository.findByCodigoEstado("DISPONIBLE")
+                estadoMesaRepository.findByCodigoEstado("LIBRE")
                         .orElseThrow(
                                 () -> new ReservaNoCancelableException(
-                                        "El código DISPONIBLE no existe en estados_mesa"
+                                        "El código LIBRE no existe en estados_mesa"
                                 )
                         );
 
