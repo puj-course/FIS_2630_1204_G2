@@ -22,3 +22,5 @@ CONSTRAINT chk_alerta_item_unico CHECK (
 
 -- Búsqueda de alertas pendientes/sin resolver ordenadas por fecha para el dashboard
 CREATE INDEX ix_alerta_inventario_estado ON alerta_inventario (estado, created_at);
+
+

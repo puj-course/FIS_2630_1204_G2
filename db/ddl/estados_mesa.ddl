@@ -5,3 +5,5 @@ CREATE TABLE estados_mesa (
     CONSTRAINT pk_estados_mesa PRIMARY KEY (id_estado_mesa),
     CONSTRAINT uk_estados_mesa_codigo UNIQUE (codigo_estado)
 );
+
+
