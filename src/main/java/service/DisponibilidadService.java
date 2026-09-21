@@ -3,8 +3,6 @@ package service;
 import java.sql.*;
 import java.util.*;
 import conf.ConexionDB;
-import entity.PlatoInsumo;
-import repository.PlatoInsumoRepository;
 
 public class DisponibilidadService {
     private PlatoInsumoRepository platoInsumoRepo = new PlatoInsumoRepository();

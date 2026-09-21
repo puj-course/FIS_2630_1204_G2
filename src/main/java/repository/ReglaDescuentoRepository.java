@@ -3,7 +3,7 @@ package repository;//hecho con ayuda de una LLM, sujeto a cambios para hacer pru
 import java.sql.*;
 import java.util.*;
 import conf.ConexionDB;
-import entity.ReglaDescuento;
+import models.ReglasDescuento.ReglaDescuento;
 
 public class ReglaDescuentoRepository {
 

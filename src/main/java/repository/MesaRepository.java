@@ -325,6 +325,37 @@ public class MesaRepository {
     private String generarCodigoMesa(int idZona, int numeroMesa) {
         return String.format("M-%02d-%02d", idZona, numeroMesa);
     }
+    // De features-julian (#112 y #152). Se conservan tal cual para no perder su
+    // trabajo; conectarlos al mapa de salon queda como tarea aparte.
+
+    public void cambiarEstadoMesa(int idMesa, String codigoEstado) throws SQLException {
+        String sql = "UPDATE mesas " +
+                "SET id_estado_mesa = " +
+                "(SELECT id_estado_mesa FROM estados_mesa WHERE codigo_estado = ?) " +
+                "WHERE id_mesa = ?";
+
+        try (Connection conn = ConexionDB.obtenerConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, codigoEstado);
+            stmt.setInt(2, idMesa);
+
+            stmt.executeUpdate();
+        }
+    }
+
+    public void cambiarCapacidadMesa(int idMesa, int capacidad) throws SQLException {
+        String sql = "UPDATE mesas SET capacidad = ? WHERE id_mesa = ?";
+        try (Connection conn = ConexionDB.obtenerConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, capacidad);
+            stmt.setInt(2, idMesa);
+
+            stmt.executeUpdate();
+        }
+    }
+
     public void quitarMesa(int idMesa) throws SQLException {
         String sql = "UPDATE mesas SET is_active = 0 WHERE id_mesa = ?";
 

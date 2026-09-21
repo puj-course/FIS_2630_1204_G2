@@ -16,3 +16,5 @@ CONSTRAINT chk_detalle_pedido_cantidad CHECK (cantidad > 0),
 CONSTRAINT chk_detalle_pedido_precio CHECK (precio_unitario >= 0),
 CONSTRAINT chk_detalle_pedido_subtotal CHECK (subtotal >= 0)
 );
+
+

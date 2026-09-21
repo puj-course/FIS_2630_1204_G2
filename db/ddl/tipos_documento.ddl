@@ -5,3 +5,5 @@ CREATE TABLE tipos_documento (
     CONSTRAINT pk_tipos_documento PRIMARY KEY (id_tipo_documento),
     CONSTRAINT uk_tipos_doc_codigo UNIQUE (codigo)
 );
+
+

@@ -4,7 +4,7 @@ import conf.ConexionDB; //importa la conexión a la base de datos
 import java.sql.Connection; // Importa Connection de Java SQL.
 import java.sql.PreparedStatement; // Sirve para ejecutar consultas SQL de manera preparada y segura,
 import java.sql.SQLException; // Es una excepción que puede ocurrir cuando hay un problema con la base de datos,
-import entity.Cliente; //importa el modelo de cliente
+import models.RegistroCliente.Cliente; //importa el modelo de cliente
 
 
 public class ClienteRepository {
