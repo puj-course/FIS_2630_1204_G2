@@ -139,4 +139,12 @@ public class MesaController {
             return "Error: " + e.getMessage();
         }
     }
+    @GetMapping("/aviso-cierre/{mesaId}")
+    public String obtenerAvisoCierre(@PathVariable Long mesaId) {
+        try {
+            return mesaService.obtenerAvisoCierre(mesaId);
+        } catch (RuntimeException e) {
+            return "Error: " + e.getMessage();
+        }
+    }
 }

@@ -566,4 +566,49 @@ public class MesaService {
                     + "No tenía un pedido activo y ahora está disponible.";
         }
     }
+    public String obtenerAvisoCierre(Long mesaId) {
+
+        Mesa mesa = mesaRepository.findById(mesaId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Mesa no encontrada con ID: " + mesaId
+                        )
+                );
+        if (mesa.getEstado() != EstadoMesa.OCUPADA) {
+            throw new RuntimeException(
+                    "La mesa " + mesa.getNumero() + " no está ocupada."
+            );
+        }
+        Pedido pedido = pedidoRepository
+                .findByMesaAndEstado(
+                        mesa,
+                        EstadoPedido.PENDIENTE
+                )
+                .orElse(null);
+        if (pedido == null) {
+            pedido = pedidoRepository
+                    .findByMesaAndEstado(
+                            mesa,
+                            EstadoPedido.CONFIRMADO
+                    )
+                    .orElse(null);
+        }
+        if (pedido != null) {
+            return "ADVERTENCIA: Está a punto de cerrar "
+                    + "forzosamente la mesa "
+                    + mesa.getNumero()
+                    + ". El pedido "
+                    + pedido.getId()
+                    + " será cancelado. "
+                    + "Esta acción liberará la mesa y no podrá deshacerse "
+                    + "desde esta operación. "
+                    + "¿Desea continuar?";
+        } else {
+            return "ADVERTENCIA: Está a punto de cerrar "
+                    + "forzosamente la mesa "
+                    + mesa.getNumero()
+                    + ". La mesa no tiene un pedido activo. "
+                    + "¿Desea continuar?";
+        }
+    }
 }
