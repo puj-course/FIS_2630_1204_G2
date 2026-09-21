@@ -29,6 +29,7 @@ public class BusquedaMesaHelper {
                 panelMesas.getChildren().stream()
                         .filter(nodo -> nodo instanceof Button)
                         .map(nodo -> (Button) nodo)
+                        .filter(boton -> boton.getId() != null && boton.getId().startsWith("mesa-"))
                         .filter(boton -> coincideNumeroMesa(boton, numeroMesaTexto.trim()))
                         .findFirst()
                         .orElse(null);
