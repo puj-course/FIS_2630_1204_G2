@@ -199,9 +199,7 @@ public class MapaSalonController {
                 "-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: " + colorTexto + ";"
         );
 
-        Label detalle = new Label(
-                textoEstado + "\n" + Objects.toString(mesa.getNombreZona(), "Sin zona")
-        );
+        Label detalle = new Label(construirDetalleMesa(mesa, textoEstado));
         detalle.setStyle("-fx-font-size: 10px; -fx-text-fill: " + colorTexto + ";");
 
         // Un codigo de mesa puede tener hasta 20 caracteres: se envuelve en varias
@@ -216,6 +214,25 @@ public class MapaSalonController {
         VBox contenido = new VBox(2, identificador, detalle);
         contenido.setAlignment(Pos.CENTER);
         return contenido;
+    }
+
+    /**
+     * Estado, zona y, cuando la mesa esta atendiendo, cuantas personas hay
+     * sentadas en ella (HU-048).
+     */
+    private String construirDetalleMesa(Mesa mesa, String textoEstado) {
+        StringBuilder detalle = new StringBuilder(textoEstado)
+                .append("\n")
+                .append(Objects.toString(mesa.getNombreZona(), "Sin zona"));
+
+        Integer personas = mesa.getCantidadComensales();
+        if (personas != null && personas > 0) {
+            detalle.append("\n")
+                   .append(personas)
+                   .append(personas == 1 ? " persona" : " personas");
+        }
+
+        return detalle.toString();
     }
 
     /**
@@ -428,17 +445,27 @@ public class MapaSalonController {
     }
 
     private void solicitarAsignacionMesa(Mesa mesa) {
-        Dialog<Integer> dialog = new Dialog<>();
+        Dialog<AccionMesa> dialog = new Dialog<>();
         ButtonType confirmarButtonType =
                 new ButtonType("Confirmar asignacion", ButtonBar.ButtonData.OK_DONE);
+        ButtonType liberarButtonType =
+                new ButtonType("Liberar mesa", ButtonBar.ButtonData.OTHER);
+        Integer cantidadActual = mesa.getCantidadComensales();
+        boolean mesaConComensales = cantidadActual != null && cantidadActual > 0;
         TextField cantidadComensalesField = new TextField();
         Label advertenciaLabel = new Label();
         VBox contenido = new VBox(8);
 
         dialog.setTitle("Asignar mesa");
         dialog.setHeaderText("Mesa " + obtenerIdentificadorMesa(mesa));
-        dialog.getDialogPane().getButtonTypes().addAll(confirmarButtonType, ButtonType.CANCEL);
+        dialog.getDialogPane().getButtonTypes().addAll(
+                confirmarButtonType, liberarButtonType, ButtonType.CANCEL);
 
+        // Se precarga la cantidad vigente para que modificarla sea corregir un
+        // numero y no volver a escribirlo de cero.
+        if (mesaConComensales) {
+            cantidadComensalesField.setText(cantidadActual.toString());
+        }
         cantidadComensalesField.setPromptText("Cantidad de comensales");
         advertenciaLabel.setStyle("-fx-text-fill: #D32F2F; -fx-font-weight: bold;");
         advertenciaLabel.setWrapText(true);
@@ -449,6 +476,8 @@ public class MapaSalonController {
 
         contenido.getChildren().addAll(
                 new Label("Capacidad maxima: " + mesa.getCapacidad() + " personas"),
+                new Label("Personas actuales: "
+                        + (mesaConComensales ? cantidadActual.toString() : "sin asignar")),
                 cantidadComensalesField,
                 advertenciaLabel
         );
@@ -457,6 +486,11 @@ public class MapaSalonController {
 
         Node confirmarButton = dialog.getDialogPane().lookupButton(confirmarButtonType);
         confirmarButton.setDisable(true);
+        dialog.getDialogPane().lookupButton(liberarButtonType).setDisable(!mesaConComensales);
+
+        // El valor precargado tambien se valida: el listener no corre por si solo.
+        validarCantidadComensales(
+                cantidadComensalesField.getText(), mesa.getCapacidad(), advertenciaLabel, confirmarButton);
 
         cantidadComensalesField.textProperty().addListener((observable, anterior, nuevoValor) -> {
             validarCantidadComensales(nuevoValor, mesa.getCapacidad(), advertenciaLabel, confirmarButton);
@@ -465,13 +499,38 @@ public class MapaSalonController {
             ajustarTamanoDialogo(dialog);
         });
 
-        dialog.setResultConverter(buttonType ->
-                buttonType == confirmarButtonType
-                        ? Integer.valueOf(cantidadComensalesField.getText().trim())
-                        : null
-        );
+        dialog.setResultConverter(buttonType -> {
+            if (buttonType == confirmarButtonType) {
+                return AccionMesa.asignar(Integer.parseInt(cantidadComensalesField.getText().trim()));
+            }
+            if (buttonType == liberarButtonType) {
+                return AccionMesa.liberar();
+            }
+            return null;
+        });
 
-        dialog.showAndWait().ifPresent(cantidad -> guardarAsignacion(mesa, cantidad));
+        dialog.showAndWait().ifPresent(accion -> {
+            if (accion.liberarMesa()) {
+                liberarMesa(mesa);
+            } else {
+                guardarAsignacion(mesa, accion.cantidadPersonas());
+            }
+        });
+    }
+
+    private void liberarMesa(Mesa mesa) {
+        try {
+            mesaRepository.liberarMesa(mesa.getIdMesa());
+
+            cargarMesas();
+            mostrarInformacion(
+                    "Mesa liberada",
+                    "Mesa " + obtenerIdentificadorMesa(mesa)
+                            + " liberada. La cantidad de personas quedo en cero."
+            );
+        } catch (SQLException e) {
+            mostrarError("Error al liberar la mesa: " + e.getMessage());
+        }
     }
 
     private void validarCantidadComensales(
@@ -543,14 +602,39 @@ public class MapaSalonController {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(titulo);
         alert.setHeaderText(titulo);
-        alert.setContentText(mensaje);
+        alert.getDialogPane().setContent(textoDeAlerta(mensaje));
         alert.showAndWait();
     }
 
     private void mostrarError(String mensaje) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setContentText(mensaje);
+        alert.setHeaderText(null);
+        alert.getDialogPane().setContent(textoDeAlerta(mensaje));
         alert.showAndWait();
+    }
+
+    /**
+     * setContentText recorta el mensaje con puntos suspensivos cuando el dialogo
+     * es angosto. Con un Label propio el texto se envuelve y se lee completo.
+     */
+    private Label textoDeAlerta(String mensaje) {
+        Label contenido = new Label(mensaje);
+        contenido.setWrapText(true);
+        contenido.setMaxWidth(360);
+        contenido.setMinHeight(Region.USE_PREF_SIZE);
+        return contenido;
+    }
+
+    /** Lo que el mesero decidio en el dialogo: asignar una cantidad, o liberar. */
+    private record AccionMesa(Integer cantidadPersonas, boolean liberarMesa) {
+
+        private static AccionMesa asignar(int cantidadPersonas) {
+            return new AccionMesa(cantidadPersonas, false);
+        }
+
+        private static AccionMesa liberar() {
+            return new AccionMesa(null, true);
+        }
     }
 
     private enum EstadoMesaVisual {

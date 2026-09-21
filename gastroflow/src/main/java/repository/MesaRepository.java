@@ -18,7 +18,9 @@ public class MesaRepository {
                 "JOIN zonas z ON m.id_zona = z.id_zona " +
                 "JOIN estados_mesa e ON m.id_estado_mesa = e.id_estado_mesa " +
                 "WHERE m.is_active = 1 " +
-                "ORDER BY m.numero_mesa";
+                // El id desempata: sin el, dos mesas con el mismo numero en zonas
+                // distintas cambiaban de posicion en el mapa en cada refresco.
+                "ORDER BY m.numero_mesa, m.id_mesa";
 
         try (Connection conn = ConexionDB.obtenerConexion();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -255,14 +257,50 @@ public class MesaRepository {
         }
     }
 
-    private Integer obtenerIdEstado(Connection conn, String codigoEstado) throws SQLException {
+    /**
+     * Devuelve el id del primer codigo de estado que exista en la base. Se pasan
+     * varios porque `estados_mesa` es un catalogo y no todas las instalaciones
+     * usan el mismo nombre para "mesa libre".
+     */
+    private Integer obtenerIdEstado(Connection conn, String... codigosEstado) throws SQLException {
         String sql = "SELECT id_estado_mesa FROM estados_mesa WHERE UPPER(codigo_estado) = ?";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, codigoEstado.toUpperCase());
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next() ? rs.getInt("id_estado_mesa") : null;
+            for (String codigo : codigosEstado) {
+                stmt.setString(1, codigo.toUpperCase());
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getInt("id_estado_mesa");
+                    }
+                }
             }
+        }
+        return null;
+    }
+
+    /**
+     * Libera la mesa: reinicia la cantidad de comensales y la devuelve a estado
+     * libre (HU-048). Si el catalogo no tiene un estado libre, al menos se borra
+     * la cantidad para no dejar el dato de una atencion que ya termino.
+     */
+    public void liberarMesa(int idMesa) throws SQLException {
+        String sql = "UPDATE mesas " +
+                "SET cantidad_comensales = NULL, " +
+                "    id_estado_mesa = COALESCE(?, id_estado_mesa) " +
+                "WHERE id_mesa = ?";
+
+        try (Connection conn = ConexionDB.obtenerConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            Integer idLibre = obtenerIdEstado(conn, "LIBRE", "DISPONIBLE");
+
+            if (idLibre != null) {
+                stmt.setInt(1, idLibre);
+            } else {
+                stmt.setNull(1, Types.INTEGER);
+            }
+            stmt.setInt(2, idMesa);
+            stmt.executeUpdate();
         }
     }
 
