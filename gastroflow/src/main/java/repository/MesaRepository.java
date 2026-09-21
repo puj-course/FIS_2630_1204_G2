@@ -72,4 +72,15 @@ public class MesaRepository {
             stmt.executeUpdate();
         }
     }
+    public void cambiarCapacidadMesa(int idMesa, int capacidad) throws SQLException {
+        String sql = "UPDATE mesas SET capacidad = ? WHERE id_mesa = ?";
+        try (Connection conn = ConexionDB.obtenerConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, capacidad);
+            stmt.setInt(2, idMesa);
+
+            stmt.executeUpdate();
+        }
+    }
 }
