@@ -1,4 +1,4 @@
-package services.ReglasDescuento;
+package service;
 
 import java.sql.SQLException;
 import models.ReglasDescuento.ReglaDescuento;

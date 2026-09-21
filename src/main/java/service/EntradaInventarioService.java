@@ -1,4 +1,4 @@
-package services.RegistroInventario;
+package service;
 import conf.ConexionDB;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
