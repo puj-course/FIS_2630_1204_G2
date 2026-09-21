@@ -10,11 +10,7 @@ import javafx.util.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Búsqueda rápida de mesa por número, con resalte visual sobre el mapa.
- * No consulta la base de datos: opera sobre los botones ya renderizados
- * en el Pane del salón (panelMesas), así que responde de inmediato.
- */
+
 public class BusquedaMesaHelper {
 
     private static final Pattern NUMERO_EN_TEXTO = Pattern.compile("\\d+");
