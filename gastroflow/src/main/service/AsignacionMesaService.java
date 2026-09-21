@@ -37,7 +37,7 @@ public class AsignacionMesaService {
         }
 
         // La mesa debe estar DISPONIBLE para poder asignarla
-        if (!"DISPONIBLE".equals(mesa.getEstado().getCodigoEstado())) {
+        if (!"LIBRE".equals(mesa.getEstado().getCodigoEstado())) {
             throw new AsignacionActivaException(
                     "La mesa " + mesa.getNumeroMesa() + " no está disponible"
             );
