@@ -1,4 +1,4 @@
-package models;
+package modelo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,7 +8,7 @@ import java.util.List;
  * (cada uno con su cantidad y personalización) y permite calcular y
  * mostrar la precuenta con precios, subtotales y el total a pagar.
  */
-public class Precuenta {
+public class Cuenta {
 
     private final List<ItemPedido> items = new ArrayList<>();
 
@@ -82,4 +82,3 @@ public class Precuenta {
         return String.format("$%,.0f", valor);
     }
 }
- 

@@ -1,6 +1,8 @@
 package servicio;
 
+import modelo.Cuenta;
 import modelo.Ingrediente;
+import modelo.ItemPedido;
 import modelo.PedidoPersonalizado;
 import modelo.Producto;
 import modelo.Receta;
@@ -15,16 +17,17 @@ import java.util.Map;
  * Se pierde al cerrar el programa (es solo mientras no tengas la BD conectada).
  *
  * No carga datos de prueba: productos, ingredientes y recetas se van
- * agregando a través de sus propios métodos (por ejemplo, desde tu capa
- * de creación de productos/ingredientes y desde guardarReceta()).
+ * agregando a través de sus propios métodos. También administra la
+ * cuenta del pedido (los productos ya confirmados) y genera la precuenta.
  */
-public class RecetaService {
+public class RecetaService{
 
     private final List<Producto> productos = new ArrayList<>();
     private final List<Ingrediente> ingredientes = new ArrayList<>();
     private final Map<Integer, Receta> recetasPorProducto = new HashMap<>(); // idProducto -> Receta
+    private final Cuenta cuenta = new Cuenta(); // productos ya confirmados del pedido
 
-    public RecetaServide() {
+    public GestorRecetas() {
     }
 
     // ---------------- Productos ----------------
@@ -105,5 +108,47 @@ public class RecetaService {
             throw new IllegalStateException("El producto no tiene una receta creada todavía.");
         }
         return new PedidoPersonalizado(receta);
+    }
+
+    // ---------------- Cuenta / Precuenta ----------------
+
+    /**
+     * Confirma un plato ya personalizado (o sin cambios) dentro de la cuenta
+     * del pedido, indicando cuántas unidades pidió el cliente.
+     */
+    public ItemPedido agregarItemACuenta(PedidoPersonalizado pedido, int cantidadUnidades) {
+        ItemPedido item = new ItemPedido(pedido, cantidadUnidades);
+        cuenta.agregarItem(item);
+        return item;
+    }
+
+    public List<ItemPedido> listarItemsDeLaCuenta() {
+        return cuenta.getItems();
+    }
+
+    public boolean cuentaEstaVacia() {
+        return cuenta.estaVacia();
+    }
+
+    /**
+     * Suma el subtotal de todos los productos confirmados en la cuenta.
+     */
+    public double calcularTotalCuenta() {
+        return cuenta.calcularTotal();
+    }
+
+    /**
+     * Genera el texto de la precuenta: producto, cantidad, precio unitario,
+     * subtotal por línea, notas de personalización, y el total a pagar.
+     */
+    public String generarPrecuenta() {
+        return cuenta.generarPrecuenta();
+    }
+
+    /**
+     * Genera y muestra la precuenta directamente por consola.
+     */
+    public void mostrarPrecuenta() {
+        cuenta.mostrarPrecuenta();
     }
 }

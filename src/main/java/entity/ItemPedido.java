@@ -1,4 +1,4 @@
-package models;
+package modelo;
 
 /**
  * Representa una línea del pedido de la mesa: un producto, cuántas
@@ -41,4 +41,3 @@ public class ItemPedido {
         return getPrecioUnitario() * cantidadUnidades;
     }
 }
-
