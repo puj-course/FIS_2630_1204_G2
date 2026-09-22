@@ -18,7 +18,7 @@ import java.util.Map;
  * agregando a través de sus propios métodos (por ejemplo, desde tu capa
  * de creación de productos/ingredientes y desde guardarReceta()).
  */
-public class RecetaServide {
+public class RecetaService {
 
     private final List<Producto> productos = new ArrayList<>();
     private final List<Ingrediente> ingredientes = new ArrayList<>();
