@@ -8,6 +8,7 @@ public class HistorialEstadoMesa {
     private Long mesaId;
     private Long estadoAnteriorId;
     private Long estadoNuevoId;
+    private String motivo;
     private LocalDateTime fechaCambio = LocalDateTime.now();
 
     public HistorialEstadoMesa() {}
@@ -23,6 +24,9 @@ public class HistorialEstadoMesa {
 
     public Long getEstadoNuevoId() { return estadoNuevoId; }
     public void setEstadoNuevoId(Long estadoNuevoId) { this.estadoNuevoId = estadoNuevoId; }
+
+    public String getMotivo() { return motivo; }
+    public void setMotivo(String motivo) { this.motivo = motivo; }
 
     public LocalDateTime getFechaCambio() { return fechaCambio; }
     public void setFechaCambio(LocalDateTime fechaCambio) { this.fechaCambio = fechaCambio; }
