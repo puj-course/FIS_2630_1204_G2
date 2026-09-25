@@ -60,7 +60,6 @@ Los fuentes viven bajo `src/main/java/` con carpetas de primer nivel alineadas a
 ```text
 src/main/java/
 ├── ConexionDB/          # conexión JDBC (si aplica)
-├── conf/                # configuración / conexión alternativa
 ├── controller/          # solo controladores JavaFX
 ├── entity/              # POJOs (sin JPA)
 ├── repository/          # acceso a datos con JDBC
