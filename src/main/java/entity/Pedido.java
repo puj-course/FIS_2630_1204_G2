@@ -1,92 +1,37 @@
-package com.restaurante.entity;
+package entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(
-        name = "pedidos",
-        indexes = {
-                @Index(name = "idx_pedidos_mesa", columnList = "mesa_id")
-        }
-)
 public class Pedido {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "pedido_id")
     private Long id;
-
-    @Column(name = "numero_pedido", nullable = false, unique = true)
     private String numeroPedido;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mesa_id")
-    private Mesa mesa;
-
-    @Column(name = "usuario_id", nullable = false)
+    private Long mesaId;
     private Long usuarioId;
-
-    @Column(nullable = false, columnDefinition = "jsonb")
     private String productos = "[]";
+    private EstadoPedido estado = EstadoPedido.PENDIENTE;
+    private LocalDateTime fechaPedido = LocalDateTime.now();
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private EstadoPedido estado;
+    public Pedido() {}
 
-    @Column(name = "fecha_pedido", nullable = false)
-    private LocalDateTime fechaPedido;
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public Pedido() {
-        this.fechaPedido = LocalDateTime.now();
-        this.estado = EstadoPedido.PENDIENTE;
-    }
+    public String getNumeroPedido() { return numeroPedido; }
+    public void setNumeroPedido(String numeroPedido) { this.numeroPedido = numeroPedido; }
 
-    public Long getId() {
-        return id;
-    }
+    public Long getMesaId() { return mesaId; }
+    public void setMesaId(Long mesaId) { this.mesaId = mesaId; }
 
-    public String getNumeroPedido() {
-        return numeroPedido;
-    }
+    public Long getUsuarioId() { return usuarioId; }
+    public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
 
-    public void setNumeroPedido(String numeroPedido) {
-        this.numeroPedido = numeroPedido;
-    }
+    public String getProductos() { return productos; }
+    public void setProductos(String productos) { this.productos = productos; }
 
-    public Mesa getMesa() {
-        return mesa;
-    }
+    public EstadoPedido getEstado() { return estado; }
+    public void setEstado(EstadoPedido estado) { this.estado = estado; }
 
-    public void setMesa(Mesa mesa) {
-        this.mesa = mesa;
-    }
-
-    public Long getUsuarioId() {
-        return usuarioId;
-    }
-
-    public void setUsuarioId(Long usuarioId) {
-        this.usuarioId = usuarioId;
-    }
-
-    public String getProductos() {
-        return productos;
-    }
-
-    public void setProductos(String productos) {
-        this.productos = productos;
-    }
-
-    public EstadoPedido getEstado() {
-        return estado;
-    }
-
-    public void setEstado(EstadoPedido estado) {
-        this.estado = estado;
-    }
-
-    public LocalDateTime getFechaPedido() {
-        return fechaPedido;
-    }
+    public LocalDateTime getFechaPedido() { return fechaPedido; }
+    public void setFechaPedido(LocalDateTime fechaPedido) { this.fechaPedido = fechaPedido; }
 }

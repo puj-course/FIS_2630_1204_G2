@@ -1,4 +1,4 @@
-package com.restaurante.entity;
+package entity;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +11,7 @@ public class Reserva {
     private String nombreCliente;
     private int cantidadPersonas;
     private boolean activa;
+    private LocalDateTime fechaCancelacion;
 
     public Reserva() {}
 
@@ -37,4 +38,7 @@ public class Reserva {
 
     public boolean isActiva() { return activa; }
     public void setActiva(boolean activa) { this.activa = activa; }
+
+    public LocalDateTime getFechaCancelacion() { return fechaCancelacion; }
+    public void setFechaCancelacion(LocalDateTime fechaCancelacion) { this.fechaCancelacion = fechaCancelacion; }
 }

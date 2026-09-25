@@ -1,4 +1,4 @@
-package com.restaurante.entity;
+package entity;
 
 public enum EstadoPedido {
     PENDIENTE,

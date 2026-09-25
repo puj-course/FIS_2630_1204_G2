@@ -1,102 +1,29 @@
-package com.restaurante.entity;
+package entity;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
 
-@Entity
-@Table(
-        name = "detalle_pedido",
-        indexes = {
-                @Index(
-                        name = "idx_detalle_pedido_pedido",
-                        columnList = "pedido_id"
-                ),
-                @Index(
-                        name = "idx_detalle_pedido_plato",
-                        columnList = "plato_id"
-                )
-        }
-)
 public class DetallePedido {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "pedido_id", nullable = false)
-    private Pedido pedido;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "plato_id", nullable = false)
-    private Plato plato;
-
-    @Column(
-            nullable = false,
-            precision = 12,
-            scale = 4
-    )
-    private BigDecimal cantidad;
-
-    @Column(
-            name = "precio_unitario",
-            nullable = false,
-            precision = 12,
-            scale = 2
-    )
-    private BigDecimal precioUnitario;
-
-    @Column(
-            nullable = false,
-            precision = 12,
-            scale = 2
-    )
+    private Long pedidoId;
+    private Long productoId;
+    private Integer cantidad;
     private BigDecimal subtotal;
 
-    public DetallePedido() {
-    }
+    public DetallePedido() {}
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public Pedido getPedido() {
-        return pedido;
-    }
+    public Long getPedidoId() { return pedidoId; }
+    public void setPedidoId(Long pedidoId) { this.pedidoId = pedidoId; }
 
-    public void setPedido(Pedido pedido) {
-        this.pedido = pedido;
-    }
+    public Long getProductoId() { return productoId; }
+    public void setProductoId(Long productoId) { this.productoId = productoId; }
 
-    public Plato getPlato() {
-        return plato;
-    }
+    public Integer getCantidad() { return cantidad; }
+    public void setCantidad(Integer cantidad) { this.cantidad = cantidad; }
 
-    public void setPlato(Plato plato) {
-        this.plato = plato;
-    }
-
-    public BigDecimal getCantidad() {
-        return cantidad;
-    }
-
-    public void setCantidad(BigDecimal cantidad) {
-        this.cantidad = cantidad;
-    }
-
-    public BigDecimal getPrecioUnitario() {
-        return precioUnitario;
-    }
-
-    public void setPrecioUnitario(BigDecimal precioUnitario) {
-        this.precioUnitario = precioUnitario;
-    }
-
-    public BigDecimal getSubtotal() {
-        return subtotal;
-    }
-
-    public void setSubtotal(BigDecimal subtotal) {
-        this.subtotal = subtotal;
-    }
+    public BigDecimal getSubtotal() { return subtotal; }
+    public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }
 }
