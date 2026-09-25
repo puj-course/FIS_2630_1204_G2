@@ -45,20 +45,20 @@ public class Main extends Application {
 
         btnAdmin.setOnAction(e -> abrirVista(
                 "Gastroflow - Administrador",
-                "/admin-disponibilidad.fxml",
-                "/hu28.css",
+                "/views/admin-disponibilidad.fxml",
+                "/css/disponibilidad-menu.css",
                 1180, 720));
 
         btnMesero.setOnAction(e -> abrirVista(
                 "Gastroflow - Mesero",
-                "/menu-mesero.fxml",
-                "/hu28.css",
+                "/views/menu-mesero.fxml",
+                "/css/disponibilidad-menu.css",
                 1180, 720));
 
         btnCajero.setOnAction(e -> abrirVista(
                 "Gastroflow - Caja",
-                "/cajero-pago-view.fxml",
-                "/cajero-pago.css",
+                "/views/cajero-pago-view.fxml",
+                "/css/cajero-pago.css",
                 900, 760));
 
         btnMapa.setOnAction(e -> abrirVista(
