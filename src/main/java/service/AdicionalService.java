@@ -1,91 +1,55 @@
-package com.restaurante.service;
+package service;
 
-import com.restaurante.entity.Adicional;
-import com.restaurante.entity.DetallePedido;
-import com.restaurante.entity.DetallePedidoAdicional;
-import com.restaurante.exception.AdicionalNoDisponibleException;
-import com.restaurante.repository.AdicionalRepository;
-import com.restaurante.repository.DetallePedidoAdicionalRepository;
-import com.restaurante.repository.DetallePedidoRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
- 
+import entity.Adicional;
+import entity.DetallePedidoAdicional;
+import exceptions.AdicionalNoDisponibleException;
+import repository.AdicionalRepository;
+import repository.DetallePedidoAdicionalRepository;
+
 import java.math.BigDecimal;
-import java.util.Set;
+import java.sql.SQLException;
+import java.util.List;
 
-@Service
 public class AdicionalService {
 
-    private static final Set<EstadoPedido> ESTADOS_NO_EDITABLES = Set.of(
-            EstadoPedido.COMPLETADO,
-            EstadoPedido.ENTREGADO,
-            EstadoPedido.CANCELADO
-    );
+    private final AdicionalRepository adicionalRepository = new AdicionalRepository();
+    private final DetallePedidoAdicionalRepository detallePedidoAdicionalRepository =
+            new DetallePedidoAdicionalRepository();
 
-    private final AdicionalRepository adicionalRepository;
-    private final DetallePedidoRepository detallePedidoRepository;
-    private final DetallePedidoAdicionalRepository detallePedidoAdicionalRepository;
-
-    public AdicionalService(
-            AdicionalRepository adicionalRepository,
-            DetallePedidoRepository detallePedidoRepository,
-            DetallePedidoAdicionalRepository detallePedidoAdicionalRepository) {
-
-        this.adicionalRepository = adicionalRepository;
-        this.detallePedidoRepository = detallePedidoRepository;
-        this.detallePedidoAdicionalRepository = detallePedidoAdicionalRepository;
+    public List<Adicional> listarActivos() throws SQLException {
+        return adicionalRepository.findAllActivos();
     }
 
-    @Transactional
-    public DetallePedidoAdicional agregarAdicional(
-            Long detallePedidoId, Long adicionalId, Integer cantidad) {
+    public Adicional obtener(long id) throws SQLException {
+        return adicionalRepository.findById(id)
+                .orElseThrow(() -> new AdicionalNoDisponibleException("Adicional no encontrado: " + id));
+    }
 
-        // Validar que la línea de detalle exista
-        DetallePedido detallePedido =
-            detallePedidoRepository.findById(detallePedidoId)
-                .orElseThrow(
-                    () -> new AdicionalNoDisponibleException("Línea de detalle no encontrada con id " + detallePedidoId)
-                );
 
-        // La comanda debe seguir activa para poder modificar sus líneas
-        if (ESTADOS_NO_EDITABLES.contains(detallePedido.getPedido().getEstado())) {
-            throw new PedidoNoEditableException(
-                "No se pueden agregar adicionales: el pedido " +
-                    detallePedido.getPedido().getNumeroPedido() +
-                    " está en estado " + detallePedido.getPedido().getEstado()
-            );
-        }
-        
-        // Validar que el adicional exista en el catálogo
-        Adicional adicional =
-            adicionalRepository.findById(adicionalId)
-                .orElseThrow(
-                    () -> new AdicionalNoDisponibleException("Adicional no encontrado con id " + adicionalId)
-                );
+    public DetallePedidoAdicional agregarADetalle(long detallePedidoId, long adicionalId, int cantidad)
+            throws SQLException {
 
-        // Rechazar adicionales que fueron desactivados del catálogo
-        if (!adicional.getIsActive()) {
-            throw new AdicionalNoDisponibleException(
-                "El adicional " + adicional.getNombre() + " no está disponible"
-            );
+        Adicional adicional = adicionalRepository.findById(adicionalId)
+                .orElseThrow(() -> new AdicionalNoDisponibleException("Adicional no encontrado: " + adicionalId));
+
+        if (Boolean.FALSE.equals(adicional.getIsActive())) {
+            throw new AdicionalNoDisponibleException("Adicional inactivo: " + adicional.getNombre());
         }
 
-        // Congelar el precio del adicional al momento de agregarlo
-        DetallePedidoAdicional detallePedidoAdicional = new DetallePedidoAdicional();
-        detallePedidoAdicional.setDetallePedido(detallePedido);
-        detallePedidoAdicional.setAdicional(adicional);
-        detallePedidoAdicional.setCantidad(cantidad != null ? cantidad : 1);
-        detallePedidoAdicional.setPrecioAdicional(adicional.getPrecioAdicional());
+        int cantidadFinal = cantidad > 0 ? cantidad : 1;
 
-        DetallePedidoAdicional guardado = detallePedidoAdicionalRepository.save(detallePedidoAdicional);
- 
-        // Reflejar el sobrecosto en el subtotal de la línea de pedido
-        BigDecimal sobrecosto =
-                adicional.getPrecioAdicional().multiply(BigDecimal.valueOf(cantidadFinal));
- 
-        detallePedido.setSubtotal(detallePedido.getSubtotal().add(sobrecosto));
-        detallePedidoRepository.save(detallePedido);
- 
-        return guardado;
+        DetallePedidoAdicional linea = new DetallePedidoAdicional();
+        linea.setDetallePedidoId(detallePedidoId);
+        linea.setAdicionalId(adicionalId);
+        linea.setCantidad(cantidadFinal);
+
+        return detallePedidoAdicionalRepository.save(linea);
+    }
+
+    public BigDecimal calcularSobrecosto(Adicional adicional, int cantidad) {
+        if (adicional.getPrecioAdicional() == null) {
+            return BigDecimal.ZERO;
+        }
+        return adicional.getPrecioAdicional().multiply(BigDecimal.valueOf(cantidad));
     }
 }

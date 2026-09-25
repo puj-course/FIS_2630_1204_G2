@@ -1,125 +1,63 @@
-package com.restaurante.service;
+package service;
 
-import com.restaurante.entity.EstadoMesa;
-import com.restaurante.entity.Mesa;
-import com.restaurante.entity.Zona;
-import com.restaurante.exception.MesaNotFoundException;
-import com.restaurante.repository.EstadoMesaRepository;
-import com.restaurante.repository.MesaRepository;
-import com.restaurante.repository.ZonaRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import ConexionDB.ConexionBD;
+import entity.EstadoMesa;
+import entity.HistorialEstadoMesa;
+import entity.Mesa;
+import entity.Zona;
+import exceptions.MesaNotFoundException;
+import repository.EstadoMesaRepository;
+import repository.HistorialEstadoMesaRepository;
+import repository.MesaRepository;
+import repository.ZonaRepository;
 
+import java.sql.SQLException;
 import java.util.List;
 
-@Service
 public class MesaService {
 
-    private final MesaRepository mesaRepository;
-    private final ZonaRepository zonaRepository;
-    private final EstadoMesaRepository estadoMesaRepository;
-    private final HistorialEstadoMesaRepository historialEstadoMesaRepository;
+    private final MesaRepository mesaRepository = new MesaRepository();
+    private final ZonaRepository zonaRepository = new ZonaRepository();
+    private final EstadoMesaRepository estadoMesaRepository = new EstadoMesaRepository();
+    private final HistorialEstadoMesaRepository historialEstadoMesaRepository = new HistorialEstadoMesaRepository();
 
-    public MesaService(
-            MesaRepository mesaRepository,
-            ZonaRepository zonaRepository,
-            EstadoMesaRepository estadoMesaRepository,
-            HistorialEstadoMesaRepository historialEstadoMesaRepository) {
-
-        this.mesaRepository = mesaRepository;
-        this.zonaRepository = zonaRepository;
-        this.estadoMesaRepository = estadoMesaRepository;
-        this.historialEstadoMesaRepository = historialEstadoMesaRepository;
+    public void registrarMesa(int numeroMesa) throws SQLException {
+        mesaRepository.agregarMesa(numeroMesa);
     }
 
-    public Mesa registrarMesa(Integer numeroMesa, String codigoMesa, Integer capacidad, Long zonaId) {
-
-        // Validar que la zona exista antes de crear la mesa
-        Zona zona = 
-            zonaRepository.findById(zonaId)
-                .orElseThrow(
-                    () -> new MesaNotFoundException("Zona no encontrada con id " + zonaId)
-                );
-
-        // Toda mesa nueva nace en estado DISPONIBLE
-        EstadoMesa disponible = 
-            estadoMesaRepository.findByCodigoEstado("LIBRE").
-                orElseThrow(
-                    () -> new MesaNotFoundException("El código LIBRE no existe en estados_mesa")
-                );
-
-        Mesa mesa = new Mesa();
-        mesa.setNumeroMesa(numeroMesa);
-        mesa.setCodigoMesa(codigoMesa);
-        mesa.setCapacidad(capacidad != null ? capacidad : 2);
-        mesa.setZona(zona);
-        mesa.setEstado(disponible);
-
-        return mesaRepository.save(mesa);
+    public List<Mesa> listarMesas() throws SQLException {
+        return mesaRepository.obtenerTodas();
     }
 
-    public List<Mesa> listarMesas(Long zonaId, String codigoEstado) {
+    public void quitarMesa(int idMesa) throws SQLException {
+        mesaRepository.quitarMesa(idMesa);
+    }
 
-        // Resolver el código de estado recibido contra el catálogo, si vino uno
-        EstadoMesa estado =
-            codigoEstado != null
-                ? estadoMesaRepository.findByCodigoEstado(codigoEstado)
-                    .orElseThrow(
-                        () -> new MesaNotFoundException("Estado no encontrado: " + codigoEstado)
-                    )
-                : null;
+    public void cambiarEstado(long mesaId, String codigoEstadoNuevo, String motivo) throws SQLException {
+        EstadoMesa nuevo = estadoMesaRepository.findByCodigoEstado(codigoEstadoNuevo)
+                .orElseThrow(() -> new MesaNotFoundException(
+                        "Estado no encontrado: " + codigoEstadoNuevo));
 
-        // Filtrar según qué combinación de zona/estado llegó
-        if (zonaId != null && estado != null) {
-            return mesaRepository.findByZonaIdAndEstado(zonaId, estado);
+        mesaRepository.cambiarEstadoMesa((int) mesaId, codigoEstadoNuevo);
+
+        HistorialEstadoMesa h = new HistorialEstadoMesa();
+        h.setMesaId(mesaId);
+        h.setEstadoNuevoId(nuevo.getId());
+        // estadoAnteriorId queda null si no lo resolvemos aquí
+        try {
+            historialEstadoMesaRepository.save(h);
+        } catch (SQLException ignored) {
+
         }
-        if (zonaId != null) {
-            return mesaRepository.findByZonaId(zonaId);
-        }
-        if (estado != null) {
-            return mesaRepository.findByEstado(estado);
-        }
-        return mesaRepository.findAll();
     }
 
-    // Cambio manual de estado (uso directo desde el controller de mesas)
-    public Mesa actualizarEstado(Long mesaId, String codigoEstadoNuevo) {
-        return cambiarEstado(mesaId, codigoEstadoNuevo, "MANUAL");
+    public Zona obtenerZona(long zonaId) throws SQLException {
+        return zonaRepository.findById(zonaId)
+                .orElseThrow(() -> new MesaNotFoundException("Zona no encontrada con id " + zonaId));
     }
 
-    @Transactional
-    public Mesa cambiarEstado(Long mesaId, String codigoEstadoNuevo, String origen) {
-
-        Mesa mesa =
-                mesaRepository.findById(mesaId)
-                        .orElseThrow(
-                                () -> new MesaNotFoundException("Mesa no encontrada con id " + mesaId)
-                        );
-
-        EstadoMesa nuevoEstado =
-                estadoMesaRepository.findByCodigoEstado(codigoEstadoNuevo)
-                        .orElseThrow(
-                                () -> new MesaNotFoundException(
-                                        "Estado no encontrado: " + codigoEstadoNuevo
-                                )
-                        );
-
-        String codigoAnterior = mesa.getEstado().getCodigoEstado();
-
-        // Registrar la trazabilidad del cambio antes de aplicarlo
-        HistorialEstadoMesa historial = new HistorialEstadoMesa();
-        historial.setMesa(mesa);
-        historial.setEstadoAnterior(codigoAnterior);
-        historial.setEstadoNuevo(codigoEstadoNuevo);
-        historial.setOrigen(origen);
-        historialEstadoMesaRepository.save(historial);
-
-        mesa.setEstado(nuevoEstado);
-
-        return mesaRepository.save(mesa);
-    }
-
-    public List<HistorialEstadoMesa> consultarHistorial(Long mesaId) {
-        return historialEstadoMesaRepository.findByMesaIdOrderByFechaCambioDesc(mesaId);
+    public EstadoMesa obtenerEstadoPorCodigo(String codigo) throws SQLException {
+        return estadoMesaRepository.findByCodigoEstado(codigo)
+                .orElseThrow(() -> new MesaNotFoundException("Estado no encontrado: " + codigo));
     }
 }

@@ -1,9 +1,9 @@
 package service;
-import conf.ConexionDB;
+import ConexionDB.ConexionBD;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import models.RegistroInventario.EntradaInventario;
-import repositories.RegistroInventario.EntradaInventarioRepository;
+import entity.EntradaInventario;
+import repository.EntradaInventarioRepository;
 
 public class EntradaInventarioService {
     // Crea un objeto del Repository.
@@ -22,7 +22,7 @@ public class EntradaInventarioService {
     private void actualizarStock(Long ingredienteId, double cantidad) throws Exception {
         String sql = "UPDATE productos SET stock_actual = stock_actual + ? WHERE producto_id = ?";
 
-        try (Connection conn = ConexionDB.obtenerConexion();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setDouble(1, cantidad);

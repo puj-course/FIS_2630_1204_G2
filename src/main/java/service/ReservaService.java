@@ -1,88 +1,60 @@
-package com.restaurante.service;
+package service;
 
-import com.restaurante.entity.EstadoMesa;
-import com.restaurante.entity.EstadoPedido;
-import com.restaurante.entity.EstadoReserva;
-import com.restaurante.entity.Mesa;
-import com.restaurante.entity.Reserva;
-import com.restaurante.exception.ReservaNoCancelableException;
-import com.restaurante.exception.ReservaNotFoundException;
-import com.restaurante.repository.EstadoMesaRepository;
-import com.restaurante.repository.MesaRepository;
-import com.restaurante.repository.PedidoRepository;
-import com.restaurante.repository.ReservaRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import entity.EstadoPedido;
+import entity.Reserva;
+import exceptions.ReservaNoCancelableException;
+import exceptions.ReservaNotFoundException;
+import repository.PedidoRepository;
+import repository.ReservaRepository;
 
+import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.List;
 
-@Service
 public class ReservaService {
 
-    private final ReservaRepository reservaRepository;
-    private final MesaRepository mesaRepository;
-    private final EstadoMesaRepository estadoMesaRepository;
-    private final PedidoRepository pedidoRepository;
+    private final ReservaRepository reservaRepository = new ReservaRepository();
+    private final PedidoRepository pedidoRepository = new PedidoRepository();
+    private final MesaService mesaService = new MesaService();
 
-    public ReservaService(
-            ReservaRepository reservaRepository,
-            MesaRepository mesaRepository,
-            EstadoMesaRepository estadoMesaRepository,
-            PedidoRepository pedidoRepository) {
-
-        this.reservaRepository = reservaRepository;
-        this.mesaRepository = mesaRepository;
-        this.estadoMesaRepository = estadoMesaRepository;
-        this.pedidoRepository = pedidoRepository;
+    public List<Reserva> listarMesasReservadas() throws SQLException {
+        return reservaRepository.obtenerMesasReservadas();
     }
 
-    @Transactional
-    public Reserva cancelarReserva(Long reservaId, String motivo) {
+    public List<Reserva> listarReservasDelTurnoActual() throws SQLException {
+        return reservaRepository.obtenerReservasDelTurnoActual();
+    }
 
-        Reserva reserva =
-                reservaRepository.findById(reservaId)
-                        .orElseThrow(
-                                () -> new ReservaNotFoundException(
-                                        "Reserva no encontrada con id " + reservaId
-                                )
-                        );
+    // HU-055: cancelar una reserva vigente
+    public Reserva cancelarReserva(int idReserva) throws SQLException {
 
-        // Solo se puede cancelar una reserva que sigue activa
-        if (reserva.getEstado() != EstadoReserva.ACTIVA) {
-            throw new ReservaNoCancelableException(
-                    "La reserva ya está en estado " + reserva.getEstado()
-            );
+        Reserva reserva = reservaRepository.findById(idReserva)
+                .orElseThrow(() -> new ReservaNotFoundException(
+                        "Reserva no encontrada con id " + idReserva));
+
+        if (!reserva.isActiva()) {
+            throw new ReservaNoCancelableException("La reserva ya está inactiva");
         }
 
-        Mesa mesa = reserva.getMesa();
-
         // No se puede cancelar si la mesa ya tiene un pedido en curso
-        boolean tienePedidoEnCurso =
-                pedidoRepository.existsByMesaIdAndEstadoNot(mesa.getId(), EstadoPedido.CANCELADO);
+        boolean tienePedidoEnCurso = pedidoRepository.existsByMesaIdAndEstadoNot(
+                reserva.getIdMesa(), EstadoPedido.CANCELADO);
 
         if (tienePedidoEnCurso) {
             throw new ReservaNoCancelableException(
-                    "La mesa " + mesa.getNumeroMesa() + " tiene un pedido en curso"
-            );
+                    "La mesa " + reserva.getNumeroMesa() + " tiene un pedido en curso");
         }
 
-        // Borrado lógico: se actualiza el estado, no se elimina el registro
-        reserva.setEstado(EstadoReserva.CANCELADA);
-        reserva.setMotivoCancelacion(motivo);
-        reserva.setFechaCancelacion(LocalDateTime.now());
+        LocalDateTime ahora = LocalDateTime.now();
 
-        // Liberar la mesa: pasa de RESERVADA a DISPONIBLE
-        EstadoMesa disponible =
-                estadoMesaRepository.findByCodigoEstado("LIBRE")
-                        .orElseThrow(
-                                () -> new ReservaNoCancelableException(
-                                        "El código LIBRE no existe en estados_mesa"
-                                )
-                        );
+        reservaRepository.cancelar(idReserva, ahora);
 
-        mesa.setEstado(disponible);
-        mesaRepository.save(mesa);
+        // Liberar la mesa: pasa de RESERVADA a LIBRE, con auditoría en historial_estado_mesa
+        mesaService.cambiarEstado(reserva.getIdMesa(), "LIBRE", "CANCELAR_RESERVA");
 
-        return reservaRepository.save(reserva);
+        reserva.setActiva(false);
+        reserva.setFechaCancelacion(ahora);
+
+        return reserva;
     }
 }
