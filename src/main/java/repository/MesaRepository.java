@@ -1,7 +1,8 @@
 package repository;
 
-import conf.ConexionDB;
+import ConexionDB.ConexionBD;
 import entity.Mesa;
+
 import java.sql.*;
 import java.util.*;
 
@@ -17,7 +18,7 @@ public class MesaRepository {
                 "JOIN estados_mesa e ON m.id_estado_mesa = e.id_estado_mesa " +
                 "WHERE m.is_active = 1";
 
-        try (Connection conn = ConexionDB.obtenerConexion();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
@@ -40,7 +41,7 @@ public class MesaRepository {
         String sql = "INSERT INTO mesas (numero_mesa, capacidad, id_zona, id_estado_mesa) " +
                 "VALUES (?, 2, 1, 1)";
 
-        try (Connection conn = ConexionDB.obtenerConexion();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, numeroMesa);
@@ -50,7 +51,7 @@ public class MesaRepository {
     public void quitarMesa(int idMesa) throws SQLException {
         String sql = "UPDATE mesas SET is_active = 0 WHERE id_mesa = ?";
 
-        try (Connection conn = ConexionDB.obtenerConexion();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, idMesa);
@@ -63,7 +64,7 @@ public class MesaRepository {
                 "(SELECT id_estado_mesa FROM estados_mesa WHERE codigo_estado = ?) " +
                 "WHERE id_mesa = ?";
 
-        try (Connection conn = ConexionDB.obtenerConexion();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, codigoEstado);
@@ -74,7 +75,7 @@ public class MesaRepository {
     }
     public void cambiarCapacidadMesa(int idMesa, int capacidad) throws SQLException {
         String sql = "UPDATE mesas SET capacidad = ? WHERE id_mesa = ?";
-        try (Connection conn = ConexionDB.obtenerConexion();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, capacidad);
