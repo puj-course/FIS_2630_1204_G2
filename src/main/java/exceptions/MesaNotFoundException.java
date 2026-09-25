@@ -1,4 +1,4 @@
-package com.restaurante.exception;
+package exceptions;
 
 public class MesaNotFoundException extends RuntimeException {
 
