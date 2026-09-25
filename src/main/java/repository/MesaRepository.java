@@ -13,8 +13,9 @@ public interface MesaRepository extends JpaRepository<Mesa, Long> {
     boolean existsByNumero(Integer numero);
 package repository;
 
-import conf.ConexionDB;
+import ConexionDB.ConexionBD;
 import entity.Mesa;
+
 import java.sql.*;
 import java.util.*;
 
@@ -35,7 +36,7 @@ public class MesaRepository {
                 // distintas cambiaban de posicion en el mapa en cada refresco.
                 "ORDER BY m.numero_mesa, m.id_mesa";
 
-        try (Connection conn = ConexionDB.obtenerConexion();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
@@ -252,7 +253,7 @@ public class MesaRepository {
                 "WHERE id_mesa = ? " +
                 "  AND ? <= capacidad";
 
-        try (Connection conn = ConexionDB.obtenerConexion();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             Integer idOcupada = obtenerIdEstado(conn, "OCUPADA");
@@ -321,7 +322,7 @@ public class MesaRepository {
         String sql = "INSERT INTO mesas (numero_mesa, codigo_mesa, capacidad, id_zona, id_estado_mesa) " +
                 "VALUES (?, ?, 2, ?, 1)";
 
-        try (Connection conn = ConexionDB.obtenerConexion();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, numeroMesa);
@@ -347,7 +348,7 @@ public class MesaRepository {
                 "(SELECT id_estado_mesa FROM estados_mesa WHERE codigo_estado = ?) " +
                 "WHERE id_mesa = ?";
 
-        try (Connection conn = ConexionDB.obtenerConexion();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, codigoEstado);
@@ -359,7 +360,7 @@ public class MesaRepository {
 
     public void cambiarCapacidadMesa(int idMesa, int capacidad) throws SQLException {
         String sql = "UPDATE mesas SET capacidad = ? WHERE id_mesa = ?";
-        try (Connection conn = ConexionDB.obtenerConexion();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, capacidad);

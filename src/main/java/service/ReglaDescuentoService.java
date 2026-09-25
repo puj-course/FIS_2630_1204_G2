@@ -1,8 +1,8 @@
 package service;
 
 import java.sql.SQLException;
-import models.ReglasDescuento.ReglaDescuento;
-import repositories.ReglasDescuento.ReglaDescuentoRepository;
+import entity.ReglaDescuento;
+import repository.ReglaDescuentoRepository;
 
 public class ReglaDescuentoService {// Instancia del repositorio para interactuar con la base de datos
     private ReglaDescuentoRepository repo = new ReglaDescuentoRepository();

@@ -1,78 +1,29 @@
-package com.restaurante.entity;
+package entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(
-        name = "historial_estado_mesa",
-        indexes = {
-                @Index(name = "idx_historial_estado_mesa_mesa", columnList = "mesa_id")
-        }
-)
 public class HistorialEstadoMesa {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private Long mesaId;
+    private Long estadoAnteriorId;
+    private Long estadoNuevoId;
+    private LocalDateTime fechaCambio = LocalDateTime.now();
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "mesa_id", nullable = false)
-    private Mesa mesa;
+    public HistorialEstadoMesa() {}
 
-    @Column(name = "estado_anterior", nullable = false)
-    private String estadoAnterior;
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    @Column(name = "estado_nuevo", nullable = false)
-    private String estadoNuevo;
+    public Long getMesaId() { return mesaId; }
+    public void setMesaId(Long mesaId) { this.mesaId = mesaId; }
 
-    @Column(nullable = false)
-    private String origen;
+    public Long getEstadoAnteriorId() { return estadoAnteriorId; }
+    public void setEstadoAnteriorId(Long estadoAnteriorId) { this.estadoAnteriorId = estadoAnteriorId; }
 
-    @Column(name = "fecha_cambio", nullable = false)
-    private LocalDateTime fechaCambio;
+    public Long getEstadoNuevoId() { return estadoNuevoId; }
+    public void setEstadoNuevoId(Long estadoNuevoId) { this.estadoNuevoId = estadoNuevoId; }
 
-    public HistorialEstadoMesa() {
-        this.fechaCambio = LocalDateTime.now();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public Mesa getMesa() {
-        return mesa;
-    }
-
-    public void setMesa(Mesa mesa) {
-        this.mesa = mesa;
-    }
-
-    public String getEstadoAnterior() {
-        return estadoAnterior;
-    }
-
-    public void setEstadoAnterior(String estadoAnterior) {
-        this.estadoAnterior = estadoAnterior;
-    }
-
-    public String getEstadoNuevo() {
-        return estadoNuevo;
-    }
-
-    public void setEstadoNuevo(String estadoNuevo) {
-        this.estadoNuevo = estadoNuevo;
-    }
-
-    public String getOrigen() {
-        return origen;
-    }
-
-    public void setOrigen(String origen) {
-        this.origen = origen;
-    }
-
-    public LocalDateTime getFechaCambio() {
-        return fechaCambio;
-    }
+    public LocalDateTime getFechaCambio() { return fechaCambio; }
+    public void setFechaCambio(LocalDateTime fechaCambio) { this.fechaCambio = fechaCambio; }
 }

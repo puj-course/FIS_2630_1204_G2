@@ -6,11 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface PlatoRepository extends JpaRepository<Plato, Long> {
 package repository;
 
-import conf.ConexionDB; //importa la conexión a la base de datos
+import ConexionDB.ConexionBD;//importa la conexión a la base de datos
 import java.sql.Connection; // Importa Connection de Java SQL.
 import java.sql.PreparedStatement; // Sirve para ejecutar consultas SQL de manera preparada y segura,
 import java.sql.SQLException; // Es una excepción que puede ocurrir cuando hay un problema con la base de datos,
-import models.RegistrarPlato.Plato;
+import entity.Plato;
 
 public class PlatoRepository {
 
@@ -18,7 +18,7 @@ public class PlatoRepository {
         String sql = "INSERT INTO productos (codigo, nombre, descripcion, categoria, precio_venta, costo) " +
                 "VALUES (?, ?, ?, ?, ?, ?)"; //variable que contiene la consulta en sql
 
-        try (Connection conn = ConexionDB.obtenerConexion(); //conecta con la base de datos
+        try (Connection conn = ConexionBD.getConnection(); //conecta con la base de datos
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             //coloca el contenido del plato en el ?

@@ -1,58 +1,25 @@
-package com.restaurante.entity;
+package entity;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
 
-@Entity
-@Table(name = "adicional")
 public class Adicional {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false)
     private String nombre;
-
-    @Column(
-            name = "precio_adicional",
-            nullable = false,
-            precision = 12,
-            scale = 2
-    )
     private BigDecimal precioAdicional;
-
-    @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    public Adicional() {
-    }
+    public Adicional() {}
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public String getNombre() {
-        return nombre;
-    }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
+    public BigDecimal getPrecioAdicional() { return precioAdicional; }
+    public void setPrecioAdicional(BigDecimal precioAdicional) { this.precioAdicional = precioAdicional; }
 
-    public BigDecimal getPrecioAdicional() {
-        return precioAdicional;
-    }
-
-    public void setPrecioAdicional(BigDecimal precioAdicional) {
-        this.precioAdicional = precioAdicional;
-    }
-
-    public Boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(Boolean active) {
-        isActive = active;
-    }
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 }

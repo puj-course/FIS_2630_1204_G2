@@ -1,4 +1,4 @@
-package com.restaurante.entity;
+package entity;
 
 public enum EstadoReserva {
     ACTIVA,

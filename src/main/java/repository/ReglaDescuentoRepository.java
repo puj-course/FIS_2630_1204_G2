@@ -2,14 +2,14 @@ package repository;//hecho con ayuda de una LLM, sujeto a cambios para hacer pru
 
 import java.sql.*;
 import java.util.*;
-import conf.ConexionDB;
-import models.ReglasDescuento.ReglaDescuento;
+import ConexionDB.ConexionBD;
+import entity.ReglaDescuento;
 
 public class ReglaDescuentoRepository {
 
     public void guardar(ReglaDescuento regla) throws SQLException { // Método para guardar una nueva regla de descuento en la base de datos
         String sql = "INSERT INTO regla_descuento (tipo_cambio, valor, es_porcentaje) VALUES (?, ?, ?)";
-        try (Connection conn = ConexionDB.obtenerConexion(); // Obtener la conexión a la base de datos
+        try (Connection conn = ConexionBD.getConnection(); // Obtener la conexión a la base de datos
              PreparedStatement stmt = conn.prepareStatement(sql)) { // Preparar la sentencia SQL para insertar la nueva regla de descuento
 
             stmt.setString(1, regla.getTipoCambio()); // Establecer el valor del tipo de cambio en la sentencia SQL
@@ -23,7 +23,7 @@ public class ReglaDescuentoRepository {
         List<ReglaDescuento> reglas = new ArrayList<>();
         String sql = "SELECT id, tipo_cambio, valor, es_porcentaje FROM regla_descuento";
 
-        try (Connection conn = ConexionDB.obtenerConexion(); // Obtener la conexión a la base de datos
+        try (Connection conn = ConexionBD.getConnection(); // Obtener la conexión a la base de datos
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 

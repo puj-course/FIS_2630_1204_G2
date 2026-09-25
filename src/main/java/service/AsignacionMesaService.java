@@ -1,82 +1,35 @@
-package com.restaurante.service;
+package service;
 
-import com.restaurante.entity.AsignacionMesa;
-import com.restaurante.entity.Mesa;
-import com.restaurante.exception.AsignacionActivaException;
-import com.restaurante.exception.MesaNotFoundException;
-import com.restaurante.repository.AsignacionMesaRepository;
-import com.restaurante.repository.MesaRepository;
-import org.springframework.stereotype.Service;
+import entity.AsignacionMesa;
+import exceptions.AsignacionActivaException;
+import repository.AsignacionMesaRepository;
 
-import java.util.List;
+import java.sql.SQLException;
 
-@Service
 public class AsignacionMesaService {
 
-    private final MesaRepository mesaRepository;
-    private final AsignacionMesaRepository asignacionMesaRepository;
+    private final AsignacionMesaRepository asignacionMesaRepository = new AsignacionMesaRepository();
 
-    public AsignacionMesaService(
-            MesaRepository mesaRepository, AsignacionMesaRepository asignacionMesaRepository) {
-
-        this.mesaRepository = mesaRepository;
-        this.asignacionMesaRepository = asignacionMesaRepository;
-    }
-
-    public AsignacionMesa asignarMesa(Long mesaId, Long usuarioId) {
-
-        // La mesa debe existir y estar habilitada
-        Mesa mesa =
-                mesaRepository.findById(mesaId)
-                        .orElseThrow(
-                                () -> new MesaNotFoundException("Mesa no encontrada con id " + mesaId)
-                        );
-
-        if (!mesa.getIsActive().equals(1)) {
-            throw new MesaNotFoundException("La mesa " + mesa.getNumeroMesa() + " no está habilitada");
+    public AsignacionMesa asignar(long mesaId, long usuarioId) throws SQLException {
+        if (asignacionMesaRepository.findActivaByMesaId(mesaId).isPresent()) {
+            throw new AsignacionActivaException("La mesa " + mesaId + " ya tiene una asignación activa");
         }
 
-        // La mesa debe estar DISPONIBLE para poder asignarla
-        if (!"LIBRE".equals(mesa.getEstado().getCodigoEstado())) {
-            throw new AsignacionActivaException(
-                    "La mesa " + mesa.getNumeroMesa() + " no está disponible"
-            );
-        }
+        AsignacionMesa a = new AsignacionMesa();
+        a.setMesaId(mesaId);
+        a.setUsuarioId(usuarioId);
+        a.setIsActive(true);
 
-        // Evitar una asignación contradictoria: la mesa no debe tener otra asignación activa
-        boolean tieneAsignacionActiva =
-                asignacionMesaRepository.findByMesaIdAndIsActiveTrue(mesaId).isPresent();
-
-        if (tieneAsignacionActiva) {
-            throw new AsignacionActivaException(
-                    "La mesa " + mesa.getNumeroMesa() + " ya tiene un mesero asignado"
-            );
-        }
-
-        AsignacionMesa asignacion = new AsignacionMesa();
-        asignacion.setMesa(mesa);
-        asignacion.setUsuarioId(usuarioId);
-
-        return asignacionMesaRepository.save(asignacion);
+        return asignacionMesaRepository.save(a);
     }
 
-    public List<AsignacionMesa> consultarMesasPorMesero(Long usuarioId) {
-        return asignacionMesaRepository.findByUsuarioIdAndIsActiveTrue(usuarioId);
-    }
-
-    public AsignacionMesa desactivarAsignacion(Long asignacionId) {
-
-        AsignacionMesa asignacion =
-                asignacionMesaRepository.findById(asignacionId)
-                        .orElseThrow(
-                                () -> new MesaNotFoundException(
-                                        "Asignación no encontrada con id " + asignacionId
-                                )
-                        );
-
-        // Deshabilitación lógica: no se elimina el registro, solo se marca inactivo
-        asignacion.setIsActive(false);
-
-        return asignacionMesaRepository.save(asignacion);
+    public void liberar(long mesaId) throws SQLException {
+        AsignacionMesa a = asignacionMesaRepository.findActivaByMesaId(mesaId)
+                .orElse(null);
+        if (a == null) {
+            return;
+        }
+        a.setIsActive(false);
+        asignacionMesaRepository.save(a);
     }
 }

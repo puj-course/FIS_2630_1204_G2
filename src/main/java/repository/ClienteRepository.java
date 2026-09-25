@@ -1,10 +1,10 @@
 package repository;//hecho con ayuda de una LLM, sujeto a cambios para hacer pruebas con la base de datos gracias por entender
 
-import conf.ConexionDB; //importa la conexión a la base de datos
+import ConexionDB.ConexionBD; //importa la conexión a la base de datos
 import java.sql.Connection; // Importa Connection de Java SQL.
 import java.sql.PreparedStatement; // Sirve para ejecutar consultas SQL de manera preparada y segura,
 import java.sql.SQLException; // Es una excepción que puede ocurrir cuando hay un problema con la base de datos,
-import models.RegistroCliente.Cliente; //importa el modelo de cliente
+import entity.Cliente; //importa el modelo de cliente
 
 
 public class ClienteRepository {
@@ -12,7 +12,7 @@ public class ClienteRepository {
 
         String sql = "INSERT INTO cliente (nombre, telefono, correo) VALUES (?, ?, ?)"; //variable que contiene la consulta en sql
 
-        try (Connection conn = ConexionDB.obtenerConexion(); //conecta con la base de datos
+        try (Connection conn = ConexionBD.getConnection(); //conecta con la base de datos
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             //coloca el contenido del plato en el ?

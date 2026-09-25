@@ -1,12 +1,38 @@
-package com.restaurante.repository;
+package repository;
 
-import com.restaurante.entity.DetallePedidoAdicional;
-import org.springframework.data.jpa.repository.JpaRepository;
+import ConexionDB.ConexionBD;
+import entity.DetallePedidoAdicional;
 
-import java.util.List;
+import java.sql.*;
 
-public interface DetallePedidoAdicionalRepository
-        extends JpaRepository<DetallePedidoAdicional, Long> {
+public class DetallePedidoAdicionalRepository {
 
-    List<DetallePedidoAdicional> findByDetallePedidoId(Long detallePedidoId);
+    public DetallePedidoAdicional save(DetallePedidoAdicional d) throws SQLException {
+        if (d.getId() == null) {
+            String sql = "INSERT INTO detalle_pedido_adicional (detalle_pedido_id, adicional_id, cantidad) " +
+                    "VALUES (?, ?, ?) RETURNING id";
+            try (Connection conn = ConexionBD.getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setLong(1, d.getDetallePedidoId());
+                stmt.setLong(2, d.getAdicionalId());
+                stmt.setInt(3, d.getCantidad() != null ? d.getCantidad() : 1);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        d.setId(rs.getLong(1));
+                    }
+                }
+            }
+        } else {
+            String sql = "UPDATE detalle_pedido_adicional SET detalle_pedido_id = ?, adicional_id = ?, cantidad = ? WHERE id = ?";
+            try (Connection conn = ConexionBD.getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setLong(1, d.getDetallePedidoId());
+                stmt.setLong(2, d.getAdicionalId());
+                stmt.setInt(3, d.getCantidad());
+                stmt.setLong(4, d.getId());
+                stmt.executeUpdate();
+            }
+        }
+        return d;
+    }
 }
