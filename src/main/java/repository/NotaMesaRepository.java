@@ -1,6 +1,6 @@
 package repository;
 
-import conf.ConexionDB;
+import ConexionDB.ConexionBD;
 import entity.NotaMesa;
 
 import java.sql.*;
@@ -13,7 +13,7 @@ public class NotaMesaRepository {
         String sql = "SELECT id_nota, id_mesa, texto_nota, fecha_creacion " +
                 "FROM nota_mesa WHERE id_mesa = ?";
 
-        try (Connection conn = ConexionDB.obtenerConexion();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, idMesa);
@@ -32,7 +32,7 @@ public class NotaMesaRepository {
         String sqlUpdate = "UPDATE nota_mesa SET texto_nota = ? WHERE id_mesa = ?";
         String sqlInsert = "INSERT INTO nota_mesa (id_mesa, texto_nota) VALUES (?, ?)";
 
-        try (Connection conn = ConexionDB.obtenerConexion()) {
+        try (Connection conn = ConexionBD.getConnection()) {
 
             try (PreparedStatement stmtUpdate = conn.prepareStatement(sqlUpdate)) {
                 stmtUpdate.setString(1, textoNota);
@@ -55,7 +55,7 @@ public class NotaMesaRepository {
     public void eliminarNota(int idMesa) throws SQLException {
         String sql = "DELETE FROM nota_mesa WHERE id_mesa = ?";
 
-        try (Connection conn = ConexionDB.obtenerConexion();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, idMesa);
