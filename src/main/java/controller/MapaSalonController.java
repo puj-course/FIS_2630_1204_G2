@@ -10,6 +10,7 @@ import javafx.scene.layout.Pane;
 import entity.Mesa;
 import repository.MesaRepository;
 import javafx.scene.control.TextInputDialog;
+import service.MesaService;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ public class MapaSalonController {
     private Label lblMesasReservadas;
 
     private final MesaRepository mesaRepository = new MesaRepository();
+    private final MesaService mesaService = new MesaService();
 
     private Mesa mesaSeleccionada;
 
@@ -333,9 +335,10 @@ public class MapaSalonController {
 
         if (resultado.isPresent()) {
             try {
-                mesaRepository.cambiarEstadoMesa(
+                mesaService.cambiarEstado(
                         mesa.getIdMesa(),
-                        resultado.get()
+                        resultado.get(),
+                        "MANUAL"
                 );
 
                 cargarMesas();
