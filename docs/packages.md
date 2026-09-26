@@ -1,8 +1,7 @@
 # Alineación de paquetes Java — HU-078 (#175)
 
 **Fecha:** 23 de septiembre de 2026  
-**Participantes:** _(Samuel Malaver)_  
-**Depende de:** HU-077 (arquitectura JavaFX + JDBC)  
+**Participantes:** _(Samuel Malaver)_   
 **Rama de trabajo:** personal → Pull Request hacia `develop`
 
 ---
