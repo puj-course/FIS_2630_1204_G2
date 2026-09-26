@@ -11,6 +11,7 @@ import repository.HistorialEstadoMesaRepository;
 import repository.MesaRepository;
 import repository.ZonaRepository;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -33,21 +34,39 @@ public class MesaService {
         mesaRepository.quitarMesa(idMesa);
     }
 
+    // Cambia el estado de una mesa y deja registro auditado en historial_estado_mesa.ddl,
+    // todo dentro de una única transacción: si el registro de auditoría falla,
+    // el cambio de estado de la mesa también se revierte.
     public void cambiarEstado(long mesaId, String codigoEstadoNuevo, String motivo) throws SQLException {
+
+        Mesa mesaActual = mesaRepository.findById((int) mesaId)
+                .orElseThrow(() -> new MesaNotFoundException("Mesa no encontrada con id " + mesaId));
+
         EstadoMesa nuevo = estadoMesaRepository.findByCodigoEstado(codigoEstadoNuevo)
                 .orElseThrow(() -> new MesaNotFoundException(
                         "Estado no encontrado: " + codigoEstadoNuevo));
 
-        mesaRepository.cambiarEstadoMesa((int) mesaId, codigoEstadoNuevo);
+        try (Connection conn = ConexionBD.getConnection()) {
 
-        HistorialEstadoMesa h = new HistorialEstadoMesa();
-        h.setMesaId(mesaId);
-        h.setEstadoNuevoId(nuevo.getId());
-        // estadoAnteriorId queda null si no lo resolvemos aquí
-        try {
-            historialEstadoMesaRepository.save(h);
-        } catch (SQLException ignored) {
+            conn.setAutoCommit(false);
 
+            try {
+                mesaRepository.cambiarEstadoMesa(conn, (int) mesaId, codigoEstadoNuevo);
+
+                HistorialEstadoMesa h = new HistorialEstadoMesa();
+                h.setMesaId(mesaId);
+                h.setEstadoAnteriorId((long) mesaActual.getIdEstadoMesa());
+                h.setEstadoNuevoId(nuevo.getId());
+                h.setMotivo(motivo);
+
+                historialEstadoMesaRepository.save(conn, h);
+
+                conn.commit();
+
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
         }
     }
 

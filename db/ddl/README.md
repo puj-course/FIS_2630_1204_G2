@@ -29,6 +29,7 @@ creadas en `../migrations/`.
 | `mesas.ddl` | `mesas` | HU-006 (#25) · HU-047 · HU-048 · HU-60 | Mesas del restaurante: número, código, capacidad, zona y estado. |
 | `detalle_pedido.ddl` | `detalle_pedido` | HU-021 (#47) | Desglose de ítems, cantidades y precios de cada pedido. |
 | `alerta_inventario.ddl` | `alerta_inventario` | HU-023 (#48) | Avisos de insumos por debajo del stock mínimo. |
+| `historial_estado_mesa.ddl`    | `historial_estado_mesa`    | HU-059                                 | Historial de cambios de estado de cada mesa (estado anterior/nuevo y motivo).         |
 
 ---
 
@@ -51,7 +52,8 @@ El orden importa: hay llaves foráneas entre las tablas.
 12. movimientos_inventario.ddl          ← depende de productos, ingredientes y usuarios
 13. alerta_inventario.ddl               ← depende de ingredientes
 14. pagos.ddl                           ← depende de pedidos y usuarios
-15. ../functions/hu28_disponibilidad.sql
+15. historial_estado_mesa               ← depende de mesas y estados_mesa
+16. ../functions/hu28_disponibilidad.sql
 ```
 
 ---
@@ -79,8 +81,9 @@ psql -d gastroflow -f detalle_pedido.ddl
 psql -d gastroflow -f movimientos_inventario.ddl
 psql -d gastroflow -f alerta_inventario.ddl
 psql -d gastroflow -f pagos.ddl
+psql -d gastroflow -f historial_estado_mesa.ddl
 
-# 2. funciones de HU-28
+# 3. funciones de HU-28
 psql -d gastroflow -f ../functions/hu28_disponibilidad.sql
 ```
 

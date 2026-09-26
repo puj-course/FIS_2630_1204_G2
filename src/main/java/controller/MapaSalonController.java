@@ -20,11 +20,8 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
 import entity.Mesa;
 import repository.MesaRepository;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.TextAlignment;
-import javafx.util.Duration;
+import javafx.scene.control.TextInputDialog;
+import service.MesaService;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -91,6 +88,7 @@ public class MapaSalonController {
     private Label detalleCodigo;
 
     private final MesaRepository mesaRepository = new MesaRepository();
+    private final MesaService mesaService = new MesaService();
     private final Map<Integer, Button> botonesPorMesa = new HashMap<>();
 
     private Mesa mesaSeleccionada;
@@ -569,6 +567,15 @@ public class MapaSalonController {
         }
     }
 
+        Optional<String> resultado = dialog.showAndWait();
+
+        if (resultado.isPresent()) {
+            try {
+                mesaService.cambiarEstado(
+                        mesa.getIdMesa(),
+                        resultado.get(),
+                        "MANUAL"
+                );
     private void ajustarTamanoDialogo(Dialog<?> dialog) {
         Scene escena = dialog.getDialogPane().getScene();
         if (escena != null && escena.getWindow() != null) {

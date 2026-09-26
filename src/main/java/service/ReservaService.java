@@ -49,7 +49,7 @@ public class ReservaService {
 
         reservaRepository.cancelar(idReserva, ahora);
 
-        // Liberar la mesa: pasa de RESERVADA a LIBRE, con auditoría en historial_estado_mesa
+        // Liberar la mesa: pasa de RESERVADA a LIBRE, con auditoría en historial_estado_mesa.ddl
         mesaService.cambiarEstado(reserva.getIdMesa(), "LIBRE", "CANCELAR_RESERVA");
 
         reserva.setActiva(false);
