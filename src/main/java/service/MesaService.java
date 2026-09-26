@@ -34,7 +34,7 @@ public class MesaService {
         mesaRepository.quitarMesa(idMesa);
     }
 
-    // Cambia el estado de una mesa y deja registro auditado en historial_estado_mesa,
+    // Cambia el estado de una mesa y deja registro auditado en historial_estado_mesa.ddl,
     // todo dentro de una única transacción: si el registro de auditoría falla,
     // el cambio de estado de la mesa también se revierte.
     public void cambiarEstado(long mesaId, String codigoEstadoNuevo, String motivo) throws SQLException {
