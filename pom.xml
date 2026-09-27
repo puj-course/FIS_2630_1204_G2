@@ -35,6 +35,16 @@
     </dependencies>
 
     <build>
+        <!-- Le dice a Maven que las fuentes están en src/java, no en src/main/java -->
+        <sourceDirectory>src/java</sourceDirectory>
+
+        <resources>
+            <!-- Le dice a Maven que los .fxml/.css están en src/resources, no src/main/resources -->
+            <resource>
+                <directory>src/resources</directory>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
                 <groupId>org.openjfx</groupId>
