@@ -11,7 +11,7 @@ import java.util.Locale;
  */
 public final class TextoBusqueda {
 
-    private static final Locale ES_CO = Locale.of("es", "CO");
+    private static final Locale ES_CO = new Locale("es", "CO");
 
     private TextoBusqueda() {
     }

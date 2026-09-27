@@ -1,5 +1,4 @@
-package com.restaurante.repository;
-
+package repository;
 import conf.ConexionDB;
 import entity.Reserva;
 

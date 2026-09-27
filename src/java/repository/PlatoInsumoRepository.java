@@ -3,6 +3,7 @@ package repository;
 import java.sql.*;
 import java.util.*;
 import conf.ConexionDB;
+import entity.PlatoInsumo;
 
 public class PlatoInsumoRepository {
 

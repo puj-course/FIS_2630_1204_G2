@@ -1,6 +1,6 @@
 package dao;
 
-import database.ConexionBD;
+import conf.ConexionDB;
 import dto.CuentaPago;
 
 import java.math.BigDecimal;
@@ -31,7 +31,7 @@ public class PagoDAO {
                   AND p.estado <> 'CANCELADO'
                 """;
 
-        try (Connection connection = ConexionBD.conectar();
+        try (Connection connection = ConexionDB.obtenerConexion();
              PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setString(1, numeroPedido);
@@ -117,7 +117,7 @@ public class PagoDAO {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PAGADO')
                 """;
 
-        try (Connection connection = ConexionBD.conectar()) {
+        try (Connection connection = ConexionDB.obtenerConexion()) {
             connection.setAutoCommit(false);
 
             try {

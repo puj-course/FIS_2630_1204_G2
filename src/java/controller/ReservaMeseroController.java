@@ -1,4 +1,4 @@
-package com.restaurante.controller;
+package controller;
 
 import entity.Reserva;
 import javafx.collections.FXCollections;

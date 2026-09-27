@@ -2,8 +2,8 @@ package service;
 import conf.ConexionDB;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import models.RegistroInventario.EntradaInventario;
-import repositories.RegistroInventario.EntradaInventarioRepository;
+import entity.EntradaInventario;
+import repository.EntradaInventarioRepository;
 
 public class EntradaInventarioService {
     // Crea un objeto del Repository.

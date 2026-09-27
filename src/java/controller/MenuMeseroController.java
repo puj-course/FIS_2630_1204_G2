@@ -33,7 +33,7 @@ public class MenuMeseroController {
     private final ProductoDAO productoDAO = new ProductoDAO();
     private final DisponibilidadDAO disponibilidadDAO = new DisponibilidadDAO();
     private final Map<Long, ItemPedido> pedido = new LinkedHashMap<>();
-    private final NumberFormat moneda = NumberFormat.getCurrencyInstance(Locale.of("es", "CO"));
+    private final NumberFormat moneda = NumberFormat.getCurrencyInstance(new Locale("es", "CO"));
 
     /** Menú completo tal como vino de la base. Los filtros trabajan sobre esta copia. */
     private Map<String, List<Producto>> menuCompleto = new LinkedHashMap<>();
