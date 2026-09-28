@@ -1,4 +1,4 @@
-package entity;
+package com.restaurante.entity;
 
 public class ReglaDescuento {
     // Atributos
