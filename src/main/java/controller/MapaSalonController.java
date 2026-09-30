@@ -9,6 +9,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -18,9 +19,13 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
+import javafx.util.Duration;
 import entity.Mesa;
 import repository.MesaRepository;
-import javafx.scene.control.TextInputDialog;
 import service.MesaService;
 
 import java.sql.SQLException;
@@ -567,6 +572,23 @@ public class MapaSalonController {
         }
     }
 
+    private void cambiarEstadoMesa(Mesa mesa) {
+
+        List<String> estados = List.of(
+                "LIBRE",
+                "OCUPADA",
+                "RESERVADA"
+        );
+
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(
+                mesa.getCodigoEstado(),
+                estados
+        );
+
+        dialog.setTitle("Cambiar estado");
+        dialog.setHeaderText("Mesa " + mesa.getNumeroMesa());
+        dialog.setContentText("Seleccione el nuevo estado:");
+
         Optional<String> resultado = dialog.showAndWait();
 
         if (resultado.isPresent()) {
@@ -576,6 +598,16 @@ public class MapaSalonController {
                         resultado.get(),
                         "MANUAL"
                 );
+
+                cargarMesas();
+
+            } catch (SQLException e) {
+                mostrarError(
+                        "Error al cambiar el estado: " + e.getMessage()
+                );
+            }
+        }
+    }
     private void ajustarTamanoDialogo(Dialog<?> dialog) {
         Scene escena = dialog.getDialogPane().getScene();
         if (escena != null && escena.getWindow() != null) {

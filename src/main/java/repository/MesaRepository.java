@@ -16,9 +16,6 @@ public class MesaRepository {
                     "JOIN zonas z ON m.id_zona = z.id_zona " +
                     "JOIN estados_mesa e ON m.id_estado_mesa = e.id_estado_mesa ";
 
-    public List<Mesa> obtenerTodas() throws SQLException {
-        List<Mesa> mesas = new ArrayList<>();
-        String sql = SELECT_BASE + "WHERE m.is_active = 1";
     private static final int ZONA_POR_DEFECTO = 1;
 
     public List<Mesa> obtenerTodas() throws SQLException {
@@ -39,7 +36,6 @@ public class MesaRepository {
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                mesas.add(mapearMesa(rs));
                 Mesa mesa = new Mesa();
                 mesa.setIdMesa(rs.getInt("id_mesa"));
                 mesa.setNumeroMesa(rs.getInt("numero_mesa"));
@@ -90,9 +86,6 @@ public class MesaRepository {
         }
     }
 
-    public void agregarMesa(int numeroMesa) throws SQLException {
-        String sql = "INSERT INTO mesas (numero_mesa, capacidad, id_zona, id_estado_mesa) " +
-                "VALUES (?, 2, 1, 1)";
     private void completarInformacionAtencion(Connection conn, Mesa mesa) throws SQLException {
         mesa.setCantidadComensales(obtenerEnteroMesa(conn, mesa.getIdMesa(),
                 "cantidad_comensales", "comensales", "numero_comensales"));
@@ -339,7 +332,7 @@ public class MesaRepository {
                 "    id_estado_mesa = COALESCE(?, id_estado_mesa) " +
                 "WHERE id_mesa = ?";
 
-        try (Connection conn = ConexionDB.obtenerConexion();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             Integer idLibre = obtenerIdEstado(conn, "LIBRE", "DISPONIBLE");
@@ -354,8 +347,6 @@ public class MesaRepository {
         }
     }
 
-    public void quitarMesa(int idMesa) throws SQLException {
-        String sql = "UPDATE mesas SET is_active = 0 WHERE id_mesa = ?";
     public void agregarMesa(int numeroMesa) throws SQLException {
         String sql = "INSERT INTO mesas (numero_mesa, codigo_mesa, capacidad, id_zona, id_estado_mesa) " +
                 "VALUES (?, ?, 2, ?, 1)";
@@ -423,11 +414,10 @@ public class MesaRepository {
         mesa.setCodigoEstado(rs.getString("codigo_estado"));
         return mesa;
     }
-}
     public void quitarMesa(int idMesa) throws SQLException {
         String sql = "UPDATE mesas SET is_active = 0 WHERE id_mesa = ?";
 
-        try (Connection conn = ConexionDB.obtenerConexion();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, idMesa);
