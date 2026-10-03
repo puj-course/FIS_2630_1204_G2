@@ -2,16 +2,14 @@
 
 import session.SesionUsuario;
 import javafx.application.Application;
-import javafx.collections.FXCollections;
+import controller.LoginController;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -82,10 +80,6 @@ public class Main extends Application {
                     "/views/cajero-pago-view.fxml", "/css/cajero-pago.css", 900, 760)
     );
 
-    /** Roles del restaurante. */
-    private static final List<String> ROLES =
-            List.of("ADMINISTRADOR", "MESERO", "COCINA", "CAJERO");
-
     private static String nombreVisible(String rol) {
         return switch (rol) {
             case "ADMINISTRADOR" -> "Administrador del restaurante";
@@ -100,14 +94,50 @@ public class Main extends Application {
     private Label usuarioNombre;
     private Label usuarioEstado;
     private Button cerrarSesion;
-    private ComboBox<String> selectorRol;
     private Label subtituloPanel;
     private VBox listaModulos;
     private String moduloAbierto;
 
+    private Stage ventana;
+
     @Override
     public void start(Stage stage) {
-        cargarSesionDePruebaSiFueIndicada();
+        this.ventana = stage;
+
+        stage.setTitle("GastroFlow");
+        stage.setMinWidth(820);
+        stage.setMinHeight(520);
+        mostrarLogin();
+        stage.show();
+    }
+
+    /** Pantalla de acceso. Es lo primero que se ve al abrir el sistema. */
+    private void mostrarLogin() {
+        try {
+            FXMLLoader cargador = new FXMLLoader(Main.class.getResource("/views/login.fxml"));
+            Parent raiz = cargador.load();
+
+            LoginController control = cargador.getController();
+            control.setAlEntrar(this::mostrarNavegacion);
+
+            Scene escena = new Scene(raiz, 860, 580);
+            escena.getStylesheets().add(Main.class.getResource("/css/login.css").toExternalForm());
+
+            ventana.setScene(escena);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            Alert alerta = new Alert(Alert.AlertType.ERROR);
+            alerta.setTitle("No se pudo abrir el inicio de sesión");
+            alerta.setContentText(describirCausa(e));
+            alerta.showAndWait();
+        }
+    }
+
+    /** Navegación principal, ya con la sesión abierta. */
+    private void mostrarNavegacion() {
+        moduloAbierto = null;
 
         HBox raiz = new HBox(construirLateral(), construirPanel());
 
@@ -115,12 +145,7 @@ public class Main extends Application {
         escena.getStylesheets().add(Main.class.getResource("/css/navegacion.css").toExternalForm());
 
         refrescarNavegacion();
-
-        stage.setTitle("GastroFlow");
-        stage.setMinWidth(820);
-        stage.setMinHeight(520);
-        stage.setScene(escena);
-        stage.show();
+        ventana.setScene(escena);
     }
 
     // ------------------------------------------------------------------
@@ -139,24 +164,6 @@ public class Main extends Application {
 
         Label rotulo = new Label("SESIÓN");
         rotulo.getStyleClass().add("rotulo-lateral");
-
-        selectorRol = new ComboBox<>(FXCollections.observableArrayList(ROLES));
-        selectorRol.getStyleClass().add("selector-rol");
-        selectorRol.setPromptText("Seleccione un rol");
-        selectorRol.setMaxWidth(Double.MAX_VALUE);
-        selectorRol.setButtonCell(new CeldaRol());
-        selectorRol.setCellFactory(lista -> new CeldaRol());
-        selectorRol.setOnAction(e -> {
-            String rol = selectorRol.getValue();
-            if (rol == null) {
-                return;
-            }
-            // Mientras no exista el inicio de sesión (HU 10), este selector es
-            // solo la forma de indicar con qué rol se está navegando.
-            SesionUsuario.iniciarSesion(1, nombreVisible(rol), rol);
-            moduloAbierto = null;
-            refrescarNavegacion();
-        });
 
         avatar = new Label();
         avatar.getStyleClass().add("avatar");
@@ -184,25 +191,14 @@ public class Main extends Application {
         cerrarSesion.setMaxWidth(Double.MAX_VALUE);
         cerrarSesion.setOnAction(e -> {
             SesionUsuario.cerrarSesion();
-            selectorRol.getSelectionModel().clearSelection();
-            selectorRol.setValue(null);
             moduloAbierto = null;
-            refrescarNavegacion();
+            mostrarLogin();
         });
 
-        VBox lateral = new VBox(18, bloqueMarca, separador, rotulo, selectorRol,
+        VBox lateral = new VBox(18, bloqueMarca, separador, rotulo,
                 fichaUsuario, espacio, cerrarSesion);
         lateral.getStyleClass().add("lateral");
         return lateral;
-    }
-
-    /** Muestra el nombre legible del rol en lugar del código. */
-    private static final class CeldaRol extends ListCell<String> {
-        @Override
-        protected void updateItem(String rol, boolean vacio) {
-            super.updateItem(rol, vacio);
-            setText(vacio || rol == null ? null : nombreVisible(rol));
-        }
     }
 
     // ------------------------------------------------------------------
@@ -293,31 +289,21 @@ public class Main extends Application {
         listaModulos.getChildren().clear();
 
         if (!haySesion) {
-            avatar.setText("—");
-            usuarioNombre.setText("Sin sesión");
-            usuarioEstado.setText("Elija un rol para continuar");
-            subtituloPanel.setText("Seleccione un rol en el panel izquierdo para ver los módulos disponibles.");
-            listaModulos.getChildren().add(estadoVacio(
-                    "Ningún rol seleccionado",
-                    "Los módulos del sistema aparecerán aquí en cuanto elija con qué rol desea trabajar."));
+            // No deberia ocurrir: a esta pantalla solo se llega tras iniciar
+            // sesion. Se contempla por si la sesion se cierra desde otro sitio.
+            mostrarLogin();
             return;
         }
 
         String rol = SesionUsuario.getRol();
         String nombreRol = nombreVisible(rol);
-
-        // La sesion tambien puede venir de fuera del selector (por ejemplo con
-        // -Dgastroflow.cajeroId), asi que el desplegable se pone al dia.
-        if (!rol.equals(selectorRol.getValue()) && ROLES.contains(rol)) {
-            selectorRol.setValue(rol);
-        }
         String nombre = SesionUsuario.getNombre();
 
-        avatar.setText(nombreRol.substring(0, 1).toUpperCase());
-        usuarioNombre.setText(nombreRol);
-        // Mientras el nombre lo ponga el selector coincide con el rol; cuando
-        // exista el inicio de sesión real serán distintos y se muestran los dos.
-        usuarioEstado.setText(nombreRol.equals(nombre) ? "Sesión activa" : nombre);
+        avatar.setText(nombre.isBlank() || "-".equals(nombre)
+                ? nombreRol.substring(0, 1).toUpperCase()
+                : nombre.substring(0, 1).toUpperCase());
+        usuarioNombre.setText(nombre);
+        usuarioEstado.setText(nombreRol);
 
         List<Modulo> permitidos = MODULOS.stream()
                 .filter(m -> m.rol().equals(rol))
@@ -418,29 +404,6 @@ public class Main extends Application {
         }
 
         return mensaje.toString().trim();
-    }
-
-    /**
-     * Sesión de prueba para el módulo de Caja, que exige un usuario con rol CAJERO.
-     * Se activa con:
-     *   mvn javafx:run -Dgastroflow.cajeroId=1 -Dgastroflow.cajeroNombre="Ana"
-     */
-    private void cargarSesionDePruebaSiFueIndicada() {
-        String id = System.getProperty("gastroflow.cajeroId");
-
-        if (id == null || id.isBlank()) {
-            return;
-        }
-
-        String nombre = System.getProperty("gastroflow.cajeroNombre", "Cajero");
-
-        try {
-            SesionUsuario.iniciarSesion(Integer.parseInt(id.trim()), nombre, "CAJERO");
-        } catch (NumberFormatException e) {
-            // Antes esto tumbaba el arranque entero: la aplicacion no abria
-            // ninguna ventana y solo quedaba el rastro en consola.
-            System.err.println("gastroflow.cajeroId debe ser un numero entero; se recibio: " + id);
-        }
     }
 
     public static void main(String[] args) {
