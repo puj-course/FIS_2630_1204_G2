@@ -1,0 +1,275 @@
+/*
+ * Navegación principal de GastroFlow.
+ *
+ * Una sola hoja para toda la pantalla de inicio: paleta, tipografía, espaciados
+ * y estados de los controles. El código Java solo asigna clases.
+ *
+ * Paleta
+ *   Verde GastroFlow   #16823b   (el que ya usaban disponibilidad y caja)
+ *   Verde profundo     #0d4f27   barra lateral
+ *   Fondo              #f4f6f5
+ *   Texto principal    #1f2a24
+ *   Texto secundario   #6b7a72
+ *   Acento de alerta   #b42318
+ */
+
+.root {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial", sans-serif;
+    -fx-background-color: #f4f6f5;
+}
+
+/* ================================================================
+   Barra lateral
+   ================================================================ */
+
+.lateral {
+    -fx-background-color: linear-gradient(to bottom, #16823b 0%, #0d4f27 100%);
+    -fx-padding: 30 26 26 26;
+    -fx-pref-width: 268;
+    -fx-min-width: 268;
+}
+
+.marca {
+    -fx-font-size: 25px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.marca-sub {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: #a8d8ba;
+}
+
+.separador-lateral {
+    -fx-background-color: rgba(255, 255, 255, 0.16);
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+}
+
+.rotulo-lateral {
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #8fc9a4;
+}
+
+/* --- Selector de rol --- */
+
+.selector-rol {
+    -fx-background-color: rgba(255, 255, 255, 0.14);
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: rgba(255, 255, 255, 0.28);
+    -fx-border-width: 1;
+    -fx-padding: 2 6 2 6;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+
+.selector-rol .list-cell,
+.selector-rol .text {
+    -fx-text-fill: white;
+}
+
+.selector-rol .arrow,
+.selector-rol .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.selector-rol .arrow {
+    -fx-background-color: white;
+}
+
+.selector-rol:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.22);
+}
+
+/* Lista desplegada: sobre fondo claro, para que se lea */
+.selector-rol .list-view {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.22), 14, 0, 0, 5);
+}
+
+.selector-rol .list-view .list-cell {
+    -fx-text-fill: #1f2a24;
+    -fx-padding: 9 14 9 14;
+    -fx-font-size: 13px;
+}
+
+.selector-rol .list-view .list-cell:filled:hover {
+    -fx-background-color: #eaf4ed;
+    -fx-text-fill: #0d4f27;
+}
+
+.selector-rol .list-view .list-cell:filled:selected {
+    -fx-background-color: #16823b;
+    -fx-text-fill: white;
+}
+
+/* --- Usuario en sesión --- */
+
+.usuario-nombre {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.usuario-estado {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: #a8d8ba;
+}
+
+.avatar {
+    -fx-background-color: rgba(255, 255, 255, 0.18);
+    -fx-background-radius: 22;
+    -fx-min-width: 40;
+    -fx-min-height: 40;
+    -fx-alignment: center;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+/* --- Cerrar sesión: fuera del bloque de navegación --- */
+
+.boton-salir {
+    -fx-background-color: transparent;
+    -fx-border-color: rgba(255, 255, 255, 0.45);
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: white;
+    -fx-font-size: 12.5px;
+    -fx-padding: 9 16 9 16;
+    -fx-cursor: hand;
+}
+
+.boton-salir:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.16);
+    -fx-border-color: white;
+}
+
+.boton-salir:disabled {
+    -fx-opacity: 1;
+    -fx-border-color: rgba(255, 255, 255, 0.18);
+    -fx-text-fill: rgba(255, 255, 255, 0.38);
+    -fx-cursor: default;
+}
+
+/* ================================================================
+   Panel de módulos
+   ================================================================ */
+
+.panel {
+    -fx-padding: 34 38 30 38;
+}
+
+.titulo-panel {
+    -fx-font-size: 21px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2a24;
+}
+
+.subtitulo-panel {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: #6b7a72;
+}
+
+/* --- Tarjeta de módulo --- */
+
+.tarjeta {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #e3e8e5;
+    -fx-border-width: 1;
+    -fx-padding: 16 18 16 18;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(19, 48, 31, 0.05), 8, 0, 0, 2);
+}
+
+.tarjeta:hover {
+    -fx-border-color: #16823b;
+    -fx-effect: dropshadow(gaussian, rgba(22, 130, 59, 0.20), 16, 0, 0, 5);
+}
+
+.tarjeta:pressed {
+    -fx-background-color: #f7faf8;
+}
+
+.tarjeta.abierta {
+    -fx-border-color: #16823b;
+    -fx-border-width: 1.5;
+    -fx-background-color: #f2f9f4;
+}
+
+.tarjeta-titulo {
+    -fx-font-size: 14.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2a24;
+}
+
+.tarjeta-detalle {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: #6b7a72;
+}
+
+/* Círculo del icono */
+.icono-fondo {
+    -fx-background-color: #eaf4ed;
+    -fx-background-radius: 10;
+    -fx-min-width: 44;
+    -fx-min-height: 44;
+    -fx-alignment: center;
+}
+
+.tarjeta.abierta .icono-fondo {
+    -fx-background-color: #16823b;
+}
+
+.icono {
+    -fx-fill: #16823b;
+}
+
+.tarjeta.abierta .icono {
+    -fx-fill: white;
+}
+
+/* Distintivo del módulo abierto */
+.distintivo {
+    -fx-background-color: #16823b;
+    -fx-background-radius: 20;
+    -fx-padding: 3 10 3 10;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+/* --- Estado vacío --- */
+
+.vacio {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #e3e8e5;
+    -fx-border-width: 1;
+    -fx-padding: 34;
+    -fx-alignment: center;
+}
+
+.vacio-titulo {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2a24;
+}
+
+.vacio-texto {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6b7a72;
+    -fx-text-alignment: center;
+    -fx-wrap-text: true;
+}
+
+.icono-vacio {
+    -fx-fill: #c3d4c9;
+}
