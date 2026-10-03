@@ -1,4 +1,4 @@
-package entity; // Indica que esta clase pertenece al paquete "RegistroInventario".
+package entity;
 
 // Declara la clase EntradaInventario.
 // Esta clase representa una entrada de un ingrediente al inventario.

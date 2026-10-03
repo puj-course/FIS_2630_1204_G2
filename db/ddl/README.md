@@ -119,8 +119,8 @@ unidad del producto:
 
 ```json
 [
-   {"ingrediente_id": 1, "cantidad": 2},
-   {"ingrediente_id": 2, "cantidad": 0.250}
+  {"ingrediente_id": 1, "cantidad": 2},
+  {"ingrediente_id": 2, "cantidad": 0.250}
 ]
 ```
 
@@ -135,11 +135,11 @@ evalúa por su propio `productos.stock_actual`.
 - **Dinero:** `NUMERIC(12,2)`.
 - **Cantidades de inventario:** `NUMERIC(12,4)`, tanto en stock como en movimientos.
 - **Estados:** cadenas en mayúsculas validadas con `CHECK`, no enteros ni booleanos.
-   - `unidades_medida.estado`, `categorias.estado`, `ingredientes.estado`: `ACTIVO`, `INACTIVO`
-   - `productos.estado`: `DISPONIBLE`, `AGOTADO`, `INACTIVO`
-   - `pedidos.estado`: `PENDIENTE`, `ASIGNADO_MESA`, `EN_PREPARACION`, `COMPLETADO`, `ENTREGADO`, `CANCELADO`
-   - `movimientos_inventario.tipo_movimiento`: `ENTRADA`, `SALIDA`
-   - `pagos.estado`: `PAGADO`, `ANULADO`
+  - `unidades_medida.estado`, `categorias.estado`, `ingredientes.estado`: `ACTIVO`, `INACTIVO`
+  - `productos.estado`: `DISPONIBLE`, `AGOTADO`, `INACTIVO`
+  - `pedidos.estado`: `PENDIENTE`, `ASIGNADO_MESA`, `EN_PREPARACION`, `COMPLETADO`, `ENTREGADO`, `CANCELADO`
+  - `movimientos_inventario.tipo_movimiento`: `ENTRADA`, `SALIDA`
+  - `pagos.estado`: `PAGADO`, `ANULADO`
 - **Auditoría:** `fecha_creacion` y `fecha_actualizacion` en las tablas maestras.
 - **Nombres:** `pk_`, `uq_`, `fk_`, `ck_` para restricciones; `ix_` para índices.
 
