@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
     <artifactId>VisualMesas</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <name>GastroFlow</name>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <javafx.version>21</javafx.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <javafx.version>21.0.5</javafx.version>
+        <postgresql.version>42.7.5</postgresql.version>
+        <junit.version>5.11.4</junit.version>
     </properties>
 
     <dependencies>
+        <!-- JavaFX -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
@@ -27,25 +29,66 @@
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
         </dependency>
+
+        <!-- PostgreSQL (JDBC) -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.3</version>
+            <version>${postgresql.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
-        <!-- Le dice a Maven que las fuentes están en src/java, no en src/main/java -->
-        <sourceDirectory>src/java</sourceDirectory>
-
-        <resources>
-            <!-- Le dice a Maven que los .fxml/.css están en src/resources, no src/main/resources -->
-            <resource>
-                <directory>src/resources</directory>
-            </resource>
-        </resources>
-
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <release>21</release>
+                    <!--
+                        Clases que todavia usan Spring Data JPA y jakarta.persistence.
+                        El proyecto quedo definido con JDBC en el PR #172 y esas
+                        dependencias salieron del pom, asi que estas clases no compilan.
+                        Se excluyen del build para no perderlas: siguen en el repositorio
+                        y se van sacando de esta lista a medida que se migren a JDBC.
+                    -->
+                    <excludes>
+                            <exclude>controller/InventarioController.java</exclude>
+                            <exclude>controller/PagoController.java</exclude>
+                            <exclude>dao/RecetaDAO.java</exclude>
+                            <exclude>entity/AlertaInventario.java</exclude>
+                            <exclude>entity/Ingrediente.java</exclude>
+                            <exclude>entity/Mesero.java</exclude>
+                            <exclude>entity/MovimientoInventario.java</exclude>
+                            <exclude>entity/Pago.java</exclude>
+                            <exclude>entity/PlatoIngrediente.java</exclude>
+                            <exclude>modelo/Receta.java</exclude>
+                            <exclude>modelo/RecetaDetalle.java</exclude>
+                            <exclude>repository/AlertaInventarioRepository.java</exclude>
+                            <exclude>repository/DetallePedidoRepository.java</exclude>
+                            <exclude>repository/IngredienteRepository.java</exclude>
+                            <exclude>repository/MeseroRepository.java</exclude>
+                            <exclude>repository/MovimientoInventarioRepository.java</exclude>
+                            <exclude>repository/PagoRepository.java</exclude>
+                            <exclude>repository/PlatoIngredienteRepository.java</exclude>
+                            <exclude>service/InventarioService.java</exclude>
+                            <exclude>service/PagoService.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
+            </plugin>
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>

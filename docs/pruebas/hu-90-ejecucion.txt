@@ -1,0 +1,52 @@
+INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------------< org.example:VisualMesas >-----------------------
+[INFO] Building GastroFlow 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.4.0:resources (default-resources) @ VisualMesas ---
+[INFO] Copying 7 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ VisualMesas ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 75 source files with javac [debug release 21] to target\classes
+[INFO] 
+[INFO] --- resources:3.4.0:testResources (default-testResources) @ VisualMesas ---
+[INFO] skip non existing resourceDirectory C:\Users\santi\OneDrive\Desktop\Java\DevelopPureba\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ VisualMesas ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 4 source files with javac [debug release 21] to target\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ VisualMesas ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running dto.CuentaPagoTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.037 s -- in dto.CuentaPagoTest
+[INFO] Running dto.ItemPedidoTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in dto.ItemPedidoTest
+[INFO] Running repository.PedidoModuloFuncionalTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.114 s -- in repository.PedidoModuloFuncionalTest
+[INFO] Running util.TextoBusquedaTest
+[INFO] Running util.TextoBusquedaTest$Vacia
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in util.TextoBusquedaTest$Vacia
+[INFO] Running util.TextoBusquedaTest$Descripcion
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in util.TextoBusquedaTest$Descripcion
+[INFO] Running util.TextoBusquedaTest$SinTildes
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in util.TextoBusquedaTest$SinTildes
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 s -- in util.TextoBusquedaTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 32, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  7.536 s
+[INFO] Finished at: 2026-10-03T19:11:41-05:00
+[INFO] ------------------------------------------------------------------------
