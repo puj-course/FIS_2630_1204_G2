@@ -1,0 +1,218 @@
+/* ==========================================================================
+   GastroFlow: hoja de estilos comun (HU-XXX, estandarizacion visual)
+
+   Se carga SIEMPRE primero (ver Main.abrirVista); la hoja de cada modulo se
+   carga despues y solo debe contener lo propio de ese modulo.
+
+   JavaFX CSS no tiene variables "--x" como la web. Lo que si permite son los
+   "colores buscados" (looked-up colors): se definen una vez en .root con un
+   nombre que empieza por "-" y se usan en cualquier regla. Para cambiar un
+   color de toda la aplicacion basta con editarlo aqui, en la paleta.
+   ========================================================================== */
+
+/* ---- Paleta --------------------------------------------------------------- */
+.root {
+    /* Superficies y texto */
+    -gf-fondo:         #f7f7f7;
+    -gf-superficie:    #ffffff;
+    -gf-borde:         #dddddd;
+    -gf-texto:         #222222;
+    -gf-texto-suave:   #666666;
+
+    /* Marca y botones */
+    -gf-primario:        #263238;
+    -gf-primario-hover:  #37474F;
+    -gf-sobre-primario:  #ffffff;
+
+    /* Colores con significado (los mismos que usa el mapa de salon) */
+    -gf-exito:         #2E7D32;
+    -gf-error:         #C62828;
+    -gf-advertencia:   #EF6C00;
+    -gf-info:          #1565C0;
+    -gf-neutro:        #616161;
+
+    -fx-font-family: "Arial";
+    -fx-font-size: 13px;
+    -fx-background-color: -gf-fondo;
+    -fx-text-fill: -gf-texto;
+}
+
+.label {
+    -fx-text-fill: -gf-texto;
+}
+
+/* ---- Encabezado de pantalla ---------------------------------------------- */
+.header {
+    -fx-padding: 20;
+    -fx-background-color: -gf-superficie;
+    -fx-border-color: transparent transparent -gf-borde transparent;
+}
+
+.titulo {
+    -fx-font-size: 25px;
+    -fx-font-weight: bold;
+}
+
+.subtitulo {
+    -fx-font-size: 13px;
+    -fx-text-fill: -gf-texto-suave;
+}
+
+/* ---- Contenedores --------------------------------------------------------- */
+.contenido {
+    -fx-padding: 24;
+}
+
+.tarjeta {
+    -fx-padding: 16;
+    -fx-background-color: -gf-superficie;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: -gf-borde;
+}
+
+.filtros {
+    -fx-padding: 12 18 12 18;
+    -fx-background-color: -gf-superficie;
+    -fx-border-color: transparent transparent -gf-borde transparent;
+}
+
+.menu-container {
+    -fx-padding: 22;
+}
+
+.pedido-container {
+    -fx-padding: 20;
+    -fx-background-color: -gf-superficie;
+}
+
+.producto-card {
+    -fx-padding: 16;
+    -fx-background-color: -gf-superficie;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: -gf-borde;
+}
+
+/* ---- Textos --------------------------------------------------------------- */
+/* Titulo de seccion: antes habia tres tamaños distintos (21, 21 y 16 px). */
+.seccion,
+.titulo-seccion,
+.categoria-titulo {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.valor {
+    -fx-font-weight: bold;
+}
+
+.producto-nombre {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.producto-descripcion {
+    -fx-font-size: 12px;
+    -fx-text-fill: -gf-texto-suave;
+}
+
+/* ---- Totales -------------------------------------------------------------- */
+.total-container {
+    -fx-padding: 16;
+    -fx-background-color: -gf-superficie;
+    -fx-background-radius: 10;
+}
+
+.total-titulo,
+.total-texto {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.total-valor,
+.total {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+/* ---- Estados: mismo color para el mismo significado en todos los modulos --- */
+.resumen-disponible,
+.disponible,
+.estado-disponible,
+.texto-exito {
+    -fx-text-fill: -gf-exito;
+    -fx-font-weight: bold;
+}
+
+.resumen-agotado,
+.agotado,
+.estado-agotado,
+.texto-error {
+    -fx-text-fill: -gf-error;
+    -fx-font-weight: bold;
+}
+
+.texto-advertencia {
+    -fx-text-fill: -gf-advertencia;
+    -fx-font-weight: bold;
+}
+
+/* ---- Tablas --------------------------------------------------------------- */
+.table-view {
+    -fx-background-color: -gf-superficie;
+    -fx-border-color: -gf-borde;
+}
+
+/* ---- Botones --------------------------------------------------------------
+   Son de uso voluntario: se aplican solo a los botones que declaren la clase
+   (styleClass="boton-principal" en el FXML o getStyleClass().add(...) en Java).
+   No se redefine ".button" a proposito: los botones de las mesas del mapa
+   llevan su propio estilo y no deben cambiar de aspecto.
+   -------------------------------------------------------------------------- */
+.boton-principal {
+    -fx-background-color: -gf-primario;
+    -fx-text-fill: -gf-sobre-primario;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 18 10 18;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.boton-principal:hover {
+    -fx-background-color: -gf-primario-hover;
+}
+
+.boton-principal:disabled {
+    -fx-opacity: 0.5;
+}
+
+.boton-secundario {
+    -fx-background-color: -gf-superficie;
+    -fx-text-fill: -gf-primario;
+    -fx-font-size: 14px;
+    -fx-padding: 10 18 10 18;
+    -fx-background-radius: 8;
+    -fx-border-color: -gf-borde;
+    -fx-border-radius: 8;
+    -fx-cursor: hand;
+}
+
+.boton-secundario:hover {
+    -fx-background-color: -gf-fondo;
+}
+
+.boton-peligro {
+    -fx-background-color: -gf-error;
+    -fx-text-fill: -gf-sobre-primario;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 18 10 18;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.boton-peligro:hover {
+    -fx-opacity: 0.88;
+}
