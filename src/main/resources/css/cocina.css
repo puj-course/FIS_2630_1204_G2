@@ -1,3 +1,20 @@
+/*
+ * Tablero de comandas de cocina de GastroFlow.
+ *
+ * A diferencia del resto del sistema, utiliza una paleta de tema oscuro
+ * (Dark Mode) optimizada para visibilidad y contraste en monitores de cocina.
+ *
+ * Paleta
+ *   Fondo general      #1b1d22   fondo de baja fatiga visual
+ *   Encabezado         #25272e
+ *   Tarjetas comanda   #2b2e37
+ *   Texto principal    #ffffff
+ *   Texto secundario   #9a9ca5
+ *   Alerta pendiente   #ff8a73 / #3a2420
+ *   Alerta preparación #6fb3ff / #20303f
+ *   Alerta listo       #7fe0a0 / #1f3328
+ */
+
 .root {
     -fx-font-family: "Segoe UI", "Arial";
     -fx-background-color: #1b1d22;
