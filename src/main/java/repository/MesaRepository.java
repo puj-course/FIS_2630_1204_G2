@@ -271,16 +271,32 @@ public class MesaRepository {
      *
      * @return true si la asignacion quedo guardada; false si excede la capacidad.
      */
+    /**
+     * Asigna comensales a una mesa libre y la deja ocupada.
+     *
+     * No hace nada si la mesa ya esta ocupada o si los comensales superan la
+     * capacidad; en los dos casos devuelve false, para que quien llame avise al
+     * usuario en vez de pisar datos sin decir nada.
+     *
+     * @return true si la asignacion se guardo
+     * @throws IllegalArgumentException si la cantidad no es mayor que cero
+     */
     public boolean asignarComensales(int idMesa, int cantidadComensales) throws SQLException {
         if (cantidadComensales <= 0) {
             throw new IllegalArgumentException("La cantidad de comensales debe ser mayor a cero.");
         }
 
+        // La mesa tiene que estar libre: sin esta condicion una mesa ya ocupada
+        // aceptaba una segunda asignacion y se perdian en silencio los
+        // comensales de la primera (HU-087, caso CP-04).
         String sql = "UPDATE mesas " +
                 "SET cantidad_comensales = ?, " +
                 "    id_estado_mesa = COALESCE(?, id_estado_mesa) " +
                 "WHERE id_mesa = ? " +
-                "  AND ? <= capacidad";
+                "  AND ? <= capacidad " +
+                "  AND (cantidad_comensales IS NULL " +
+                "       OR id_estado_mesa IN (SELECT id_estado_mesa FROM estados_mesa " +
+                "                             WHERE UPPER(codigo_estado) IN ('LIBRE', 'DISPONIBLE')))";
 
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

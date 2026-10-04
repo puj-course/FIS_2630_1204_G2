@@ -42,7 +42,7 @@ public class MapaSalonController {
     private static final double MESA_ANCHO = 120;
     private static final double MESA_ALTO = 78;
     private static final double INICIO_X = 24;
-    private static final double INICIO_Y = 210;
+    private static final double INICIO_Y = 244;
     private static final double ESPACIO_X = 18;
     private static final double ESPACIO_Y = 18;
     private static final int COLUMNAS = 3;
