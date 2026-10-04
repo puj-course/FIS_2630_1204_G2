@@ -55,6 +55,8 @@ public class Main extends Application {
     private static final String ICONO_VACIO =
             "M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M12,20c-4.41,0-8-3.59-8-8s3.59-8,8-8"
           + "s8,3.59,8,8S16.41,20,12,20z M11,7h2v6h-2V7z M11,15h2v2h-2V15z";
+    private static final String ICONO_COCINA =
+            "M11,9H9V2H7v7H5V2H3v7c0,2.12,1.66,3.84,3.75,3.97V22h2.5v-9.03C11.34,12.84,13,11.12,13,9V2h-2V9z";
 
     /**
      * Módulos disponibles. La asignación por rol es la que ya tenía el menú
@@ -77,7 +79,11 @@ public class Main extends Application {
             new Modulo("Pago de cuentas",
                     "Cobro, propinas y descuentos", "CAJERO", ICONO_PAGO,
                     "GastroFlow · Pago de cuentas",
-                    "/views/cajero-pago-view.fxml", "/css/cajero-pago.css", 900, 760)
+                    "/views/cajero-pago-view.fxml", "/css/cajero-pago.css", 900, 760),
+            new Modulo("Tablero de comandas",
+                    "Personal de cocina — Tablero de comandas", "COCINA", ICONO_COCINA,
+                    "Gastroflow - Cocina",
+                    "/views/cocina-view.fxml", "/css/cocina.css", 1200, 760)
     );
 
     private static String nombreVisible(String rol) {
