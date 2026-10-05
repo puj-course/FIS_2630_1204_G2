@@ -1,196 +1,244 @@
-package com.restaurante.service;
+package service;
 
-import com.restaurante.entity.DetallePedido;
-import com.restaurante.enums.EstadoPedido;
-import com.restaurante.entity.Pedido;
-import com.restaurante.entity.Plato;
-import com.restaurante.repository.DetallePedidoRepository;
-import com.restaurante.repository.PedidoRepository;
-import com.restaurante.repository.PlatoRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import entity.EstadoPedido;
+import entity.Pedido;
+import exceptions.MesaNotFoundException;
+import exceptions.MesaOcupadaException;
+import exceptions.PedidoNoEditableException;
+import repository.PedidoRepository;
 
-import java.math.BigDecimal;
-import java.util.List;
+import java.sql.SQLException;
+import java.util.Optional;
+import java.util.Set;
 
-@Service
 public class PedidoService {
 
-    private final PedidoRepository pedidoRepository;
-    private final DetallePedidoRepository detallePedidoRepository;
-    private final PlatoRepository platoRepository;
+    private static final Set<EstadoPedido> ESTADOS_YA_CERRADOS = Set.of(
+            EstadoPedido.COMPLETADO,
+            EstadoPedido.ENTREGADO,
+            EstadoPedido.CANCELADO
+    );
 
-    public PedidoService(
-            PedidoRepository pedidoRepository,
-            DetallePedidoRepository detallePedidoRepository,
-            PlatoRepository platoRepository
-    ) {
-        this.pedidoRepository = pedidoRepository;
-        this.detallePedidoRepository = detallePedidoRepository;
-        this.platoRepository = platoRepository;
-    }
+    private final PedidoRepository pedidoRepository =
+            new PedidoRepository();
 
-    // Crear un pedido vacío en estado PENDIENTE
-    @Transactional
-    public Pedido crearPedido() {
+    private final MesaService mesaService =
+            new MesaService();
+
+    private final InventarioService inventarioService =
+            new InventarioService();
+
+    public Pedido crearPedido(
+            long mesaId,
+            long usuarioId
+    ) throws SQLException {
+
+        boolean tieneComandaActiva =
+                pedidoRepository.existsByMesaIdAndEstadoNot(
+                        mesaId,
+                        EstadoPedido.CANCELADO
+                );
+
+        if (tieneComandaActiva) {
+
+            throw new MesaOcupadaException(
+                    "La mesa "
+                            + mesaId
+                            + " ya tiene una comanda activa"
+            );
+        }
 
         Pedido pedido = new Pedido();
 
-        return pedidoRepository.save(pedido);
+        pedido.setMesaId(mesaId);
+        pedido.setUsuarioId(usuarioId);
+
+        pedido.setNumeroPedido(
+                "PED-" + System.currentTimeMillis()
+        );
+
+        pedido.setEstado(
+                EstadoPedido.PENDIENTE
+        );
+
+        Pedido guardado =
+                pedidoRepository.save(pedido);
+
+        mesaService.cambiarEstado(
+                mesaId,
+                "OCUPADA",
+                "APERTURA_PEDIDO"
+        );
+
+        return guardado;
     }
 
-    // Agregar un plato al pedido
-    @Transactional
-    public DetallePedido agregarPlato(
-            Long pedidoId,
-            Long platoId,
-            BigDecimal cantidad
-    ) {
+    public Optional<Pedido> obtenerPedidoActivo(
+            long mesaId
+    ) throws SQLException {
 
-        if (cantidad == null || cantidad.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException(
-                    "La cantidad debe ser mayor que cero"
-            );
-        }
-
-        Pedido pedido = pedidoRepository.findById(pedidoId)
-                .orElseThrow(() ->
-                        new RuntimeException("Pedido no encontrado")
-                );
-
-        if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
-            throw new RuntimeException(
-                    "Solo se pueden modificar pedidos PENDIENTES"
-            );
-        }
-
-        Plato plato = platoRepository.findById(platoId)
-                .orElseThrow(() ->
-                        new RuntimeException("Plato no encontrado")
-                );
-
-        if (!Boolean.TRUE.equals(plato.getIsActive())) {
-            throw new RuntimeException(
-                    "El plato no está activo"
-            );
-        }
-
-        List<DetallePedido> detalles =
-                detallePedidoRepository.findByPedidoId(pedidoId);
-
-        // Si el plato ya está en el pedido, aumenta la cantidad
-        for (DetallePedido detalle : detalles) {
-
-            if (detalle.getPlato().getId().equals(platoId)) {
-
-                detalle.setCantidad(
-                        detalle.getCantidad().add(cantidad)
-                );
-
-                return detallePedidoRepository.save(detalle);
-            }
-        }
-
-        // Si no existe, crea un nuevo detalle
-        DetallePedido detalle = new DetallePedido();
-
-        detalle.setPedido(pedido);
-        detalle.setPlato(plato);
-        detalle.setCantidad(cantidad);
-
-        return detallePedidoRepository.save(detalle);
-    }
-
-    // Cambiar directamente la cantidad de un plato
-    @Transactional
-    public DetallePedido cambiarCantidad(
-            Long pedidoId,
-            Long platoId,
-            BigDecimal nuevaCantidad
-    ) {
-
-        if (nuevaCantidad == null ||
-                nuevaCantidad.compareTo(BigDecimal.ZERO) <= 0) {
-
-            throw new RuntimeException(
-                    "La cantidad debe ser mayor que cero"
-            );
-        }
-
-        Pedido pedido = pedidoRepository.findById(pedidoId)
-                .orElseThrow(() ->
-                        new RuntimeException("Pedido no encontrado")
-                );
-
-        if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
-            throw new RuntimeException(
-                    "Solo se pueden modificar pedidos PENDIENTES"
-            );
-        }
-
-        List<DetallePedido> detalles =
-                detallePedidoRepository.findByPedidoId(pedidoId);
-
-        for (DetallePedido detalle : detalles) {
-
-            if (detalle.getPlato().getId().equals(platoId)) {
-
-                detalle.setCantidad(nuevaCantidad);
-
-                return detallePedidoRepository.save(detalle);
-            }
-        }
-
-        throw new RuntimeException(
-                "El plato no pertenece a este pedido"
+        return pedidoRepository.findActivoByMesaId(
+                mesaId
         );
     }
 
-    // Eliminar un plato del pedido
-    @Transactional
-    public void eliminarPlato(
-            Long pedidoId,
-            Long platoId
-    ) {
+    public Pedido obtenerOCrearPedido(
+            long mesaId,
+            long usuarioId
+    ) throws SQLException {
 
-        Pedido pedido = pedidoRepository.findById(pedidoId)
-                .orElseThrow(() ->
-                        new RuntimeException("Pedido no encontrado")
-                );
+        Optional<Pedido> existente =
+                obtenerPedidoActivo(mesaId);
 
-        if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
-            throw new RuntimeException(
-                    "Solo se pueden modificar pedidos PENDIENTES"
-            );
+        if (existente.isPresent()) {
+            return existente.get();
         }
 
-        List<DetallePedido> detalles =
-                detallePedidoRepository.findByPedidoId(pedidoId);
-
-        for (DetallePedido detalle : detalles) {
-
-            if (detalle.getPlato().getId().equals(platoId)) {
-
-                detallePedidoRepository.delete(detalle);
-                return;
-            }
-        }
-
-        throw new RuntimeException(
-                "El plato no pertenece a este pedido"
+        return crearPedido(
+                mesaId,
+                usuarioId
         );
     }
 
-    // Consultar los detalles actuales del pedido
-    @Transactional(readOnly = true)
-    public List<DetallePedido> consultarDetalles(Long pedidoId) {
+    public Pedido actualizarPedido(
+            Pedido pedido
+    ) throws SQLException {
 
-        if (!pedidoRepository.existsById(pedidoId)) {
-            throw new RuntimeException(
-                    "Pedido no encontrado"
+        return pedidoRepository.save(
+                pedido
+        );
+    }
+
+    public Pedido cerrarPedido(
+            long pedidoId,
+            String codigoEstadoDestinoMesa
+    ) throws SQLException {
+
+        Pedido pedido =
+                pedidoRepository.findById(
+                        pedidoId
+                ).orElseThrow(() ->
+                        new MesaNotFoundException(
+                                "Pedido no encontrado con id "
+                                        + pedidoId
+                        )
+                );
+
+        if (ESTADOS_YA_CERRADOS.contains(
+                pedido.getEstado()
+        )) {
+
+            throw new PedidoNoEditableException(
+                    "El pedido "
+                            + pedido.getNumeroPedido()
+                            + " ya está en estado "
+                            + pedido.getEstado()
             );
         }
 
-        return detallePedidoRepository.findByPedidoId(pedidoId);
+        pedido.setEstado(
+                EstadoPedido.COMPLETADO
+        );
+
+        Pedido cerrado =
+                pedidoRepository.save(
+                        pedido
+                );
+
+        String destino =
+                codigoEstadoDestinoMesa != null
+                        ? codigoEstadoDestinoMesa
+                        : "LIBRE";
+
+        mesaService.cambiarEstado(
+                pedido.getMesaId(),
+                destino,
+                "CIERRE_PEDIDO"
+        );
+
+        return cerrado;
+    }
+
+    /**
+     * Anula una comanda.
+     *
+     * Si el inventario ya había sido descontado,
+     * se devuelve el stock de los ingredientes y
+     * se registra el movimiento correspondiente
+     * como ENTRADA.
+     */
+    public Pedido cancelarPedido(
+            long pedidoId,
+            String codigoEstadoDestinoMesa
+    ) throws SQLException {
+
+        Pedido pedido =
+                pedidoRepository.findById(
+                        pedidoId
+                ).orElseThrow(() ->
+                        new MesaNotFoundException(
+                                "Pedido no encontrado con id "
+                                        + pedidoId
+                        )
+                );
+
+        /*
+         * No se puede cancelar nuevamente
+         * una comanda que ya terminó.
+         */
+        if (ESTADOS_YA_CERRADOS.contains(
+                pedido.getEstado()
+        )) {
+
+            throw new PedidoNoEditableException(
+                    "El pedido "
+                            + pedido.getNumeroPedido()
+                            + " ya está en estado "
+                            + pedido.getEstado()
+            );
+        }
+
+        /*
+         * Si ya se descontó inventario, primero
+         * devolvemos los ingredientes al stock.
+         *
+         * InventarioService se encarga de verificar
+         * que la reversión no se haga dos veces.
+         */
+        if (pedido.isInventarioDescontado()) {
+
+            inventarioService.revertirDescuento(
+                    pedidoId,
+                    pedido.getUsuarioId()
+            );
+        }
+
+        /*
+         * Finalmente cambiamos el estado de la comanda.
+         */
+        pedido.setEstado(
+                EstadoPedido.CANCELADO
+        );
+
+        Pedido cancelado =
+                pedidoRepository.save(
+                        pedido
+                );
+
+        /*
+         * Liberamos la mesa.
+         */
+        String destino =
+                codigoEstadoDestinoMesa != null
+                        ? codigoEstadoDestinoMesa
+                        : "DISPONIBLE";
+
+        mesaService.cambiarEstado(
+                pedido.getMesaId(),
+                destino,
+                "CANCELACION_PEDIDO"
+        );
+
+        return cancelado;
     }
 }

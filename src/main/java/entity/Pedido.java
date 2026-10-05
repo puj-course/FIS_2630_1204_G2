@@ -1,56 +1,70 @@
-package com.restaurante.entity;
+package entity;
 
-import com.restaurante.enums.EstadoPedido;
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
-@Entity
-@Table(
-        name = "pedido",
-        indexes = {
-                @Index(
-                        name = "idx_pedido_estado",
-                        columnList = "estado"
-                )
-        }
-)
 public class Pedido {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String numeroPedido;
+    private Long mesaId;
+    private Long usuarioId;
+    private String productos = "[]";
+    private EstadoPedido estado = EstadoPedido.PENDIENTE;
+    private LocalDateTime fechaPedido = LocalDateTime.now();
+    private BigDecimal subtotal = BigDecimal.ZERO;
+    private BigDecimal total = BigDecimal.ZERO;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private EstadoPedido estado;
-
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mesa_id")
-    private Mesa mesa;
-
-    @Column(
-            nullable = false,
-            precision = 12,
-            scale = 2
-    )
-    private BigDecimal total;
-
-    @Column(name = "pagado", nullable = false)
-    private Boolean pagado;
+    /*
+     * Indica si los ingredientes de este pedido
+     * ya fueron descontados del inventario.
+     *
+     * Se utiliza para evitar que una segunda confirmación
+     * vuelva a descontar los mismos ingredientes.
+     */
+    private boolean inventarioDescontado = false;
 
     public Pedido() {
-        this.createdAt = LocalDateTime.now();
-        this.estado = EstadoPedido.PENDIENTE;
-        this.total = BigDecimal.ZERO;
-        this.pagado = false;
     }
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getNumeroPedido() {
+        return numeroPedido;
+    }
+
+    public void setNumeroPedido(String numeroPedido) {
+        this.numeroPedido = numeroPedido;
+    }
+
+    public Long getMesaId() {
+        return mesaId;
+    }
+
+    public void setMesaId(Long mesaId) {
+        this.mesaId = mesaId;
+    }
+
+    public Long getUsuarioId() {
+        return usuarioId;
+    }
+
+    public void setUsuarioId(Long usuarioId) {
+        this.usuarioId = usuarioId;
+    }
+
+    public String getProductos() {
+        return productos;
+    }
+
+    public void setProductos(String productos) {
+        this.productos = productos;
     }
 
     public EstadoPedido getEstado() {
@@ -61,15 +75,22 @@ public class Pedido {
         this.estado = estado;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getFechaPedido() {
+        return fechaPedido;
     }
-    public Mesa getMesa() {
-        return mesa;
+
+    public void setFechaPedido(LocalDateTime fechaPedido) {
+        this.fechaPedido = fechaPedido;
     }
-    public void setMesa(Mesa mesa) {
-        this.mesa = mesa;
+
+    public BigDecimal getSubtotal() {
+        return subtotal;
     }
+
+    public void setSubtotal(BigDecimal subtotal) {
+        this.subtotal = subtotal;
+    }
+
     public BigDecimal getTotal() {
         return total;
     }
@@ -78,11 +99,11 @@ public class Pedido {
         this.total = total;
     }
 
-    public Boolean getPagado() {
-        return pagado;
+    public boolean isInventarioDescontado() {
+        return inventarioDescontado;
     }
 
-    public void setPagado(Boolean pagado) {
-        this.pagado = pagado;
+    public void setInventarioDescontado(boolean inventarioDescontado) {
+        this.inventarioDescontado = inventarioDescontado;
     }
 }
