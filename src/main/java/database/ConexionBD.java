@@ -19,9 +19,10 @@ public final class ConexionBD {
 
     private static final String PASSWORD = System.getenv().getOrDefault(
             "GASTROFLOW_DB_PASSWORD",
-            "genialix1609"
+            "postgres"
     );
 
+    /** Segundos que se espera a que la base responda antes de rendirse. */
     private static final String TIEMPO_CONEXION = "5";
     private static final String TIEMPO_CONSULTA = "15";
 
@@ -41,6 +42,9 @@ public final class ConexionBD {
         propiedades.setProperty("user", USUARIO);
         propiedades.setProperty("password", PASSWORD);
 
+        // Sin estos limites, si el servidor esta caido o la red se cae, la
+        // aplicacion se queda esperando el timeout del sistema operativo:
+        // varios minutos con la ventana congelada.
         propiedades.setProperty("connectTimeout", TIEMPO_CONEXION);
         propiedades.setProperty("socketTimeout", TIEMPO_CONSULTA);
         propiedades.setProperty("loginTimeout", TIEMPO_CONEXION);

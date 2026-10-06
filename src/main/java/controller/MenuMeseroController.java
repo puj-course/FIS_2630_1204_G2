@@ -90,23 +90,10 @@ public class MenuMeseroController {
     @FXML
     public void initialize() {
 
-        busquedaField.textProperty().addListener(
-                (obs, anterior, actual) ->
-                        mostrarMenuFiltrado()
-        );
-
-        categoriaCombo.valueProperty().addListener(
-                (obs, anterior, actual) ->
-                        mostrarMenuFiltrado()
-        );
-
-        soloDisponiblesCheck.selectedProperty().addListener(
-                (obs, anterior, actual) ->
-                        mostrarMenuFiltrado()
-        );
-
+        busquedaField.textProperty().addListener((obs, anterior, actual) -> mostrarMenuFiltrado());
+        categoriaCombo.valueProperty().addListener((obs, anterior, actual) -> mostrarMenuFiltrado());
+        soloDisponiblesCheck.selectedProperty().addListener((obs, anterior, actual) -> mostrarMenuFiltrado());
         cargarMenu();
-
         actualizarPedido();
     }
 
@@ -116,57 +103,26 @@ public class MenuMeseroController {
     @FXML
     private void cargarMenu() {
 
-        Task<Map<String, List<Producto>>> tarea =
-                new Task<>() {
-
-                    @Override
-                    protected Map<String, List<Producto>> call()
-                            throws SQLException {
-
-                        System.out.println(
-                                ">>> INICIANDO CARGA DEL MENU"
-                        );
-
-                        Map<String, List<Producto>> resultado =
-                                productoDAO.obtenerMenuPorCategorias();
-
-                        System.out.println(
-                                ">>> MENU CARGADO CORRECTAMENTE"
-                        );
-
-                        System.out.println(
-                                ">>> CATEGORIAS: "
-                                        + resultado.keySet()
-                        );
-
+        Task<Map<String, List<Producto>>> tarea = new Task<>() {
+            @Override
+            protected Map<String, List<Producto>> call()
+                    throws SQLException {
+                        System.out.println(">>> INICIANDO CARGA DEL MENU");
+                        Map<String, List<Producto>> resultado = productoDAO.obtenerMenuPorCategorias();
+                        System.out.println(">>> MENU CARGADO CORRECTAMENTE");
+                        System.out.println(">>> CATEGORIAS: " + resultado.keySet());
                         return resultado;
                     }
                 };
 
         tarea.setOnSucceeded(e -> {
-
-            System.out.println(
-                    ">>> ENTRANDO A setOnSucceeded"
-            );
-
+            System.out.println(">>> ENTRANDO A setOnSucceeded");
             menuCompleto = tarea.getValue();
-
-            System.out.println(
-                    ">>> menuCompleto asignado"
-            );
-
+            System.out.println(">>> menuCompleto asignado");
             actualizarCategorias();
-
-            System.out.println(
-                    ">>> actualizarCategorias TERMINO"
-            );
-
+            System.out.println(">>> actualizarCategorias TERMINO");
             mostrarMenuFiltrado();
-
-            System.out.println(
-                    ">>> mostrarMenuFiltrado TERMINO"
-            );
-
+            System.out.println(">>> mostrarMenuFiltrado TERMINO");
             /*
              * IMPORTANTE:
              *
@@ -176,36 +132,19 @@ public class MenuMeseroController {
              * Cuando el menú ya está disponible podemos buscar
              * el pedido activo.
              */
-            if (mesaId != null && !pedidoActivoCargado) {
-                cargarPedidoActivo();
+            if (mesaId != null && !pedidoActivoCargado) {cargarPedidoActivo();
             }
         });
 
-        tarea.setOnFailed(e -> {
-
-            System.out.println(
-                    ">>> TASK FALLO"
-            );
-
+        tarea.setOnFailed(e -> {System.out.println(">>> TASK FALLO");
             if (e.getSource().getException() != null) {
-                e.getSource()
-                        .getException()
-                        .printStackTrace();
+                e.getSource().getException().printStackTrace();
             }
-
-            mostrarError(
-                    tarea.getException()
-            );
+            mostrarError(tarea.getException());
         });
 
-        mostrarMensajeEnMenu(
-                "Cargando menú…"
-        );
-
-        iniciar(
-                tarea,
-                "carga-menu"
-        );
+        mostrarMensajeEnMenu("Cargando menú…");
+        iniciar(tarea, "carga-menu");
     }
 
     /**
@@ -233,99 +172,48 @@ public class MenuMeseroController {
 
         pedidoActivoCargado = true;
 
-        Task<Optional<Pedido>> tarea =
-                new Task<>() {
-
-                    @Override
-                    protected Optional<Pedido> call()
-                            throws SQLException {
-
-                        System.out.println(
-                                ">>> BUSCANDO PEDIDO ACTIVO"
-                        );
-
-                        return pedidoService
-                                .obtenerPedidoActivo(
-                                        mesaId
-                                );
+        Task<Optional<Pedido>> tarea = new Task<>() {
+            @Override
+            protected Optional<Pedido> call()
+                    throws SQLException {
+                        System.out.println(">>> BUSCANDO PEDIDO ACTIVO");
+                        return pedidoService.obtenerPedidoActivo(mesaId);
                     }
                 };
 
-        tarea.setOnSucceeded(e -> {
-
-            Optional<Pedido> resultado =
-                    tarea.getValue();
-
+        tarea.setOnSucceeded(e -> {Optional<Pedido> resultado = tarea.getValue();
             if (resultado.isEmpty()) {
-
-                System.out.println(
-                        ">>> NO HAY PEDIDO ACTIVO PARA LA MESA "
-                                + mesaId
-                );
-
+                System.out.println(">>> NO HAY PEDIDO ACTIVO PARA LA MESA " + mesaId);
                 return;
             }
 
             pedidoActual = resultado.get();
-
-            System.out.println(
-                    ">>> PEDIDO ACTIVO ENCONTRADO: "
-                            + pedidoActual.getNumeroPedido()
-            );
-
-            System.out.println(
-                    ">>> PRODUCTOS GUARDADOS: "
-                            + pedidoActual.getProductos()
-            );
+            System.out.println(">>> PEDIDO ACTIVO ENCONTRADO: " + pedidoActual.getNumeroPedido());
+            System.out.println(">>> PRODUCTOS GUARDADOS: " + pedidoActual.getProductos());
 
             try {
-
-                cargarProductosDesdeJson(
-                        pedidoActual.getProductos()
-                );
-
+                cargarProductosDesdeJson(pedidoActual.getProductos());
                 actualizarPedido();
-
-                System.out.println(
-                        ">>> PEDIDO ACTIVO CARGADO EN LA INTERFAZ"
-                );
-
+                System.out.println(">>> PEDIDO ACTIVO CARGADO EN LA INTERFAZ");
             } catch (Exception ex) {
-
                 pedidoActivoCargado = false;
-
-                System.out.println(
-                        ">>> ERROR CARGANDO PRODUCTOS DEL PEDIDO"
-                );
-
+                System.out.println(">>> ERROR CARGANDO PRODUCTOS DEL PEDIDO");
                 ex.printStackTrace();
-
                 mostrarError(ex);
             }
         });
 
         tarea.setOnFailed(e -> {
-
             pedidoActivoCargado = false;
-
-            Throwable error =
-                    tarea.getException();
-
-            System.out.println(
-                    ">>> ERROR BUSCANDO PEDIDO ACTIVO"
-            );
-
+            Throwable error = tarea.getException();
+            System.out.println(">>> ERROR BUSCANDO PEDIDO ACTIVO");
             if (error != null) {
                 error.printStackTrace();
             }
-
             mostrarError(error);
         });
 
-        iniciar(
-                tarea,
-                "cargar-pedido-activo"
-        );
+        iniciar(tarea, "cargar-pedido-activo");
     }
 
     /**
@@ -346,85 +234,35 @@ public class MenuMeseroController {
     private void cargarProductosDesdeJson(String json) {
 
         pedido.clear();
-
         if (json == null || json.isBlank()) {
             return;
         }
-
         String contenido = json.trim();
-
         if (contenido.equals("[]")) {
             return;
         }
-
         /*
          * Busca cada objeto individual dentro del arreglo.
          */
-        Pattern objetoPattern =
-                Pattern.compile(
-                        "\\{([^}]*)\\}"
-                );
-
-        Matcher objetos =
-                objetoPattern.matcher(contenido);
-
+        Pattern objetoPattern = Pattern.compile("\\{([^}]*)\\}");
+        Matcher objetos = objetoPattern.matcher(contenido);
         while (objetos.find()) {
-
-            String objeto =
-                    objetos.group(1);
-
-            Long productoId =
-                    extraerLong(
-                            objeto,
-                            "\"producto_id\"\\s*:\\s*(\\d+)"
-                    );
-
-            Integer cantidad =
-                    extraerInteger(
-                            objeto,
-                            "\"cantidad\"\\s*:\\s*(\\d+)"
-                    );
-
-            if (productoId == null
-                    || cantidad == null
-                    || cantidad <= 0) {
-
+            String objeto = objetos.group(1);
+            Long productoId = extraerLong(objeto, "\"producto_id\"\\s*:\\s*(\\d+)");
+            Integer cantidad = extraerInteger(objeto, "\"cantidad\"\\s*:\\s*(\\d+)");
+            if (productoId == null || cantidad == null || cantidad <= 0) {
                 continue;
             }
 
-            Producto producto =
-                    buscarProductoEnMenu(
-                            productoId
-                    );
-
+            Producto producto = buscarProductoEnMenu(productoId);
             if (producto == null) {
-
-                System.out.println(
-                        ">>> PRODUCTO "
-                                + productoId
-                                + " NO ENCONTRADO EN EL MENU"
-                );
-
+                System.out.println(">>> PRODUCTO " + productoId + " NO ENCONTRADO EN EL MENU");
                 continue;
             }
 
-            ItemPedido item =
-                    new ItemPedido(
-                            producto,
-                            cantidad
-                    );
-
-            pedido.put(
-                    productoId,
-                    item
-            );
-
-            System.out.println(
-                    ">>> CARGADO: "
-                            + producto.getNombre()
-                            + " x "
-                            + cantidad
-            );
+            ItemPedido item = new ItemPedido(producto, cantidad);
+            pedido.put(productoId, item);
+            System.out.println(">>> CARGADO: " + producto.getNombre() + " x " + cantidad);
         }
     }
 
@@ -433,58 +271,31 @@ public class MenuMeseroController {
      */
     private Producto buscarProductoEnMenu(long productoId) {
 
-        for (List<Producto> productos :
-                menuCompleto.values()) {
-
-            for (Producto producto :
-                    productos) {
-
+        for (List<Producto> productos : menuCompleto.values()) {
+            for (Producto producto : productos) {
                 if (producto.getProductoId() == productoId) {
                     return producto;
                 }
             }
         }
-
         return null;
     }
 
-    private Long extraerLong(
-            String texto,
-            String expresion
-    ) {
-
-        Pattern pattern =
-                Pattern.compile(expresion);
-
-        Matcher matcher =
-                pattern.matcher(texto);
-
+    private Long extraerLong(String texto, String expresion) {
+        Pattern pattern = Pattern.compile(expresion);
+        Matcher matcher = pattern.matcher(texto);
         if (matcher.find()) {
-
             try {
-                return Long.parseLong(
-                        matcher.group(1)
-                );
+                return Long.parseLong(matcher.group(1));
             } catch (NumberFormatException ignored) {
             }
         }
-
         return null;
     }
-
-    private Integer extraerInteger(
-            String texto,
-            String expresion
-    ) {
-
-        Pattern pattern =
-                Pattern.compile(expresion);
-
-        Matcher matcher =
-                pattern.matcher(texto);
-
+    private Integer extraerInteger(String texto, String expresion) {
+        Pattern pattern = Pattern.compile(expresion);
+        Matcher matcher = pattern.matcher(texto);
         if (matcher.find()) {
-
             try {
                 return Integer.parseInt(
                         matcher.group(1)
@@ -492,7 +303,6 @@ public class MenuMeseroController {
             } catch (NumberFormatException ignored) {
             }
         }
-
         return null;
     }
 
@@ -500,271 +310,103 @@ public class MenuMeseroController {
     private void limpiarFiltros() {
 
         busquedaField.clear();
-
-        soloDisponiblesCheck.setSelected(
-                false
-        );
-
-        categoriaCombo.setValue(
-                TODAS_LAS_CATEGORIAS
-        );
+        soloDisponiblesCheck.setSelected(false);
+        categoriaCombo.setValue(TODAS_LAS_CATEGORIAS);
     }
 
-    /**
-     * Rellena el combo con las categorías.
-     */
+    /** Rellena el combo con las categorías del menú, conservando la selección actual. */
     private void actualizarCategorias() {
+        String seleccionada = categoriaCombo.getValue();
 
-        String seleccionada =
-                categoriaCombo.getValue();
-
-        List<String> categorias =
-                new ArrayList<>();
-
-        categorias.add(
-                TODAS_LAS_CATEGORIAS
-        );
-
-        categorias.addAll(
-                menuCompleto.keySet()
-        );
-
-        categoriaCombo.setItems(
-                FXCollections.observableArrayList(
-                        categorias
-                )
-        );
+        List<String> categorias = new ArrayList<>();
+        categorias.add(TODAS_LAS_CATEGORIAS);
+        categorias.addAll(menuCompleto.keySet());
+        categoriaCombo.setItems(FXCollections.observableArrayList(categorias));
 
         categoriaCombo.setValue(
-                categorias.contains(seleccionada)
-                        ? seleccionada
-                        : TODAS_LAS_CATEGORIAS
-        );
+                categorias.contains(seleccionada) ? seleccionada : TODAS_LAS_CATEGORIAS);
     }
 
-    /**
-     * Pinta el menú aplicando los filtros.
-     */
+    /** Pinta el menú aplicando búsqueda, categoría y el filtro de disponibilidad. */
     private void mostrarMenuFiltrado() {
 
         categoriasBox.getChildren().clear();
 
-        String busqueda =
-                busquedaField.getText();
-
-        String categoria =
-                categoriaCombo.getValue();
-
-        boolean soloDisponibles =
-                soloDisponiblesCheck.isSelected();
+        String busqueda = busquedaField.getText();
+        String categoria = categoriaCombo.getValue();
+        boolean soloDisponibles = soloDisponiblesCheck.isSelected();
 
         int visibles = 0;
 
-        for (Map.Entry<String, List<Producto>> entrada :
-                menuCompleto.entrySet()) {
-
-            if (categoria != null
-                    && !TODAS_LAS_CATEGORIAS.equals(categoria)
-                    && !categoria.equals(entrada.getKey())) {
-
+        for (Map.Entry<String, List<Producto>> entrada : menuCompleto.entrySet()) {
+            if (categoria != null && !TODAS_LAS_CATEGORIAS.equals(categoria) && !categoria.equals(entrada.getKey())) {
                 continue;
             }
-
-            List<Producto> coincidencias =
-                    new ArrayList<>();
-
-            for (Producto p :
-                    entrada.getValue()) {
-
-                if (soloDisponibles
-                        && !p.isDisponible()) {
-
-                    continue;
-                }
-
-                if (TextoBusqueda.coincide(
-                        p.getNombre(),
-                        p.getDescripcion(),
-                        busqueda)) {
-
+            List<Producto> coincidencias = new ArrayList<>();
+            for (Producto p : entrada.getValue()) {
+                if (soloDisponibles && !p.isDisponible()) continue;
+                if (TextoBusqueda.coincide(p.getNombre(), p.getDescripcion(), busqueda)) {
                     coincidencias.add(p);
                 }
             }
 
-            if (coincidencias.isEmpty()) {
-                continue;
-            }
-
-            Label titulo =
-                    new Label(
-                            entrada.getKey()
-                                    + "  ("
-                                    + coincidencias.size()
-                                    + ")"
-                    );
-
-            titulo.getStyleClass().add(
-                    "categoria-titulo"
-            );
-
-            TilePane pane =
-                    new TilePane();
-
+            if (coincidencias.isEmpty()) continue;
+            Label titulo = new Label(entrada.getKey() + "  (" + coincidencias.size() + ")");
+            titulo.getStyleClass().add("categoria-titulo");
+            TilePane pane = new TilePane();
             pane.setHgap(14);
             pane.setVgap(14);
             pane.setPrefColumns(3);
-
-            for (Producto p :
-                    coincidencias) {
-
-                pane.getChildren().add(
-                        crearTarjeta(p)
-                );
-            }
-
-            categoriasBox.getChildren().addAll(
-                    titulo,
-                    pane
-            );
-
+            for (Producto p : coincidencias) pane.getChildren().add(crearTarjeta(p));
+            categoriasBox.getChildren().addAll(titulo, pane);
             visibles += coincidencias.size();
         }
 
         if (visibles == 0) {
-
-            mostrarMensajeEnMenu(
-                    "Ningún producto coincide con la búsqueda."
-            );
+            mostrarMensajeEnMenu("Ningún producto coincide con la búsqueda.");
         }
 
-        resultadosLabel.setText(
-                visibles == 1
-                        ? "1 producto"
-                        : visibles + " productos"
-        );
+        resultadosLabel.setText(visibles == 1 ? "1 producto" : visibles + " productos");
     }
 
-    private void mostrarMensajeEnMenu(
-            String mensaje
-    ) {
-
-        Label etiqueta =
-                new Label(mensaje);
-
-        etiqueta.getStyleClass().add(
-                "subtitulo"
-        );
-
-        categoriasBox.getChildren().setAll(
-                etiqueta
-        );
+    private void mostrarMensajeEnMenu(String mensaje) {
+        Label etiqueta = new Label(mensaje);
+        etiqueta.getStyleClass().add("subtitulo");
+        categoriasBox.getChildren().setAll(etiqueta);
     }
 
-    private VBox crearTarjeta(
-            Producto producto
-    ) {
-
-        VBox card =
-                new VBox(8);
-
+    private VBox crearTarjeta(Producto producto) {
+        VBox card = new VBox(8);
         card.setPrefWidth(205);
         card.setMinHeight(155);
-        card.setAlignment(
-                Pos.CENTER_LEFT
-        );
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.getStyleClass().add("producto-card");
 
-        card.getStyleClass().add(
-                "producto-card"
-        );
-
-        Label nombre =
-                new Label(
-                        producto.getNombre()
-                );
-
+        Label nombre = new Label(producto.getNombre());
         nombre.setWrapText(true);
-
-        nombre.getStyleClass().add(
-                "producto-nombre"
-        );
-
-        Label precio =
-                new Label(
-                        moneda.format(
-                                producto.getPrecioVenta()
-                        )
-                );
-
-        Label estado =
-                new Label(
-                        producto.isDisponible()
-                                ? "Disponible"
-                                : "AGOTADO"
-                );
-
-        estado.getStyleClass().add(
-                producto.isDisponible()
-                        ? "disponible"
-                        : "agotado"
-        );
-
-        Button agregar =
-                new Button(
-                        producto.isDisponible()
-                                ? "Agregar"
-                                : "No disponible"
-                );
-
-        agregar.setMaxWidth(
-                Double.MAX_VALUE
-        );
-
-        agregar.setDisable(
-                !producto.isDisponible()
-        );
-
-        agregar.setOnAction(
-                e -> agregarProducto(producto)
-        );
-
-        card.getChildren().addAll(
-                nombre,
-                precio
-        );
-
-        if (producto.getDescripcion() != null
-                && !producto.getDescripcion().isBlank()) {
-
-            Label descripcion =
-                    new Label(
-                            producto.getDescripcion()
-                    );
-
+        nombre.getStyleClass().add("producto-nombre");
+        Label precio = new Label(moneda.format(producto.getPrecioVenta()));
+        Label estado = new Label(producto.isDisponible() ? "Disponible" : "AGOTADO");
+        estado.getStyleClass().add(producto.isDisponible() ? "disponible" : "agotado");
+        Button agregar = new Button(producto.isDisponible() ? "Agregar" : "No disponible");
+        agregar.setMaxWidth(Double.MAX_VALUE);
+        agregar.setDisable(!producto.isDisponible());
+        agregar.setOnAction(e -> agregarProducto(producto));
+        // HU-39: la descripción ya venía del DAO pero no se mostraba.
+        if (producto.getDescripcion() != null && !producto.getDescripcion().isBlank()) {
+            Label descripcion = new Label(producto.getDescripcion());
             descripcion.setWrapText(true);
-
-            descripcion.getStyleClass().add(
-                    "producto-descripcion"
-            );
-
-            card.getChildren().add(
-                    descripcion
-            );
+            descripcion.getStyleClass().add("producto-descripcion");
+            card.getChildren().add(descripcion);
         }
-
-        card.getChildren().addAll(
-                estado,
-                agregar
-        );
-
+        card.getChildren().addAll(estado, agregar);
         return card;
     }
 
     /**
      * Agrega una unidad de un producto al pedido.
      */
-    private void agregarProducto(
-            Producto producto
-    ) {
+    private void agregarProducto(Producto producto) {
         /*
          * Una vez descontado el inventario, no permitimos
          * modificar las cantidades del pedido.
@@ -772,101 +414,34 @@ public class MenuMeseroController {
          * Esto evita que el pedido y el inventario queden
          * desincronizados.
          */
-        if (pedidoActual != null
-                && pedidoActual.isInventarioDescontado()) {
-
-            Alert alerta =
-                    new Alert(
-                            Alert.AlertType.WARNING
-                    );
-
-            alerta.setTitle(
-                    "Pedido confirmado"
-            );
-
-            alerta.setHeaderText(
-                    "No se puede modificar el pedido"
-            );
-
-            alerta.setContentText(
-                    "El inventario de este pedido ya fue descontado. "
-                            + "No puedes agregar más productos."
-            );
-
+        if (pedidoActual != null && pedidoActual.isInventarioDescontado()) {
+            Alert alerta = new Alert(Alert.AlertType.WARNING);
+            alerta.setTitle("Pedido confirmado");
+            alerta.setHeaderText("No se puede modificar el pedido");
+            alerta.setContentText("El inventario de este pedido ya fue descontado. " + "No puedes agregar más productos.");
             alerta.showAndWait();
-
             return;
         }
         try {
-
-            ItemPedido existente =
-                    pedido.get(
-                            producto.getProductoId()
-                    );
-
-            int cantidadSolicitada =
-                    existente == null
-                            ? 1
-                            : existente.getCantidad() + 1;
-
-            if (!productoDAO.estaDisponible(
-                    producto.getProductoId(),
-                    cantidadSolicitada
-            )) {
-
-                Alert alert =
-                        new Alert(
-                                Alert.AlertType.WARNING
-                        );
-
-                alert.setHeaderText(
-                        "No hay inventario suficiente"
-                );
-
+            ItemPedido existente = pedido.get(producto.getProductoId());
+            int cantidadSolicitada = existente == null ? 1 : existente.getCantidad() + 1;
+            if (!productoDAO.estaDisponible(producto.getProductoId(), cantidadSolicitada)) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setHeaderText("No hay inventario suficiente");
                 if (existente == null) {
-
-                    alert.setContentText(
-                            producto.getNombre()
-                                    + " ya no tiene ingredientes "
-                                    + "suficientes y no puede agregarse."
-                    );
-
+                    alert.setContentText(producto.getNombre() + " ya no tiene ingredientes " + "suficientes y no puede agregarse.");
                     cargarMenu();
-
                 } else {
-
-                    alert.setContentText(
-                            "No alcanza para "
-                                    + cantidadSolicitada
-                                    + " unidades de "
-                                    + producto.getNombre()
-                                    + ". Se mantienen las "
-                                    + existente.getCantidad()
-                                    + " que ya tenía en el pedido."
-                    );
+                    alert.setContentText("No alcanza para " + cantidadSolicitada + " unidades de " + producto.getNombre() + ". Se mantienen las " + existente.getCantidad() + " que ya tenía en el pedido.");
                 }
-
                 alert.showAndWait();
-
                 return;
             }
-
-            if (existente == null) {
-
-                pedido.put(
-                        producto.getProductoId(),
-                        new ItemPedido(producto)
-                );
-
-            } else {
-
-                existente.aumentarCantidad();
+            if (existente == null) {pedido.put(producto.getProductoId(), new ItemPedido(producto));
+            } else {existente.aumentarCantidad();
             }
-
             actualizarPedido();
-
         } catch (SQLException e) {
-
             mostrarError(e);
         }
     }
@@ -877,148 +452,53 @@ public class MenuMeseroController {
     private void actualizarPedido() {
 
         pedidoBox.getChildren().clear();
-
-        BigDecimal total =
-                BigDecimal.ZERO;
-
+        BigDecimal total = BigDecimal.ZERO;
         if (pedido.isEmpty()) {
-
-            pedidoBox.getChildren().add(
-                    new Label(
-                            "No hay productos agregados."
-                    )
-            );
-
+            pedidoBox.getChildren().add(new Label("No hay productos agregados."));
         } else {
-
-            for (ItemPedido item :
-                    pedido.values()) {
-
-                HBox fila =
-                        new HBox(8);
-
-                fila.setAlignment(
-                        Pos.CENTER_LEFT
-                );
-
-                Label texto =
-                        new Label(
-                                item.getProducto().getNombre()
-                                        + " × "
-                                        + item.getCantidad()
-                        );
-
-                Button menos =
-                        new Button("−");
-
-                Button mas =
-                        new Button("+");
-
-                Button eliminar =
-                        new Button("Eliminar");
-
-                mas.setOnAction(
-                        e -> agregarProducto(
-                                item.getProducto()
-                        )
-                );
-
+            for (ItemPedido item : pedido.values()) {
+                HBox fila = new HBox(8);
+                fila.setAlignment(Pos.CENTER_LEFT);
+                Label texto = new Label(item.getProducto().getNombre() + " × " + item.getCantidad());
+                Button menos = new Button("−");
+                Button mas = new Button("+");
+                Button eliminar = new Button("Eliminar");
+                mas.setOnAction(e -> agregarProducto(item.getProducto()));
                 menos.setOnAction(e -> {
-                    if (pedidoActual != null
-                            && pedidoActual.isInventarioDescontado()) {
-
-                        Alert alerta =
-                                new Alert(
-                                        Alert.AlertType.WARNING
-                                );
-
-                        alerta.setTitle(
-                                "Pedido confirmado"
-                        );
-
-                        alerta.setHeaderText(
-                                "No se puede modificar el pedido"
-                        );
-
-                        alerta.setContentText(
-                                "El inventario de este pedido ya fue descontado."
-                        );
-
+                    if (pedidoActual != null && pedidoActual.isInventarioDescontado()) {
+                        Alert alerta = new Alert(Alert.AlertType.WARNING);
+                        alerta.setTitle("Pedido confirmado");
+                        alerta.setHeaderText("No se puede modificar el pedido");
+                        alerta.setContentText("El inventario de este pedido ya fue descontado.");
                         alerta.showAndWait();
-
                         return;
                     }
-
                     if (item.getCantidad() == 1) {
-
-                        pedido.remove(
-                                item.getProducto()
-                                        .getProductoId()
-                        );
-
+                        pedido.remove(item.getProducto().getProductoId());
                     } else {
-
                         item.disminuirCantidad();
                     }
-
                     actualizarPedido();
                 });
 
                 eliminar.setOnAction(e -> {
-                    if (pedidoActual != null
-                            && pedidoActual.isInventarioDescontado()) {
-
-                        Alert alerta =
-                                new Alert(
-                                        Alert.AlertType.WARNING
-                                );
-
-                        alerta.setTitle(
-                                "Pedido confirmado"
-                        );
-
-                        alerta.setHeaderText(
-                                "No se puede modificar el pedido"
-                        );
-
-                        alerta.setContentText(
-                                "El inventario de este pedido ya fue descontado."
-                        );
-
+                    if (pedidoActual != null && pedidoActual.isInventarioDescontado()) {
+                        Alert alerta = new Alert(Alert.AlertType.WARNING);
+                        alerta.setTitle("Pedido confirmado");
+                        alerta.setHeaderText("No se puede modificar el pedido");
+                        alerta.setContentText("El inventario de este pedido ya fue descontado.");
                         alerta.showAndWait();
-
                         return;
                     }
-
-                    pedido.remove(
-                            item.getProducto()
-                                    .getProductoId()
-                    );
-
+                    pedido.remove(item.getProducto().getProductoId());
                     actualizarPedido();
                 });
-
-                fila.getChildren().addAll(
-                        texto,
-                        menos,
-                        mas,
-                        eliminar
-                );
-
-                pedidoBox.getChildren().add(
-                        fila
-                );
-
-                total =
-                        total.add(
-                                item.getSubtotal()
-                        );
+                fila.getChildren().addAll(texto, menos, mas, eliminar);
+                pedidoBox.getChildren().add(fila);
+                total = total.add(item.getSubtotal());
             }
         }
-
-        totalLabel.setText(
-                moneda.format(total)
-        );
+        totalLabel.setText(moneda.format(total));
     }
 
     /**
@@ -1028,194 +508,82 @@ public class MenuMeseroController {
     private void confirmarPedido() {
 
         if (pedido.isEmpty()) {
-
-            new Alert(
-                    Alert.AlertType.WARNING,
-                    "Debe agregar al menos un producto."
-            ).showAndWait();
-
+            new Alert(Alert.AlertType.WARNING, "Debe agregar al menos un producto.").showAndWait();
             return;
         }
-
-        if (mesaId == null
-                || usuarioId == null) {
-
-            mostrarError(
-                    new IllegalStateException(
-                            "El pedido no tiene una mesa "
-                                    + "o usuario asociado."
-                    )
-            );
-
+        if (mesaId == null || usuarioId == null) {
+            mostrarError(new IllegalStateException("El pedido no tiene una mesa " + "o usuario asociado."));
             return;
         }
-
         /*
          * Si el inventario ya fue descontado, no permitimos
          * volver a confirmar el pedido.
          *
          * Esto evita descontar dos veces los mismos ingredientes.
          */
-        if (pedidoActual != null
-                && pedidoActual.isInventarioDescontado()) {
-
-            Alert alerta =
-                    new Alert(
-                            Alert.AlertType.WARNING
-                    );
-
-            alerta.setTitle(
-                    "Inventario ya descontado"
-            );
-
-            alerta.setHeaderText(
-                    "Este pedido ya fue confirmado"
-            );
-
-            alerta.setContentText(
-                    "El inventario de este pedido ya fue descontado. "
-                            + "No se puede volver a confirmar para evitar "
-                            + "un descuento duplicado."
-            );
-
+        if (pedidoActual != null && pedidoActual.isInventarioDescontado()) {
+            Alert alerta = new Alert(Alert.AlertType.WARNING);
+            alerta.setTitle("Inventario ya descontado");
+            alerta.setHeaderText("Este pedido ya fue confirmado");
+            alerta.setContentText("El inventario de este pedido ya fue descontado. " + "No se puede volver a confirmar para evitar " + "un descuento duplicado.");
             alerta.showAndWait();
-
             return;
         }
 
-        Map<Long, Integer> lineas =
-                new LinkedHashMap<>();
-
-        BigDecimal subtotal =
-                BigDecimal.ZERO;
-
-        for (ItemPedido item :
-                pedido.values()) {
-
-            lineas.put(
-                    item.getProducto()
-                            .getProductoId(),
-                    item.getCantidad()
-            );
-
-            subtotal =
-                    subtotal.add(
-                            item.getSubtotal()
-                    );
+        Map<Long, Integer> lineas = new LinkedHashMap<>();
+        BigDecimal subtotal = BigDecimal.ZERO;
+        for (ItemPedido item : pedido.values()) {lineas.put(item.getProducto().getProductoId(), item.getCantidad());subtotal = subtotal.add(item.getSubtotal());
         }
-
-        final BigDecimal subtotalFinal =
-                subtotal;
-
-        Task<List<String>> tarea =
-                new Task<>() {
-
-                    @Override
-                    protected List<String> call()
-                            throws SQLException {
-
-                        System.out.println(
-                                ">>> INICIANDO VALIDACION "
-                                        + "DE INVENTARIO"
-                        );
-
-                        List<String> resultado =
-                                disponibilidadDAO
-                                        .faltantesDelPedido(
-                                                lineas
-                                        );
-
-                        System.out.println(
-                                ">>> VALIDACION TERMINADA: "
-                                        + resultado
-                        );
-
-                        return resultado;
-                    }
-                };
-
+        final BigDecimal subtotalFinal = subtotal;
+        Task<List<String>> tarea = new Task<>() {
+            @Override
+            protected List<String> call() throws SQLException {
+                System.out.println(">>> INICIANDO VALIDACION " + "DE INVENTARIO");
+                List<String> resultado = disponibilidadDAO.faltantesDelPedido(lineas);
+                System.out.println(">>> VALIDACION TERMINADA: " + resultado);
+                return resultado;
+            }
+        };
         tarea.setOnSucceeded(e -> {
-
-            List<String> faltantes =
-                    tarea.getValue();
-
+            List<String> faltantes = tarea.getValue();
             /*
              * Primero mostramos los ingredientes/productos
              * que no tienen disponibilidad suficiente.
              */
             if (!faltantes.isEmpty()) {
-
-                Alert alerta =
-                        new Alert(
-                                Alert.AlertType.WARNING
-                        );
-
-                alerta.setHeaderText(
-                        "El pedido completo "
-                                + "no se puede preparar"
-                );
-
-                alerta.setContentText(
-                        "Falta inventario para:\n\n• "
-                                + String.join(
-                                "\n• ",
-                                faltantes
-                        )
-                );
-
+                Alert alerta = new Alert(Alert.AlertType.WARNING);
+                alerta.setHeaderText("El pedido completo " + "no se puede preparar");
+                alerta.setContentText("Falta inventario para:\n\n• " + String.join("\n• ", faltantes));
                 alerta.showAndWait();
-
                 cargarMenu();
-
                 return;
             }
 
             /*
              * Construimos el JSON completo del pedido.
              */
-            StringBuilder json =
-                    new StringBuilder();
-
+            StringBuilder json = new StringBuilder();
             json.append("[");
-
             boolean primero = true;
-
-            for (ItemPedido item :
-                    pedido.values()) {
-
-                if (!primero) {
-                    json.append(",");
+            for (ItemPedido item : pedido.values()) {
+                if (!primero) {json.append(",");
                 }
-
                 json.append("{")
                         .append("\"producto_id\":")
-                        .append(
-                                item.getProducto()
-                                        .getProductoId()
-                        )
+                        .append(item.getProducto().getProductoId())
                         .append(",")
                         .append("\"cantidad\":")
-                        .append(
-                                item.getCantidad()
-                        )
+                        .append(item.getCantidad())
                         .append(",")
                         .append("\"precio_unitario\":")
-                        .append(
-                                item.getProducto()
-                                        .getPrecioVenta()
-                        )
+                        .append(item.getProducto().getPrecioVenta())
                         .append(",")
                         .append("\"subtotal\":")
-                        .append(
-                                item.getSubtotal()
-                        )
+                        .append(item.getSubtotal())
                         .append("}");
-
                 primero = false;
             }
-
             json.append("]");
-
             /*
              * Indica si tuvimos que crear un pedido nuevo.
              *
@@ -1223,79 +591,40 @@ public class MenuMeseroController {
              * podremos cancelarlo para no dejar una comanda vacía
              * ocupando la mesa.
              */
-            boolean pedidoNuevo =
-                    pedidoActual == null
-                            || pedidoActual.getId() == null;
-
+            boolean pedidoNuevo = pedidoActual == null || pedidoActual.getId() == null;
             try {
-
                 /*
                  * Busca el pedido activo.
                  *
                  * Si ya existe, utiliza ese mismo pedido.
                  * Si no existe, crea uno nuevo.
                  */
-                pedidoActual =
-                        pedidoService
-                                .obtenerOCrearPedido(
-                                        mesaId,
-                                        usuarioId
-                                );
-
+                pedidoActual = pedidoService.obtenerOCrearPedido(mesaId, usuarioId);
                 /*
                  * Seguridad adicional:
                  * volvemos a comprobar que el inventario
                  * no haya sido descontado.
                  */
                 if (pedidoActual.isInventarioDescontado()) {
-
-                    Alert alerta =
-                            new Alert(
-                                    Alert.AlertType.WARNING
-                            );
-
-                    alerta.setTitle(
-                            "Pedido ya confirmado"
-                    );
-
-                    alerta.setHeaderText(
-                            "El inventario ya fue descontado"
-                    );
-
-                    alerta.setContentText(
-                            "Este pedido ya tiene registrado "
-                                    + "el descuento de inventario."
-                    );
-
+                    Alert alerta = new Alert(Alert.AlertType.WARNING);
+                    alerta.setTitle("Pedido ya confirmado");
+                    alerta.setHeaderText("El inventario ya fue descontado");
+                    alerta.setContentText("Este pedido ya tiene registrado " + "el descuento de inventario.");
                     alerta.showAndWait();
-
                     return;
                 }
-
                 /*
                  * Guardamos los datos actuales del pedido
                  * antes de descontar el inventario.
                  */
-                pedidoActual.setProductos(
-                        json.toString()
-                );
-
-                pedidoActual.setSubtotal(
-                        subtotalFinal
-                );
-
-                pedidoActual.setTotal(
-                        subtotalFinal
-                );
-
+                pedidoActual.setProductos(json.toString());
+                pedidoActual.setSubtotal(subtotalFinal);
+                pedidoActual.setTotal(subtotalFinal);
                 /*
                  * Primero actualizamos el pedido para asegurarnos
                  * de que existe y tiene su información completa.
                  */
-                pedidoService.actualizarPedido(
-                        pedidoActual
-                );
-
+                pedidoService.actualizarPedido(pedidoActual);
                 /*
                  * AHORA SE REALIZA EL DESCUENTO REAL DEL INVENTARIO.
                  *
@@ -1307,260 +636,132 @@ public class MenuMeseroController {
                  * - descuenta stock
                  * - registra movimientos SALIDA
                  */
-                System.out.println(
-                        ">>> INICIANDO DESCUENTO REAL DE INVENTARIO"
-                );
-
-                inventarioService.descontarIngredientes(
-                        pedidoActual.getId(),
-                        lineas,
-                        usuarioId
-                );
-
-                System.out.println(
-                        ">>> DESCUENTO DE INVENTARIO COMPLETADO"
-                );
-
+                System.out.println(">>> INICIANDO DESCUENTO REAL DE INVENTARIO");
+                inventarioService.descontarIngredientes(pedidoActual.getId(), lineas, usuarioId);
+                System.out.println(">>> DESCUENTO DE INVENTARIO COMPLETADO");
                 /*
                  * Marcamos el pedido para indicar que sus
                  * ingredientes ya fueron descontados.
                  */
-                pedidoActual.setInventarioDescontado(
-                        true
-                );
-
+                pedidoActual.setInventarioDescontado(true);
                 /*
                  * Guardamos nuevamente el pedido con:
                  *
                  * inventario_descontado = '1'
                  */
-                pedidoService.actualizarPedido(
-                        pedidoActual
-                );
-
-                Alert alerta =
-                        new Alert(
-                                Alert.AlertType.INFORMATION
-                        );
-
-                alerta.setTitle(
-                        "Pedido actualizado"
-                );
-
-                alerta.setHeaderText(
-                        "Pedido registrado correctamente"
-                );
-
-                alerta.setContentText(
-                        "Pedido: "
-                                + pedidoActual
-                                .getNumeroPedido()
+                pedidoService.actualizarPedido(pedidoActual);
+                Alert alerta = new Alert(Alert.AlertType.INFORMATION);
+                alerta.setTitle("Pedido actualizado");
+                alerta.setHeaderText("Pedido registrado correctamente");
+                alerta.setContentText("Pedido: "
+                                + pedidoActual.getNumeroPedido()
                                 + "\nMesa: "
                                 + mesaId
                                 + "\nProductos: "
                                 + pedido.size()
                                 + "\nSubtotal: "
-                                + moneda.format(
-                                subtotalFinal
-                        )
+                                + moneda.format(subtotalFinal)
                                 + "\nTotal: "
-                                + moneda.format(
-                                subtotalFinal
-                        )
-                                + "\n\nInventario descontado correctamente."
-                );
-
+                                + moneda.format(subtotalFinal)
+                                + "\n\nInventario descontado correctamente.");
                 alerta.showAndWait();
-
                 /*
                  * Actualizamos la interfaz para que los controles
                  * de modificación queden bloqueados.
                  */
                 actualizarPedido();
-
             } catch (Exception ex) {
-
                 /*
                  * Si acabábamos de crear el pedido y el descuento
                  * falla, cancelamos ese pedido para no dejar
                  * una comanda vacía ocupando la mesa.
                  */
-                if (pedidoNuevo
-                        && pedidoActual != null
-                        && pedidoActual.getId() != null) {
-
-                    try {
-
-                        pedidoService.cancelarPedido(
-                                pedidoActual.getId(),
-                                "DISPONIBLE"
-                        );
-
+                if (pedidoNuevo && pedidoActual != null && pedidoActual.getId() != null) {
+                    try {pedidoService.cancelarPedido(pedidoActual.getId(), "DISPONIBLE");
                         pedidoActual = null;
-
                     } catch (Exception errorCancelacion) {
-
-                        System.err.println(
-                                ">>> NO SE PUDO CANCELAR "
-                                        + "EL PEDIDO CREADO: "
-                                        + errorCancelacion.getMessage()
-                        );
+                        System.err.println(">>> NO SE PUDO CANCELAR " + "EL PEDIDO CREADO: " + errorCancelacion.getMessage());
                     }
                 }
-
                 mostrarError(ex);
             }
         });
-
-        tarea.setOnFailed(e ->
-                mostrarError(
-                        tarea.getException()
-                )
-        );
-
-        iniciar(
-                tarea,
-                "validar-pedido"
-        );
+        tarea.setOnFailed(e -> mostrarError(tarea.getException()));
+        iniciar(tarea, "validar-pedido");
     }
-
-
-    private void iniciar(
-            Task<?> tarea,
-            String nombreHilo
-    ) {
-
-        Thread hilo =
-                new Thread(
-                        tarea,
-                        nombreHilo
-                );
-
+    private void iniciar(Task<?> tarea, String nombreHilo) {
+        Thread hilo = new Thread(tarea, nombreHilo);
         hilo.setDaemon(true);
-
         hilo.start();
     }
 
     @FXML
     private void anularPedido() {
-
         if (pedidoActual == null || pedidoActual.getId() == null) {
             Alert alerta = new Alert(Alert.AlertType.WARNING);
             alerta.setTitle("Anular pedido");
             alerta.setHeaderText("No hay un pedido guardado");
-            alerta.setContentText(
-                    "Primero debes tener un pedido confirmado para poder anularlo."
-            );
+            alerta.setContentText("Primero debes tener un pedido confirmado para poder anularlo.");
             alerta.showAndWait();
             return;
         }
-
         Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
         confirmacion.setTitle("Anular pedido");
         confirmacion.setHeaderText("¿Deseas anular este pedido?");
-        confirmacion.setContentText(
-                "El pedido se marcará como cancelado y la mesa quedará disponible."
-        );
-
+        confirmacion.setContentText("El pedido se marcará como cancelado y la mesa quedará disponible.");
         Optional<ButtonType> resultado = confirmacion.showAndWait();
-
-        if (resultado.isEmpty()
-                || resultado.get() != ButtonType.OK) {
-            return;
+        if (resultado.isEmpty() || resultado.get() != ButtonType.OK) {return;
         }
-
         try {
-
-            pedidoService.cancelarPedido(
-                    pedidoActual.getId(),
-                    "DISPONIBLE"
-            );
-
+            pedidoService.cancelarPedido(pedidoActual.getId(), "DISPONIBLE");
             pedidoActual = null;
             pedido.clear();
             actualizarPedido();
-
             Alert exito = new Alert(Alert.AlertType.INFORMATION);
             exito.setTitle("Pedido anulado");
             exito.setHeaderText("Pedido anulado correctamente");
-            exito.setContentText(
-                    "El pedido fue cancelado y la mesa quedó disponible."
-            );
+            exito.setContentText("El pedido fue cancelado y la mesa quedó disponible.");
             exito.showAndWait();
-
         } catch (Exception ex) {
             mostrarError(ex);
         }
     }
     @FXML
-    private void cerrarPedido() {
-        if (pedidoActual == null || pedidoActual.getId() == null) {
+    private void cerrarPedido() {if (pedidoActual == null || pedidoActual.getId() == null) {
             Alert alerta = new Alert(Alert.AlertType.WARNING);
             alerta.setTitle("Cerrar pedido");
             alerta.setHeaderText("No hay un pedido guardado");
-            alerta.setContentText(
-                    "Confirma el pedido antes de intentar cerrarlo."
-            );
+            alerta.setContentText("Confirma el pedido antes de intentar cerrarlo.");
             alerta.showAndWait();
             return;
         }
         Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
         confirmacion.setTitle("Cerrar pedido");
         confirmacion.setHeaderText("¿Deseas cerrar este pedido?");
-        confirmacion.setContentText(
-                "El pedido se marcará como completado y se liberará la mesa."
-        );
-
+        confirmacion.setContentText("El pedido se marcará como completado y se liberará la mesa.");
         Optional<ButtonType> resultado = confirmacion.showAndWait();
-
-        if (resultado.isEmpty()
-                || resultado.get() != ButtonType.OK) {
-            return;
+        if (resultado.isEmpty() || resultado.get() != ButtonType.OK) {return;
         }
-
         try {
-            pedidoService.cerrarPedido(
-                    pedidoActual.getId(),
-                    "DISPONIBLE"
-            );
-
+            pedidoService.cerrarPedido(pedidoActual.getId(), "DISPONIBLE");
             pedidoActual = null;
             pedido.clear();
             actualizarPedido();
-
             Alert exito = new Alert(Alert.AlertType.INFORMATION);
             exito.setTitle("Pedido cerrado");
             exito.setHeaderText("Pedido cerrado correctamente");
-            exito.setContentText(
-                    "El pedido se cerró y se solicitó liberar la mesa."
-            );
+            exito.setContentText("El pedido se cerró y se solicitó liberar la mesa.");
             exito.showAndWait();
-
         } catch (Exception ex) {
             mostrarError(ex);
         }
     }
 
 
-    private void mostrarError(
-            Throwable e
-    ) {
-
-        Alert alert =
-                new Alert(
-                        Alert.AlertType.ERROR
-                );
-
-        alert.setHeaderText(
-                "Error de base de datos"
-        );
-
-        alert.setContentText(
-                e == null
-                        ? "Error desconocido"
-                        : e.getMessage()
-        );
-
+    private void mostrarError(Throwable e) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setHeaderText("Error de base de datos");
+        alert.setContentText(e == null ? "Error desconocido" : e.getMessage());
         alert.showAndWait();
     }
 }

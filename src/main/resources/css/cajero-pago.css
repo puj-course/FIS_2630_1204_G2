@@ -1,63 +1,130 @@
+/*
+ * Módulo de cobro y caja de GastroFlow.
+ *
+ * Diseñado con la misma identidad visual clara que el inicio de sesión
+ * y la navegación principal para garantizar coherencia en el flujo de trabajo.
+ *
+ * Paleta
+ *   Verde GastroFlow   #16823b   totales destacados y botón principal de pago
+ *   Verde profundo     #0d4f27   interacción en botones y bordes activos
+ *   Fondo              #f4f6f5
+ *   Texto principal    #1f2a24
+ *   Texto secundario   #6b7a72
+ *   Acento de alerta   #b42318
+ */
+
 .root {
-    -fx-font-family: "Arial";
-    -fx-background-color: #f5f6f8;
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial", sans-serif;
+    -fx-background-color: #f4f6f5;
 }
 
 .header {
-    -fx-padding: 24;
+    -fx-padding: 22 28 22 28;
     -fx-background-color: white;
-    -fx-border-color: transparent transparent #e2e2e2 transparent;
+    -fx-border-color: transparent transparent #e3e8e5 transparent;
+    -fx-effect: dropshadow(gaussian, rgba(19, 48, 31, 0.04), 4, 0, 0, 1);
 }
 
 .titulo {
-    -fx-font-size: 26px;
+    -fx-font-size: 24px;
     -fx-font-weight: bold;
+    -fx-text-fill: #1f2a24;
 }
 
 .subtitulo {
-    -fx-font-size: 14px;
-    -fx-text-fill: #666666;
+    -fx-font-size: 13px;
+    -fx-text-fill: #6b7a72;
 }
 
 .contenido {
     -fx-padding: 28;
+    -fx-spacing: 18;
 }
 
 .tarjeta {
     -fx-padding: 18;
     -fx-background-color: white;
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-    -fx-border-color: #dddddd;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #e3e8e5;
+    -fx-effect: dropshadow(gaussian, rgba(19, 48, 31, 0.05), 6, 0, 0, 2);
 }
 
 .valor {
     -fx-font-weight: bold;
+    -fx-text-fill: #1f2a24;
 }
 
 .seccion {
-    -fx-font-size: 16px;
+    -fx-font-size: 15px;
     -fx-font-weight: bold;
+    -fx-text-fill: #1f2a24;
 }
 
-.total-container {
-    -fx-padding: 18;
+/* Campos de texto */
+.text-field {
     -fx-background-color: white;
-    -fx-background-radius: 10;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #d7dfda;
+    -fx-padding: 9 12 9 12;
+    -fx-text-fill: #1f2a24;
+}
+.text-field:focused {
+    -fx-border-color: #16823b;
+    -fx-effect: dropshadow(gaussian, rgba(22, 130, 59, 0.18), 8, 0, 0, 0);
+}
+
+/* Resumen del pago */
+.total-container {
+    -fx-padding: 18 22 18 22;
+    -fx-background-color: #eaf4ed;
+    -fx-background-radius: 12;
+    -fx-border-color: #c3d4c9;
+    -fx-border-radius: 12;
 }
 
 .total-titulo {
-    -fx-font-size: 17px;
+    -fx-font-size: 16px;
     -fx-font-weight: bold;
+    -fx-text-fill: #1f2a24;
 }
 
 .total-valor {
-    -fx-font-size: 24px;
+    -fx-font-size: 26px;
     -fx-font-weight: bold;
+    -fx-text-fill: #16823b;
+}
+
+/* Botones */
+.button {
+    -fx-background-color: white;
+    -fx-text-fill: #1f2a24;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #d7dfda;
+    -fx-padding: 9 16 9 16;
+    -fx-cursor: hand;
+}
+.button:hover {
+    -fx-border-color: #16823b;
+    -fx-text-fill: #16823b;
 }
 
 .boton-principal {
-    -fx-padding: 13;
+    -fx-background-color: #16823b;
+    -fx-text-fill: white;
+    -fx-border-color: transparent;
+    -fx-background-radius: 8;
+    -fx-padding: 13 20 13 20;
     -fx-font-size: 15px;
     -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(22, 130, 59, 0.25), 10, 0, 0, 3);
+}
+.boton-principal:hover {
+    -fx-background-color: #137033;
+}
+.boton-principal:pressed {
+    -fx-background-color: #0f5c29;
 }

@@ -20,16 +20,13 @@ public class EstadoMesaRepository {
 
         try (Connection conn = ConexionBD.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setLong(1, id);
-
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(map(rs));
                 }
             }
         }
-
         return Optional.empty();
     }
 
@@ -53,7 +50,6 @@ public class EstadoMesaRepository {
                 }
             }
         }
-
         return Optional.empty();
     }
 

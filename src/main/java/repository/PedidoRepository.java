@@ -16,151 +16,61 @@ import java.util.Optional;
 public class PedidoRepository {
 
     public Optional<Pedido> findById(long id) throws SQLException {
-
-        String sql =
-                "SELECT pedido_id, numero_pedido, mesa_id, usuario_id, " +
-                        "productos, estado, fecha_pedido, subtotal, total, " +
-                        "inventario_descontado " +
-                        "FROM pedidos " +
-                        "WHERE pedido_id = ?";
-
+        String sql = "SELECT pedido_id, numero_pedido, mesa_id, usuario_id, " + "productos, estado, fecha_pedido, subtotal, total, " + "inventario_descontado " + "FROM pedidos " + "WHERE pedido_id = ?";
         try (Connection conn = ConexionBD.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setLong(1, id);
-
             try (ResultSet rs = stmt.executeQuery()) {
-
                 if (rs.next()) {
                     return Optional.of(map(rs));
                 }
             }
         }
-
         return Optional.empty();
     }
-
-    public boolean existsByMesaIdAndEstadoNot(
-            long mesaId,
-            EstadoPedido estadoExcluido
-    ) throws SQLException {
-
-        String sql =
-                "SELECT 1 FROM pedidos " +
-                        "WHERE mesa_id = ? " +
-                        "AND estado <> ? " +
-                        "LIMIT 1";
-
+    public boolean existsByMesaIdAndEstadoNot(long mesaId, EstadoPedido estadoExcluido) throws SQLException {
+        String sql = "SELECT 1 FROM pedidos " + "WHERE mesa_id = ? " + "AND estado <> ? " + "LIMIT 1";
         try (Connection conn = ConexionBD.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setLong(1, mesaId);
             stmt.setString(2, estadoExcluido.name());
-
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();
             }
         }
     }
-
     public Pedido save(Pedido p) throws SQLException {
-
         if (p.getId() == null) {
-
-            String sql =
-                    "INSERT INTO pedidos " +
+            String sql = "INSERT INTO pedidos " +
                             "(numero_pedido, mesa_id, usuario_id, productos, " +
                             "estado, fecha_pedido, subtotal, total, " +
                             "inventario_descontado) " +
                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) " +
                             "RETURNING pedido_id";
-
             try (Connection conn = ConexionBD.conectar();
-                 PreparedStatement stmt =
-                         conn.prepareStatement(sql)) {
-
-                stmt.setString(
-                        1,
-                        p.getNumeroPedido()
-                );
-
-                stmt.setLong(
-                        2,
-                        p.getMesaId()
-                );
-
-                stmt.setLong(
-                        3,
-                        p.getUsuarioId()
-                );
-
-                stmt.setObject(
-                        4,
-                        crearJsonb(
-                                p.getProductos() != null
-                                        ? p.getProductos()
-                                        : "[]"
-                        )
-                );
-
-                stmt.setString(
-                        5,
-                        p.getEstado() != null
-                                ? p.getEstado().name()
-                                : EstadoPedido.PENDIENTE.name()
-                );
-
-                stmt.setTimestamp(
-                        6,
-                        Timestamp.valueOf(
-                                p.getFechaPedido() != null
-                                        ? p.getFechaPedido()
-                                        : java.time.LocalDateTime.now()
-                        )
-                );
-
-                stmt.setBigDecimal(
-                        7,
-                        p.getSubtotal() != null
-                                ? p.getSubtotal()
-                                : BigDecimal.ZERO
-                );
-
-                stmt.setBigDecimal(
-                        8,
-                        p.getTotal() != null
-                                ? p.getTotal()
-                                : BigDecimal.ZERO
-                );
-
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, p.getNumeroPedido());
+                stmt.setLong(2, p.getMesaId());
+                stmt.setLong(3, p.getUsuarioId());
+                stmt.setObject(4, crearJsonb(p.getProductos() != null ? p.getProductos() : "[]"));
+                stmt.setString(5, p.getEstado() != null ? p.getEstado().name() : EstadoPedido.PENDIENTE.name());
+                stmt.setTimestamp(6, Timestamp.valueOf(p.getFechaPedido() != null ? p.getFechaPedido() : java.time.LocalDateTime.now()));
+                stmt.setBigDecimal(7, p.getSubtotal() != null ? p.getSubtotal() : BigDecimal.ZERO);
+                stmt.setBigDecimal(8, p.getTotal() != null ? p.getTotal() : BigDecimal.ZERO);
                 /*
                  * La base de datos utiliza:
                  * S = inventario descontado
                  * N = inventario no descontado
                  */
-                stmt.setString(
-                        9,
-                        p.isInventarioDescontado()
-                                ? "S"
-                                : "N"
-                );
-
-                try (ResultSet rs =
-                             stmt.executeQuery()) {
-
+                stmt.setString(9, p.isInventarioDescontado() ? "S" : "N");
+                try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-
-                        p.setId(
-                                rs.getLong(1)
-                        );
+                        p.setId(rs.getLong(1));
                     }
                 }
             }
-
         } else {
-
-            String sql =
-                    "UPDATE pedidos SET " +
+            String sql = "UPDATE pedidos SET " +
                             "numero_pedido = ?, " +
                             "mesa_id = ?, " +
                             "usuario_id = ?, " +
@@ -170,11 +80,8 @@ public class PedidoRepository {
                             "total = ?, " +
                             "inventario_descontado = ? " +
                             "WHERE pedido_id = ?";
-
             try (Connection conn = ConexionBD.conectar();
-                 PreparedStatement stmt =
-                         conn.prepareStatement(sql)) {
-
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(
                         1,
                         p.getNumeroPedido()

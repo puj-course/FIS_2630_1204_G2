@@ -14,7 +14,6 @@ public class Pedido {
     private LocalDateTime fechaPedido = LocalDateTime.now();
     private BigDecimal subtotal = BigDecimal.ZERO;
     private BigDecimal total = BigDecimal.ZERO;
-
     /*
      * Indica si los ingredientes de este pedido
      * ya fueron descontados del inventario.
@@ -26,7 +25,6 @@ public class Pedido {
 
     public Pedido() {
     }
-
     public Long getId() {
         return id;
     }
