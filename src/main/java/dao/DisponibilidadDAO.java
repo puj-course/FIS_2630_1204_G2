@@ -104,7 +104,7 @@ public class DisponibilidadDAO {
                 FROM productos p
                 INNER JOIN categorias c ON c.categoria_id = p.categoria_id
                 WHERE p.estado <> 'INACTIVO'
-                ORDER BY c.orden_presentacion, c.nombre, p.nombre
+                ORDER BY c.orden_visual, c.nombre, p.nombre
                 """;
 
         List<ProductoDisponibilidad> resultado = new ArrayList<>();

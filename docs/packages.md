@@ -1,3 +1,11 @@
+# Alineación de paquetes Java — HU-078 (#175)
+
+**Fecha:** 23 de septiembre de 2026  
+**Participantes:** _(Samuel Malaver)_   
+**Rama de trabajo:** personal → Pull Request hacia `develop`
+
+---
+
 ## Objetivo
 
 Garantizar que **cada archivo `.java` declare un `package` coherente con su ubicación** dentro de `src/main/java`, de modo que Maven, `javac` y el IDE (IntelliJ) compilen de forma consistente.

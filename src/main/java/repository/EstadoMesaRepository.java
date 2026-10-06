@@ -1,16 +1,24 @@
 package repository;
 
-import ConexionDB.ConexionBD;
+import database.ConexionBD;
 import entity.EstadoMesa;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Optional;
 
 public class EstadoMesaRepository {
 
     public Optional<EstadoMesa> findById(long id) throws SQLException {
-        String sql = "SELECT id_estado_mesa, codigo_estado, descripcion FROM estados_mesa WHERE id_estado_mesa = ?";
-        try (Connection conn = ConexionBD.getConnection();
+        String sql = """
+                SELECT estado_mesa_id, nombre
+                FROM estados_mesa
+                WHERE estado_mesa_id = ?
+                """;
+
+        try (Connection conn = ConexionBD.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -22,11 +30,20 @@ public class EstadoMesaRepository {
         return Optional.empty();
     }
 
-    public Optional<EstadoMesa> findByCodigoEstado(String codigo) throws SQLException {
-        String sql = "SELECT id_estado_mesa, codigo_estado, descripcion FROM estados_mesa WHERE codigo_estado = ?";
-        try (Connection conn = ConexionBD.getConnection();
+    public Optional<EstadoMesa> findByCodigoEstado(String codigo)
+            throws SQLException {
+
+        String sql = """
+                SELECT estado_mesa_id, nombre
+                FROM estados_mesa
+                WHERE UPPER(nombre) = UPPER(?)
+                """;
+
+        try (Connection conn = ConexionBD.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, codigo);
+
+            stmt.setString(1, codigo.trim());
+
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(map(rs));
@@ -37,10 +54,17 @@ public class EstadoMesaRepository {
     }
 
     private EstadoMesa map(ResultSet rs) throws SQLException {
-        EstadoMesa e = new EstadoMesa();
-        e.setId(rs.getLong("id_estado_mesa"));
-        e.setCodigoEstado(rs.getString("codigo_estado"));
-        e.setDescripcion(rs.getString("descripcion"));
-        return e;
+        EstadoMesa estado = new EstadoMesa();
+
+        estado.setId(rs.getLong("estado_mesa_id"));
+
+        // La base de datos guarda el nombre del estado,
+        // por ejemplo: DISPONIBLE u OCUPADA.
+        String nombre = rs.getString("nombre");
+
+        estado.setCodigoEstado(nombre);
+        estado.setDescripcion(nombre);
+
+        return estado;
     }
 }

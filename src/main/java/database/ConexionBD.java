@@ -30,6 +30,14 @@ public final class ConexionBD {
     }
 
     public static Connection conectar() throws SQLException {
+
+        System.out.println("=================================");
+        System.out.println("CONFIGURACION DE POSTGRESQL");
+        System.out.println("URL: " + URL);
+        System.out.println("USUARIO: " + USUARIO);
+        System.out.println("PASSWORD CONFIGURADA: " + (!PASSWORD.isEmpty()));
+        System.out.println("=================================");
+
         Properties propiedades = new Properties();
         propiedades.setProperty("user", USUARIO);
         propiedades.setProperty("password", PASSWORD);

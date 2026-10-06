@@ -1,6 +1,6 @@
 package repository;
 
-import ConexionDB.ConexionBD;
+import database.ConexionBD;
 import entity.Reserva;
 
 import java.sql.*;
@@ -29,7 +29,7 @@ public class ReservaRepository {
                 "WHERE e.codigo_estado = 'RESERVADA' AND r.is_active = 1 " +
                 "ORDER BY r.fecha_hora_reserva";
 
-        try (Connection conn = ConexionBD.getConnection();
+        try (Connection conn = ConexionBD.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
@@ -52,7 +52,7 @@ public class ReservaRepository {
                 "AND r.fecha_hora_reserva >= ? AND r.fecha_hora_reserva < ? " +
                 "ORDER BY r.fecha_hora_reserva";
 
-        try (Connection conn = ConexionBD.getConnection();
+        try (Connection conn = ConexionBD.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setTimestamp(1, Timestamp.valueOf(inicioDia));
@@ -71,7 +71,7 @@ public class ReservaRepository {
     public Optional<Reserva> findById(int idReserva) throws SQLException {
         String sql = SELECT_BASE + "WHERE r.id_reserva = ?";
 
-        try (Connection conn = ConexionBD.getConnection();
+        try (Connection conn = ConexionBD.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, idReserva);
@@ -89,7 +89,7 @@ public class ReservaRepository {
     public void archivarReserva(int idReserva) throws SQLException {
         String sql = "UPDATE reservas SET is_active = 0 WHERE id_reserva = ?";
 
-        try (Connection conn = ConexionBD.getConnection();
+        try (Connection conn = ConexionBD.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, idReserva);
@@ -101,7 +101,7 @@ public class ReservaRepository {
     public void cancelar(int idReserva, LocalDateTime fechaCancelacion) throws SQLException {
         String sql = "UPDATE reservas SET is_active = 0, fecha_cancelacion = ? WHERE id_reserva = ?";
 
-        try (Connection conn = ConexionBD.getConnection();
+        try (Connection conn = ConexionBD.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setTimestamp(1, Timestamp.valueOf(fechaCancelacion));

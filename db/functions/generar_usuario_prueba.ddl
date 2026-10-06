@@ -1,0 +1,32 @@
+INSERT INTO usuarios (
+    codigo_empleado,
+    id_tipo_documento,
+    numero_documento,
+    nombre,
+    apellido,
+    correo,
+    password_hash,
+    pin_acceso_hash,
+    id_rol,
+    is_on_shift,
+    is_active,
+    created_at,
+    updated_at,
+    created_by
+)
+VALUES (
+           'HU088-001',
+           1,
+           '1000000001',
+           'Usuario',
+           'Prueba',
+           'hu088.prueba@restaurante.com',
+           'HU088_TEST',
+           'HU088_TEST',
+           2,
+           1,
+           1,
+           CURRENT_TIMESTAMP,
+           CURRENT_TIMESTAMP,
+           'HU-088'
+       );

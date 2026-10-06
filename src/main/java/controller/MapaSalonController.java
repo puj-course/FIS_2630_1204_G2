@@ -1,12 +1,16 @@
 package controller;
 
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import session.SesionUsuario;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceDialog;
@@ -446,6 +450,23 @@ public class MapaSalonController {
 
         solicitarAsignacionMesa(mesaSeleccionada);
     }
+    @FXML
+    private void liberarMesaSeleccionada() {
+        if (mesaSeleccionada == null) {
+            mostrarError("Seleccione una mesa primero.");
+            return;
+        }
+
+        EstadoMesaVisual estado =
+                EstadoMesaVisual.desdeCodigo(mesaSeleccionada.getCodigoEstado());
+
+        if (estado != EstadoMesaVisual.OCUPADA) {
+            mostrarError("Solo se puede liberar una mesa que esté ocupada.");
+            return;
+        }
+
+        liberarMesa(mesaSeleccionada);
+    }
 
     private void solicitarAsignacionMesa(Mesa mesa) {
         Dialog<AccionMesa> dialog = new Dialog<>();
@@ -633,7 +654,13 @@ public class MapaSalonController {
                     "Mesa " + obtenerIdentificadorMesa(mesa) + " asignada para " + cantidadComensales + " comensales."
             );
         } catch (SQLException e) {
-            mostrarError("Error al asignar la mesa: " + e.getMessage());
+            e.printStackTrace();
+            mostrarError(
+                    "Error al cargar mesas:\n\n"
+                            + e.getClass().getName()
+                            + "\n"
+                            + e.getMessage()
+            );
         }
     }
 
@@ -673,6 +700,55 @@ public class MapaSalonController {
 
         private static AccionMesa liberar() {
             return new AccionMesa(null, true);
+        }
+    }
+
+    @FXML
+    private void abrirPedidoMesa() {
+        if (mesaSeleccionada == null) {
+            mostrarError("Seleccione una mesa primero.");
+            return;
+        }
+
+        EstadoMesaVisual estado =
+                EstadoMesaVisual.desdeCodigo(mesaSeleccionada.getCodigoEstado());
+
+        if (estado != EstadoMesaVisual.OCUPADA) {
+            mostrarError("La mesa debe estar ocupada para realizar un pedido.");
+            return;
+        }
+
+        if (!SesionUsuario.estaAutenticado()) {
+            mostrarError("No hay un mesero autenticado.");
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/views/menu-mesero.fxml")
+            );
+
+            Parent raiz = loader.load();
+
+            MenuMeseroController controller = loader.getController();
+
+            controller.configurarMesa(
+                    mesaSeleccionada.getIdMesa(),
+                    SesionUsuario.getUsuarioId()
+            );
+
+            Stage ventana = new Stage();
+            ventana.setTitle(
+                    "GastroFlow - Pedido Mesa "
+                            + obtenerIdentificadorMesa(mesaSeleccionada)
+            );
+            ventana.setScene(new Scene(raiz, 1180, 720));
+
+            ventana.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            mostrarError("No se pudo abrir el pedido: " + e.getMessage());
         }
     }
 

@@ -1,6 +1,6 @@
 package repository;
 
-import ConexionDB.ConexionBD;
+import database.ConexionBD;
 import entity.Adicional;
 
 import java.math.BigDecimal;
@@ -13,7 +13,7 @@ public class AdicionalRepository {
 
     public Optional<Adicional> findById(long id) throws SQLException {
         String sql = "SELECT id, nombre, precio_adicional, is_active FROM adicional WHERE id = ?";
-        try (Connection conn = ConexionBD.getConnection();
+        try (Connection conn = ConexionBD.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -28,7 +28,7 @@ public class AdicionalRepository {
     public List<Adicional> findAllActivos() throws SQLException {
         String sql = "SELECT id, nombre, precio_adicional, is_active FROM adicional WHERE is_active = TRUE";
         List<Adicional> lista = new ArrayList<>();
-        try (Connection conn = ConexionBD.getConnection();
+        try (Connection conn = ConexionBD.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
@@ -41,7 +41,7 @@ public class AdicionalRepository {
     public Adicional save(Adicional a) throws SQLException {
         if (a.getId() == null) {
             String sql = "INSERT INTO adicional (nombre, precio_adicional, is_active) VALUES (?, ?, ?) RETURNING id";
-            try (Connection conn = ConexionBD.getConnection();
+            try (Connection conn = ConexionBD.conectar();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, a.getNombre());
                 stmt.setBigDecimal(2, a.getPrecioAdicional());
@@ -54,7 +54,7 @@ public class AdicionalRepository {
             }
         } else {
             String sql = "UPDATE adicional SET nombre = ?, precio_adicional = ?, is_active = ? WHERE id = ?";
-            try (Connection conn = ConexionBD.getConnection();
+            try (Connection conn = ConexionBD.conectar();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, a.getNombre());
                 stmt.setBigDecimal(2, a.getPrecioAdicional());

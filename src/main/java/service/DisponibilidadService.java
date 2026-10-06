@@ -2,7 +2,7 @@ package service;
 
 import java.sql.*;
 import java.util.*;
-import ConexionDB.ConexionBD;
+import database.ConexionBD;
 import entity.PlatoInsumo;
 import repository.PlatoInsumoRepository;
 
@@ -23,7 +23,7 @@ public class DisponibilidadService {
 
     private int obtenerStockInsumo(int insumoId) throws SQLException {
         String sql = "SELECT stock_actual FROM insumo WHERE id = ?";
-        try (Connection conn = ConexionBD.getConnection();
+        try (Connection conn = ConexionBD.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, insumoId);
             ResultSet rs = stmt.executeQuery();
@@ -39,7 +39,7 @@ public class DisponibilidadService {
         boolean disponible = tieneInsumosDisponibles(platoId);
 
         String sql = "UPDATE producto_menu SET disponible = ? WHERE id = ?";
-        try (Connection conn = ConexionBD.getConnection();
+        try (Connection conn = ConexionBD.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setBoolean(1, disponible);
             stmt.setInt(2, platoId);

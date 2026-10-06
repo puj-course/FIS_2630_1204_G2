@@ -2,14 +2,14 @@ package repository;
 
 import java.sql.*;
 import java.util.*;
-import ConexionDB.ConexionBD;
+import database.ConexionBD;
 import entity.PlatoInsumo;
 
 public class PlatoInsumoRepository {
 
     public void guardar(PlatoInsumo pi) throws SQLException {
         String sql = "INSERT INTO plato_insumo (plato_id, insumo_id, cantidad_necesaria) VALUES (?, ?, ?)";
-        try (Connection conn = ConexionBD.getConnection();
+        try (Connection conn = ConexionBD.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, pi.getPlatoId());
@@ -24,7 +24,7 @@ public class PlatoInsumoRepository {
         List<PlatoInsumo> lista = new ArrayList<>();
         String sql = "SELECT id, plato_id, insumo_id, cantidad_necesaria FROM plato_insumo WHERE plato_id = ?";
 
-        try (Connection conn = ConexionBD.getConnection();
+        try (Connection conn = ConexionBD.conectar();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, platoId);
             ResultSet rs = stmt.executeQuery();
