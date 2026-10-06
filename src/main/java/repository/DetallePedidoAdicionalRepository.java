@@ -1,6 +1,6 @@
 package repository;
 
-import ConexionDB.ConexionBD;
+import database.ConexionBD;
 import entity.DetallePedidoAdicional;
 
 import java.sql.*;
@@ -11,7 +11,7 @@ public class DetallePedidoAdicionalRepository {
         if (d.getId() == null) {
             String sql = "INSERT INTO detalle_pedido_adicional (detalle_pedido_id, adicional_id, cantidad) " +
                     "VALUES (?, ?, ?) RETURNING id";
-            try (Connection conn = ConexionBD.getConnection();
+            try (Connection conn = ConexionBD.conectar();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setLong(1, d.getDetallePedidoId());
                 stmt.setLong(2, d.getAdicionalId());
@@ -24,7 +24,7 @@ public class DetallePedidoAdicionalRepository {
             }
         } else {
             String sql = "UPDATE detalle_pedido_adicional SET detalle_pedido_id = ?, adicional_id = ?, cantidad = ? WHERE id = ?";
-            try (Connection conn = ConexionBD.getConnection();
+            try (Connection conn = ConexionBD.conectar();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setLong(1, d.getDetallePedidoId());
                 stmt.setLong(2, d.getAdicionalId());

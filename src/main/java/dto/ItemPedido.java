@@ -5,15 +5,45 @@ import entity.Producto;
 import java.math.BigDecimal;
 
 public class ItemPedido {
+
     private final Producto producto;
     private int cantidad = 1;
 
-    public ItemPedido(Producto producto) { this.producto = producto; }
-    public Producto getProducto() { return producto; }
-    public int getCantidad() { return cantidad; }
-    public void aumentarCantidad() { cantidad++; }
-    public void disminuirCantidad() { if (cantidad > 1) cantidad--; }
+    public ItemPedido(Producto producto) {
+        this.producto = producto;
+    }
+
+    public ItemPedido(Producto producto, int cantidad) {
+        this.producto = producto;
+        this.cantidad = cantidad;
+    }
+
+    public Producto getProducto() {
+        return producto;
+    }
+
+    public int getCantidad() {
+        return cantidad;
+    }
+
+    public void aumentarCantidad() {
+        cantidad++;
+    }
+
+    public void disminuirCantidad() {
+        if (cantidad > 1) {
+            cantidad--;
+        }
+    }
+
+    public void establecerCantidad(int cantidad) {
+        if (cantidad > 0) {
+            this.cantidad = cantidad;
+        }
+    }
+
     public BigDecimal getSubtotal() {
-        return producto.getPrecioVenta().multiply(BigDecimal.valueOf(cantidad));
+        return producto.getPrecioVenta()
+                .multiply(BigDecimal.valueOf(cantidad));
     }
 }

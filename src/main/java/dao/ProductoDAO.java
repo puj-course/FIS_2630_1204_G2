@@ -20,7 +20,7 @@ public class ProductoDAO {
                 INNER JOIN categorias c ON c.categoria_id = p.categoria_id
                 WHERE p.estado IN ('DISPONIBLE', 'AGOTADO')
                   AND c.estado = 'ACTIVO'
-                ORDER BY c.orden_presentacion, c.nombre, p.nombre
+                ORDER BY c.orden_visual, c.nombre, p.nombre
                 """;
 
         Map<String, List<Producto>> menu = new LinkedHashMap<>();

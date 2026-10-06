@@ -1,7 +1,7 @@
-package com.restaurante.service;
+package service;
 
 import com.restaurante.entity.Pago;
-import com.restaurante.entity.Pedido;
+import entity.Pedido;
 import com.restaurante.enums.MetodoPago;
 import com.restaurante.enums.EstadoPedido;
 import com.restaurante.repository.PagoRepository;

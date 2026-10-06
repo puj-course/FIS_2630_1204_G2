@@ -1,6 +1,6 @@
 package service;
 
-import ConexionDB.ConexionBD;
+import database.ConexionBD;
 import entity.EstadoMesa;
 import entity.HistorialEstadoMesa;
 import entity.Mesa;
@@ -46,7 +46,7 @@ public class MesaService {
                 .orElseThrow(() -> new MesaNotFoundException(
                         "Estado no encontrado: " + codigoEstadoNuevo));
 
-        try (Connection conn = ConexionBD.getConnection()) {
+        try (Connection conn = ConexionBD.conectar()) {
 
             conn.setAutoCommit(false);
 
