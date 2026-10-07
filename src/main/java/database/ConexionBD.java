@@ -19,7 +19,7 @@ public final class ConexionBD {
 
     private static final String PASSWORD = System.getenv().getOrDefault(
             "GASTROFLOW_DB_PASSWORD",
-            "postgres"
+            "genialix1609"
     );
 
     /** Segundos que se espera a que la base responda antes de rendirse. */

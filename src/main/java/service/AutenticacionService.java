@@ -76,7 +76,7 @@ public class AutenticacionService {
 
             SesionUsuario.iniciarSesion(usuario.idUsuario(),
                     usuario.nombreCompleto(),
-                    usuario.rol());
+                    usuario.nombre_rol());
             return Resultado.OK;
 
         } catch (SQLException e) {

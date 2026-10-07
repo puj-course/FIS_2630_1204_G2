@@ -1,6 +1,6 @@
 package repository;
 
-import ConexionDB.ConexionBD;
+import database.ConexionBD;
 import entity.UsuarioAutenticable;
 
 import java.sql.Connection;
@@ -18,8 +18,8 @@ public class UsuarioRepository {
             "SELECT u.id_usuario, u.codigo_empleado, u.nombre, u.apellido, " +
             "       u.password_hash, u.is_active, r.nombre_rol " +
             "FROM usuarios u " +
-            "JOIN roles r ON r.id_rol = u.id_rol " +
-            "WHERE LOWER(u.codigo_empleado) = LOWER(?) OR LOWER(u.correo) = LOWER(?)";
+            "JOIN roles r ON r.rol_id = u.id_rol " +
+            "WHERE LOWER(u.codigo_empleado) = LOWER(?)  OR LOWER(u.correo) = LOWER(?)";
 
     /**
      * Busca al usuario por código de empleado o por correo. Se aceptan los dos
@@ -35,7 +35,7 @@ public class UsuarioRepository {
 
         String valor = identificador.trim();
 
-        try (Connection conn = ConexionBD.getConnection();
+        try (Connection conn = ConexionBD.conectar();
              PreparedStatement stmt = conn.prepareStatement(SELECT_ACCESO)) {
 
             stmt.setString(1, valor);

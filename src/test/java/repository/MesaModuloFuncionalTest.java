@@ -1,6 +1,6 @@
 package repository;
 
-import ConexionDB.ConexionBD;
+import database.ConexionBD;
 import entity.Mesa;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assumptions;

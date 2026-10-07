@@ -1,45 +1,18 @@
-package com.restaurante.entity;
+package entity;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(
-        name = "alerta_inventario",
-        indexes = {
-                @Index(
-                          name = "idx_alerta_inventario_active",
-                        columnList = "is_resolved"
-                )
-        }
-)
 public class AlertaInventario {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "ingrediente_id", nullable = false)
-    private Ingrediente ingrediente;
-
-    @Column(name = "stock_actual", precision = 12, scale = 4, nullable = false)
+    private Long ingredienteId;
+    private Long productoId;
     private BigDecimal stockActual;
-
-    @Column(name = "stock_minimo", precision = 12, scale = 4, nullable = false)
     private BigDecimal stockMinimo;
-
-    @Column(name = "cantidad_sugerida", precision = 12, scale = 4, nullable = false)
     private BigDecimal cantidadSugerida;
-
-    @Column(name = "is_resolved", nullable = false)
-    private Boolean isResolved = false;
-
-    @Column(name = "created_at", nullable = false)
+    private String estado;
     private LocalDateTime createdAt;
-
-    @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
 
     public AlertaInventario() {
@@ -53,12 +26,20 @@ public class AlertaInventario {
         this.id = id;
     }
 
-    public Ingrediente getIngrediente() {
-        return ingrediente;
+    public Long getIngredienteId() {
+        return ingredienteId;
     }
 
-    public void setIngrediente(Ingrediente ingrediente) {
-        this.ingrediente = ingrediente;
+    public void setIngredienteId(Long ingredienteId) {
+        this.ingredienteId = ingredienteId;
+    }
+
+    public Long getProductoId() {
+        return productoId;
+    }
+
+    public void setProductoId(Long productoId) {
+        this.productoId = productoId;
     }
 
     public BigDecimal getStockActual() {
@@ -77,12 +58,20 @@ public class AlertaInventario {
         this.stockMinimo = stockMinimo;
     }
 
-    public Boolean getIsResolved() {
-        return isResolved;
+    public BigDecimal getCantidadSugerida() {
+        return cantidadSugerida;
     }
 
-    public void setIsResolved(Boolean resolved) {
-        isResolved = resolved;
+    public void setCantidadSugerida(BigDecimal cantidadSugerida) {
+        this.cantidadSugerida = cantidadSugerida;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -101,11 +90,11 @@ public class AlertaInventario {
         this.resolvedAt = resolvedAt;
     }
 
-    public BigDecimal getCantidadSugerida() {
-        return cantidadSugerida;
+    public boolean estaPendiente() {
+        return "PENDIENTE".equalsIgnoreCase(estado);
     }
 
-    public void setCantidadSugerida(BigDecimal cantidadSugerida) {
-        this.cantidadSugerida = cantidadSugerida;
+    public boolean estaResuelta() {
+        return "RESUELTA".equalsIgnoreCase(estado);
     }
 }

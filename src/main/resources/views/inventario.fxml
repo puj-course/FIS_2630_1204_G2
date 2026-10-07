@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="controller.InventarioController"
+            style="-fx-background-color: #f5f6f8;">
+
+    <top>
+        <VBox spacing="8">
+            <padding>
+                <Insets top="24" right="28" bottom="16" left="28"/>
+            </padding>
+
+            <Label text="Inventario"
+                   style="-fx-font-size: 26px; -fx-font-weight: bold;"/>
+
+            <Label text="Consulta el estado actual de los ingredientes y detecta rápidamente los niveles de stock bajo."
+                   wrapText="true"
+                   style="-fx-font-size: 13px; -fx-text-fill: #666666;"/>
+
+            <HBox spacing="10"
+                  alignment="CENTER_LEFT">
+
+                <TextField fx:id="campoBusqueda"
+                           promptText="Buscar ingrediente..."
+                           prefWidth="300"
+                           HBox.hgrow="NEVER"/>
+
+                <Button fx:id="botonBuscar"
+                        text="Buscar"
+                        onAction="#buscar"/>
+
+                <Button fx:id="botonLimpiar"
+                        text="Limpiar"
+                        onAction="#limpiarBusqueda"/>
+
+                <Button fx:id="botonActualizar"
+                        text="Actualizar"
+                        onAction="#actualizar"/>
+
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <VBox spacing="14">
+            <padding>
+                <Insets top="0" right="28" bottom="20" left="28"/>
+            </padding>
+
+            <HBox spacing="12">
+
+                <Label fx:id="etiquetaTotal"
+                       text="Ingredientes: 0"
+                       style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+
+                <Label fx:id="etiquetaStockBajo"
+                       text="Stock bajo: 0"
+                       style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+
+            </HBox>
+
+            <TableView fx:id="tablaIngredientes"
+                       VBox.vgrow="ALWAYS">
+
+                <columns>
+
+                    <TableColumn fx:id="columnaId"
+                                 text="ID"
+                                 prefWidth="70"/>
+
+                    <TableColumn fx:id="columnaNombre"
+                                 text="Ingrediente"
+                                 prefWidth="250"/>
+
+                    <TableColumn fx:id="columnaStock"
+                                 text="Stock actual"
+                                 prefWidth="150"/>
+
+                    <TableColumn fx:id="columnaStockMinimo"
+                                 text="Stock mínimo"
+                                 prefWidth="150"/>
+
+                    <TableColumn fx:id="columnaEstado"
+                                 text="Estado"
+                                 prefWidth="130"/>
+
+                    <TableColumn fx:id="columnaAlerta"
+                                 text="Alerta"
+                                 prefWidth="150"/>
+
+                </columns>
+
+            </TableView>
+
+            <Label fx:id="etiquetaEstado"
+                   text="Cargando inventario..."
+                   wrapText="true"
+                   style="-fx-font-size: 12px; -fx-text-fill: #666666;"/>
+
+        </VBox>
+    </center>
+
+</BorderPane>

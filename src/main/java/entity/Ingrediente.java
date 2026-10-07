@@ -1,55 +1,38 @@
-package com.restaurante.entity;
+package entity;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
 
-@Entity
-@Table(
-        name = "ingrediente",
-        indexes = {
-                @Index(
-                        name = "idx_ingrediente_stock",
-                        columnList = "stock_actual, stock_minimo"
-                )
-        }
-)
 public class Ingrediente {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false)
+    private long ingredienteId;
     private String nombre;
-
-    @Column(
-            name = "stock_actual",
-            precision = 12,
-            scale = 4,
-            nullable = false
-    )
     private BigDecimal stockActual;
-
-    @Column(
-            name = "stock_minimo",
-            precision = 12,
-            scale = 4,
-            nullable = false
-    )
     private BigDecimal stockMinimo;
-
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
+    private String estado;
 
     public Ingrediente() {
     }
 
-    public Long getId() {
-        return id;
+    public Ingrediente(
+            long ingredienteId,
+            String nombre,
+            BigDecimal stockActual,
+            BigDecimal stockMinimo,
+            String estado
+    ) {
+        this.ingredienteId = ingredienteId;
+        this.nombre = nombre;
+        this.stockActual = stockActual;
+        this.stockMinimo = stockMinimo;
+        this.estado = estado;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public long getIngredienteId() {
+        return ingredienteId;
+    }
+
+    public void setIngredienteId(long ingredienteId) {
+        this.ingredienteId = ingredienteId;
     }
 
     public String getNombre() {
@@ -76,11 +59,28 @@ public class Ingrediente {
         this.stockMinimo = stockMinimo;
     }
 
-    public Boolean getIsActive() {
-        return isActive;
+    public String getEstado() {
+        return estado;
     }
 
-    public void setIsActive(Boolean active) {
-        isActive = active;
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public boolean estaActivo() {
+        return "ACTIVO".equalsIgnoreCase(estado);
+    }
+
+    public boolean tieneStockBajo() {
+        if (stockActual == null || stockMinimo == null) {
+            return false;
+        }
+
+        return stockActual.compareTo(stockMinimo) <= 0;
+    }
+
+    @Override
+    public String toString() {
+        return nombre;
     }
 }
