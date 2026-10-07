@@ -18,8 +18,8 @@ CREATE TABLE IF NOT EXISTS categorias (
 );
 
 CREATE INDEX IF NOT EXISTS ix_categorias_orden
-
     ON categorias (orden_visual, nombre);
+
 -- Convierte en filas las categorias que hoy son texto en productos.
 -- En SQL dinamico para que el script se pueda volver a ejecutar despues de que
 -- la columna de texto haya sido eliminada.
@@ -41,7 +41,6 @@ DO $$
 $$;
 
 -- Destino de los productos que quedaron sin categoria.
-
 INSERT INTO categorias (nombre, descripcion, orden_visual)
 VALUES ('Otros', 'Productos sin categoria asignada', 999)
 ON CONFLICT (nombre) DO NOTHING;
