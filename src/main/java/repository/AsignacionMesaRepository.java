@@ -1,6 +1,6 @@
 package repository;
 
-import database.ConexionBD;
+import ConexionBD.ConexionBD;
 import entity.AsignacionMesa;
 
 import java.sql.*;
@@ -11,7 +11,7 @@ public class AsignacionMesaRepository {
     public Optional<AsignacionMesa> findActivaByMesaId(long mesaId) throws SQLException {
         String sql = "SELECT id, mesa_id, usuario_id, fecha_asignacion, is_active " +
                 "FROM asignacion_mesa WHERE mesa_id = ? AND is_active = TRUE LIMIT 1";
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, mesaId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -27,7 +27,7 @@ public class AsignacionMesaRepository {
         if (a.getId() == null) {
             String sql = "INSERT INTO asignacion_mesa (mesa_id, usuario_id, fecha_asignacion, is_active) " +
                     "VALUES (?, ?, ?, ?) RETURNING id";
-            try (Connection conn = ConexionBD.conectar();
+            try (Connection conn = ConexionBD.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setLong(1, a.getMesaId());
                 stmt.setLong(2, a.getUsuarioId());
@@ -42,7 +42,7 @@ public class AsignacionMesaRepository {
             }
         } else {
             String sql = "UPDATE asignacion_mesa SET mesa_id = ?, usuario_id = ?, is_active = ? WHERE id = ?";
-            try (Connection conn = ConexionBD.conectar();
+            try (Connection conn = ConexionBD.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setLong(1, a.getMesaId());
                 stmt.setLong(2, a.getUsuarioId());

@@ -1,7 +1,7 @@
 package repository;
 
-import database.ConexionBD;
-import entity.EstadoPedido;
+import ConexionBD.ConexionBD;
+import enums.EstadoPedido;
 import entity.Pedido;
 import org.postgresql.util.PGobject;
 
@@ -17,7 +17,7 @@ public class PedidoRepository {
 
     public Optional<Pedido> findById(long id) throws SQLException {
         String sql = "SELECT pedido_id, numero_pedido, mesa_id, usuario_id, " + "productos, estado, fecha_pedido, subtotal, total, " + "inventario_descontado " + "FROM pedidos " + "WHERE pedido_id = ?";
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -30,7 +30,7 @@ public class PedidoRepository {
     }
     public boolean existsByMesaIdAndEstadoNot(long mesaId, EstadoPedido estadoExcluido) throws SQLException {
         String sql = "SELECT 1 FROM pedidos " + "WHERE mesa_id = ? " + "AND estado <> ? " + "LIMIT 1";
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, mesaId);
             stmt.setString(2, estadoExcluido.name());
@@ -47,7 +47,7 @@ public class PedidoRepository {
                             "inventario_descontado) " +
                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) " +
                             "RETURNING pedido_id";
-            try (Connection conn = ConexionBD.conectar();
+            try (Connection conn = ConexionBD.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, p.getNumeroPedido());
                 stmt.setLong(2, p.getMesaId());
@@ -80,7 +80,7 @@ public class PedidoRepository {
                             "total = ?, " +
                             "inventario_descontado = ? " +
                             "WHERE pedido_id = ?";
-            try (Connection conn = ConexionBD.conectar();
+            try (Connection conn = ConexionBD.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(
                         1,
@@ -183,7 +183,7 @@ public class PedidoRepository {
                         "ORDER BY pedido_id DESC " +
                         "LIMIT 1";
 
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt =
                      conn.prepareStatement(sql)) {
 

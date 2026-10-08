@@ -1,6 +1,6 @@
-package com.restaurante.repository;
+package repository;
 
-import com.restaurante.entity.Ingrediente;
+import entity.Ingrediente;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;

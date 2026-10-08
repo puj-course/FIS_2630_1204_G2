@@ -1,6 +1,6 @@
-package com.restaurante.repository;
+package repository;
 
-import com.restaurante.entity.AlertaInventario;
+import entity.AlertaInventario;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

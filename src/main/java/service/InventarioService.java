@@ -1,6 +1,6 @@
 package service;
 
-import database.ConexionBD;
+import ConexionBD.ConexionBD;
 import exceptions.StockInsuficienteException;
 import repository.InventarioRepository;
 
@@ -39,7 +39,7 @@ public class InventarioService {
             return;
         }
 
-        try (Connection conn = ConexionBD.conectar()) {
+        try (Connection conn = ConexionBD.getConnection()) {
 
             conn.setAutoCommit(false);
 
@@ -174,7 +174,7 @@ public class InventarioService {
             long usuarioId
     ) throws SQLException {
 
-        try (Connection conn = ConexionBD.conectar()) {
+        try (Connection conn = ConexionBD.getConnection()) {
 
             conn.setAutoCommit(false);
 
@@ -306,7 +306,7 @@ public class InventarioService {
             return consumoTotal;
         }
 
-        try (Connection conn = ConexionBD.conectar()) {
+        try (Connection conn = ConexionBD.getConnection()) {
 
             for (Map.Entry<Long, Integer> producto :
                     productos.entrySet()) {

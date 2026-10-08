@@ -1,6 +1,6 @@
 package dao;
 
-import database.ConexionBD;
+import ConexionBD.ConexionBD;
 import entity.Producto;
 
 import java.sql.*;
@@ -24,7 +24,7 @@ public class ProductoDAO {
                 """;
 
         Map<String, List<Producto>> menu = new LinkedHashMap<>();
-        try (Connection cn = ConexionBD.conectar();
+        try (Connection cn = ConexionBD.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
