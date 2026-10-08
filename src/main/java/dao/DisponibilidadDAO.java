@@ -1,6 +1,6 @@
 package dao;
 
-import database.ConexionBD;
+import ConexionBD.ConexionBD;
 import dto.ProductoDisponibilidad;
 
 import java.sql.*;
@@ -12,7 +12,7 @@ public class DisponibilidadDAO {
 
     public int recalcularTodos() throws SQLException {
         String sql = "SELECT fn_recalcular_estados_productos()";
-        try (Connection cn = ConexionBD.conectar();
+        try (Connection cn = ConexionBD.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             return rs.next() ? rs.getInt(1) : 0;
@@ -21,7 +21,7 @@ public class DisponibilidadDAO {
 
     public String recalcularProducto(long productoId) throws SQLException {
         String sql = "SELECT fn_recalcular_estado_producto(?)";
-        try (Connection cn = ConexionBD.conectar();
+        try (Connection cn = ConexionBD.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setLong(1, productoId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -37,7 +37,7 @@ public class DisponibilidadDAO {
     public boolean estaDisponible(long productoId, int cantidad) throws SQLException {
         recalcularProducto(productoId);
         String sql = "SELECT fn_producto_disponible_cantidad(?, ?)";
-        try (Connection cn = ConexionBD.conectar();
+        try (Connection cn = ConexionBD.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setLong(1, productoId);
             ps.setInt(2, cantidad);
@@ -75,7 +75,7 @@ public class DisponibilidadDAO {
 
         String sql = "SELECT faltante, requerido, disponible FROM fn_pedido_faltantes(?::jsonb)";
 
-        try (Connection cn = ConexionBD.conectar();
+        try (Connection cn = ConexionBD.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setString(1, json.toString());
 
@@ -108,7 +108,7 @@ public class DisponibilidadDAO {
                 """;
 
         List<ProductoDisponibilidad> resultado = new ArrayList<>();
-        try (Connection cn = ConexionBD.conectar();
+        try (Connection cn = ConexionBD.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {

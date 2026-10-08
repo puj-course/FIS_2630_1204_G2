@@ -1,6 +1,6 @@
-package com.restaurante.repository;
+package repository;
 
-import com.restaurante.entity.PlatoIngrediente;
+import entity.PlatoIngrediente;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

@@ -1,5 +1,5 @@
 package service;
-import database.ConexionBD;
+import ConexionBD.ConexionBD;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import entity.EntradaInventario;
@@ -22,7 +22,7 @@ public class EntradaInventarioService {
     private void actualizarStock(Long ingredienteId, double cantidad) throws Exception {
         String sql = "UPDATE productos SET stock_actual = stock_actual + ? WHERE producto_id = ?";
 
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setDouble(1, cantidad);

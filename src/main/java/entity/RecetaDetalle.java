@@ -1,4 +1,4 @@
-package modelo;
+package entity;
 
 public class RecetaDetalle {
 

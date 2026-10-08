@@ -1,4 +1,4 @@
-package com.restaurante.enums;
+package enums;
 
 public enum EstadoMesa {
     DISPONIBLE,

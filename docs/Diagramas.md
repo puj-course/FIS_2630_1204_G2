@@ -29,7 +29,7 @@ El Mesero acciona el "botón cancelar pedido" en MenuMeseroVista, y PedidoServic
 
 ![Diagrama de Clases de Registrar Plato](imagenes/DiagramaClases_RegistrarPlato.JPG)
 
-Plato es la entidad central, con código, nombre, descripción, categoría, precio de aventa, costo, stock actual, mínimo y máximo, y estado, además de sus getters y setters. PlatoRepository la usa mediante guardar(plato) y obtiene la conexión a PostgreSQL desde ConexionDB.obtenerConexion(), ubicada en el paquete conf.
+Plato es la entidad central, con código, nombre, descripción, categoría, precio de aventa, costo, stock actual, mínimo y máximo, y estado, además de sus getters y setters. PlatoRepository la usa mediante guardar(plato) y obtiene la conexión a PostgreSQL desde ConexionBD.obtenerConexion(), ubicada en el paquete conf.
 
 ### Diagrama de Clases - Alerta Invetario
 
