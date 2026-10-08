@@ -42,65 +42,63 @@ creadas en `../migrations/`.
 
 ## Orden de ejecución
 
-El orden importa: hay llaves foráneas entre las tablas.
+El orden importa: hay llaves foráneas entre las tablas. **La lista `TABLAS` de
+`scripts/setup.sh` es la fuente de ese orden**; lo de abajo es la misma lista
+escrita para leer.
 
 ```
- 1. roles.ddl, tipos_documento.ddl, zonas.ddl, estados_mesa.ddl   ← catálogos, sin dependencias
- 2. unidades_medida.ddl
- 3. categorias.ddl
- 4. clientes.ddl                        ← depende de tipos_documento
- 5. usuarios.ddl                        ← depende de roles y tipos_documento
- 6. mesas.ddl                           ← depende de zonas y estados_mesa
- 7. ingredientes.ddl                    ← depende de unidades_medida
- 8. productos.ddl                       ← depende de categorias
- 9. precios_producto.ddl                ← depende de productos
-10. pedidos.ddl                         ← depende de clientes, mesas y usuarios
-11. detalle_pedido.ddl                  ← depende de pedidos y productos
-12. movimientos_inventario.ddl          ← depende de productos, ingredientes y usuarios
-13. alerta_inventario.ddl               ← depende de ingredientes
-14. pagos.ddl                           ← depende de pedidos y usuarios
-15. historial_estado_mesa               ← depende de mesas y estados_mesa
-16. ../functions/hu28_disponibilidad.sql
+ 1. roles, tipos_documento, zonas, estados_mesa, unidades_medida, categorias  ← sin dependencias
+ 2. usuarios                   ← roles, tipos_documento
+ 3. clientes                   ← tipos_documento, usuarios
+ 4. mesas                      ← zonas, estados_mesa
+ 5. ingredientes               ← unidades_medida
+ 6. productos                  ← categorias
+ 7. precios_producto           ← productos
+ 8. pedidos                    ← clientes, mesas, usuarios
+ 9. detalle_pedido             ← pedidos, productos
+10. movimientos_inventario     ← productos, ingredientes, usuarios
+11. alerta_inventario          ← ingredientes, productos
+12. pagos                      ← pedidos, usuarios
+13. historial_estado_mesa      ← mesas, estados_mesa
+14. nota_mesa                  ← mesas
+15. reservas                   ← mesas
+16. adicional
+17. asignacion_mesa            ← mesas, usuarios
+18. detalle_pedido_adicional   ← detalle_pedido, adicional
+19. plato_insumo               ← productos, ingredientes
+20. regla_descuento
+21. ../functions/hu28_disponibilidad.sql
+22. ../migrations/*.sql en orden numérico
 ```
 
 ---
 
 ## Ejecución
 
+No se corre a mano. Hay un script que hace todo esto en el orden correcto:
+
 ```bash
-createdb gastroflow
-
-# 1. tablas, en el orden de arriba
-psql -d gastroflow -f roles.ddl
-psql -d gastroflow -f tipos_documento.ddl
-psql -d gastroflow -f zonas.ddl
-psql -d gastroflow -f estados_mesa.ddl
-psql -d gastroflow -f unidades_medida.ddl
-psql -d gastroflow -f categorias.ddl
-psql -d gastroflow -f clientes.ddl
-psql -d gastroflow -f usuarios.ddl
-psql -d gastroflow -f mesas.ddl
-psql -d gastroflow -f ingredientes.ddl
-psql -d gastroflow -f productos.ddl
-psql -d gastroflow -f precios_producto.ddl
-psql -d gastroflow -f pedidos.ddl
-psql -d gastroflow -f detalle_pedido.ddl
-psql -d gastroflow -f movimientos_inventario.ddl
-psql -d gastroflow -f alerta_inventario.ddl
-psql -d gastroflow -f pagos.ddl
-psql -d gastroflow -f historial_estado_mesa.ddl
-
-# 3. funciones de HU-28
-psql -d gastroflow -f ../functions/hu28_disponibilidad.sql
+./scripts/setup.sh                       # base "gastroflow", solo estructura
+./scripts/setup.sh --con-datos-prueba    # además siembra catálogos y datos de ejemplo
+./scripts/setup.sh --recrear             # borra la base si existe y la vuelve a crear
+./scripts/setup.sh --db otra_base        # otro nombre de base
+./scripts/setup.sh --help
 ```
 
-Sobre una base **ya creada**, aplicar en cambio los scripts de `../migrations/` en
-orden numérico. Todos son idempotentes: correrlos dos veces no duplica datos ni
-falla. Los dos últimos tocan `mesas`: `005` agrega `cantidad_comensales` (HU-60) y
-`006` vuelve `codigo_mesa` obligatorio y único, que es el identificador que el mapa
-de salón le muestra al mesero (HU-047).
+En Windows se corre desde Git Bash. La conexión sale de las variables de entorno
+de PostgreSQL (`PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`), las mismas que usa
+`psql`; si no están definidas asume `localhost:5432` con el usuario `postgres`.
 
-Para verificar:
+El script se detiene en el primer error con el archivo y el mensaje de
+PostgreSQL. Si termina, verifica que estén las 25 tablas y las funciones `fn_*`
+antes de darse por bueno.
+
+Se puede correr dos veces. Sobre una base que ya existe no borra nada: salta las
+tablas que ya están, vuelve a crear solo las que falten, re-aplica las funciones
+(declaradas con `CREATE OR REPLACE`) y las migraciones, que son idempotentes.
+Los conteos de filas quedan iguales. Para empezar de cero está `--recrear`.
+
+Para revisar a mano:
 
 ```bash
 psql -d gastroflow -c '\dt'
@@ -108,6 +106,7 @@ psql -d gastroflow -c '\df fn_*'
 ```
 
 ---
+
 
 ## Funciones almacenadas
 
