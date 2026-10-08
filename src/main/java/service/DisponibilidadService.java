@@ -22,7 +22,9 @@ public class DisponibilidadService {
     }
 
     private int obtenerStockInsumo(int insumoId) throws SQLException {
-        String sql = "SELECT stock_actual FROM insumo WHERE id = ?";
+        // La tabla se llama "ingredientes" y su llave es "ingrediente_id".
+        // Antes decia "FROM insumo WHERE id = ?", una tabla que no existe (HU-115).
+        String sql = "SELECT stock_actual FROM ingredientes WHERE ingrediente_id = ?";
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, insumoId);
@@ -34,14 +36,22 @@ public class DisponibilidadService {
         }
     }
 
-    // Actualiza el campo "disponible" del plato en la base de datos
+    // Actualiza la disponibilidad del plato en la base de datos.
     public void actualizarDisponibilidad(int platoId) throws SQLException {
         boolean disponible = tieneInsumosDisponibles(platoId);
 
-        String sql = "UPDATE producto_menu SET disponible = ? WHERE id = ?";
+        // La tabla se llama "productos" y su llave es "producto_id". No tiene una
+        // columna booleana "disponible": guarda un "estado" de tres valores
+        // (DISPONIBLE, AGOTADO, INACTIVO). Antes decia
+        // "UPDATE producto_menu SET disponible = ? WHERE id = ?" (HU-115).
+        //
+        // El filtro por estado protege a los productos INACTIVO: un plato que el
+        // administrador saco del menu no vuelve solo porque haya insumos.
+        String sql = "UPDATE productos SET estado = ? "
+                   + "WHERE producto_id = ? AND estado <> 'INACTIVO'";
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setBoolean(1, disponible);
+            stmt.setString(1, disponible ? "DISPONIBLE" : "AGOTADO");
             stmt.setInt(2, platoId);
             stmt.executeUpdate();
         }
