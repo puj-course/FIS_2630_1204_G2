@@ -30,70 +30,75 @@ creadas en `../migrations/`.
 | `detalle_pedido.ddl` | `detalle_pedido` | HU-021 (#47) | Desglose de ítems, cantidades y precios de cada pedido. |
 | `alerta_inventario.ddl` | `alerta_inventario` | HU-023 (#48) | Avisos de insumos por debajo del stock mínimo. |
 | `historial_estado_mesa.ddl`    | `historial_estado_mesa`    | HU-059                                 | Historial de cambios de estado de cada mesa (estado anterior/nuevo y motivo).         |
+| `nota_mesa.ddl` | `nota_mesa` | HU-058 | Notas que el mesero deja sobre una mesa. |
+| `reservas.ddl` | `reservas` | HU-055 | Reservas de mesa, con fecha de cancelación para auditoría. |
+| `adicional.ddl` | `adicional` | HU-115 | Adicionales que se suman a una línea del pedido (extra de queso, porción aparte). |
+| `asignacion_mesa.ddl` | `asignacion_mesa` | HU-115 | Qué mesero atiende cada mesa. Una asignación activa por mesa; las anteriores quedan como historial. |
+| `detalle_pedido_adicional.ddl` | `detalle_pedido_adicional` | HU-115 | Adicionales aplicados a una línea concreta del pedido. |
+| `plato_insumo.ddl` | `plato_insumo` | HU-115 | Receta normalizada: cuánto insumo consume cada plato. Se solapa con `productos.ingredientes`. |
+| `regla_descuento.ddl` | `regla_descuento` | HU-115 | Reglas de descuento aplicables al cobrar, por porcentaje o monto fijo. |
 
 ---
 
 ## Orden de ejecución
 
-El orden importa: hay llaves foráneas entre las tablas.
+El orden importa: hay llaves foráneas entre las tablas. **La lista `TABLAS` de
+`scripts/setup.sh` es la fuente de ese orden**; lo de abajo es la misma lista
+escrita para leer.
 
 ```
- 1. roles.ddl, tipos_documento.ddl, zonas.ddl, estados_mesa.ddl   ← catálogos, sin dependencias
- 2. unidades_medida.ddl
- 3. categorias.ddl
- 4. clientes.ddl                        ← depende de tipos_documento
- 5. usuarios.ddl                        ← depende de roles y tipos_documento
- 6. mesas.ddl                           ← depende de zonas y estados_mesa
- 7. ingredientes.ddl                    ← depende de unidades_medida
- 8. productos.ddl                       ← depende de categorias
- 9. precios_producto.ddl                ← depende de productos
-10. pedidos.ddl                         ← depende de clientes, mesas y usuarios
-11. detalle_pedido.ddl                  ← depende de pedidos y productos
-12. movimientos_inventario.ddl          ← depende de productos, ingredientes y usuarios
-13. alerta_inventario.ddl               ← depende de ingredientes
-14. pagos.ddl                           ← depende de pedidos y usuarios
-15. historial_estado_mesa               ← depende de mesas y estados_mesa
-16. ../functions/hu28_disponibilidad.sql
+ 1. roles, tipos_documento, zonas, estados_mesa, unidades_medida, categorias  ← sin dependencias
+ 2. usuarios                   ← roles, tipos_documento
+ 3. clientes                   ← tipos_documento, usuarios
+ 4. mesas                      ← zonas, estados_mesa
+ 5. ingredientes               ← unidades_medida
+ 6. productos                  ← categorias
+ 7. precios_producto           ← productos
+ 8. pedidos                    ← clientes, mesas, usuarios
+ 9. detalle_pedido             ← pedidos, productos
+10. movimientos_inventario     ← productos, ingredientes, usuarios
+11. alerta_inventario          ← ingredientes, productos
+12. pagos                      ← pedidos, usuarios
+13. historial_estado_mesa      ← mesas, estados_mesa
+14. nota_mesa                  ← mesas
+15. reservas                   ← mesas
+16. adicional
+17. asignacion_mesa            ← mesas, usuarios
+18. detalle_pedido_adicional   ← detalle_pedido, adicional
+19. plato_insumo               ← productos, ingredientes
+20. regla_descuento
+21. ../functions/hu28_disponibilidad.sql
+22. ../migrations/*.sql en orden numérico
 ```
 
 ---
 
 ## Ejecución
 
+No se corre a mano. Hay un script que hace todo esto en el orden correcto:
+
 ```bash
-createdb gastroflow
-
-# 1. tablas, en el orden de arriba
-psql -d gastroflow -f roles.ddl
-psql -d gastroflow -f tipos_documento.ddl
-psql -d gastroflow -f zonas.ddl
-psql -d gastroflow -f estados_mesa.ddl
-psql -d gastroflow -f unidades_medida.ddl
-psql -d gastroflow -f categorias.ddl
-psql -d gastroflow -f clientes.ddl
-psql -d gastroflow -f usuarios.ddl
-psql -d gastroflow -f mesas.ddl
-psql -d gastroflow -f ingredientes.ddl
-psql -d gastroflow -f productos.ddl
-psql -d gastroflow -f precios_producto.ddl
-psql -d gastroflow -f pedidos.ddl
-psql -d gastroflow -f detalle_pedido.ddl
-psql -d gastroflow -f movimientos_inventario.ddl
-psql -d gastroflow -f alerta_inventario.ddl
-psql -d gastroflow -f pagos.ddl
-psql -d gastroflow -f historial_estado_mesa.ddl
-
-# 3. funciones de HU-28
-psql -d gastroflow -f ../functions/hu28_disponibilidad.sql
+./scripts/setup.sh                       # base "gastroflow", solo estructura
+./scripts/setup.sh --con-datos-prueba    # además siembra catálogos y datos de ejemplo
+./scripts/setup.sh --recrear             # borra la base si existe y la vuelve a crear
+./scripts/setup.sh --db otra_base        # otro nombre de base
+./scripts/setup.sh --help
 ```
 
-Sobre una base **ya creada**, aplicar en cambio los scripts de `../migrations/` en
-orden numérico. Todos son idempotentes: correrlos dos veces no duplica datos ni
-falla. Los dos últimos tocan `mesas`: `005` agrega `cantidad_comensales` (HU-60) y
-`006` vuelve `codigo_mesa` obligatorio y único, que es el identificador que el mapa
-de salón le muestra al mesero (HU-047).
+En Windows se corre desde Git Bash. La conexión sale de las variables de entorno
+de PostgreSQL (`PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`), las mismas que usa
+`psql`; si no están definidas asume `localhost:5432` con el usuario `postgres`.
 
-Para verificar:
+El script se detiene en el primer error con el archivo y el mensaje de
+PostgreSQL. Si termina, verifica que estén las 25 tablas y las funciones `fn_*`
+antes de darse por bueno.
+
+Se puede correr dos veces. Sobre una base que ya existe no borra nada: salta las
+tablas que ya están, vuelve a crear solo las que falten, re-aplica las funciones
+(declaradas con `CREATE OR REPLACE`) y las migraciones, que son idempotentes.
+Los conteos de filas quedan iguales. Para empezar de cero está `--recrear`.
+
+Para revisar a mano:
 
 ```bash
 psql -d gastroflow -c '\dt'
@@ -101,6 +106,7 @@ psql -d gastroflow -c '\df fn_*'
 ```
 
 ---
+
 
 ## Funciones almacenadas
 
@@ -145,10 +151,44 @@ evalúa por su propio `productos.stock_actual`.
 
 ---
 
+## Choques de nombre, resueltos en HU-115
+
+Tres consultas apuntaban a tablas que no existen, mientras la tabla equivalente
+sí existía con otro nombre. No se crearon tablas nuevas para ellas —eso habría
+dejado la base con dos tablas de clientes y dos de productos—: se corrigió el SQL
+del lado Java.
+
+| Lo que decía el código | Lo que dice ahora | Archivo |
+|---|---|---|
+| `FROM cliente` | `INTO clientes`, con tipo y número de documento y apellido | `repository/ClienteRepository.java` |
+| `FROM insumo WHERE id` | `FROM ingredientes WHERE ingrediente_id` | `service/DisponibilidadService.java` |
+| `UPDATE producto_menu SET disponible` | `UPDATE productos SET estado` | `service/DisponibilidadService.java` |
+
+Dos no eran un cambio de nombre:
+
+- `clientes` exige `id_tipo_documento`, `numero_documento` y `apellido`, los tres
+  obligatorios. El `INSERT` anterior, con solo nombre, teléfono y correo, habría
+  fallado siempre. Se añadió `apellido` a `entity/Cliente` y el tipo de documento
+  se resuelve por su código (`CC`, `CE`…) en vez de por un id fijo.
+- `productos` no tiene una columna booleana `disponible`: guarda un `estado` de
+  tres valores. La actualización ahora escribe `DISPONIBLE` o `AGOTADO`, y deja
+  en paz los productos `INACTIVO`, que el administrador sacó del menú a propósito.
+
+Las pruebas están en `src/test/java/repository/ChoquesNombreTablaTest.java`.
+
+`receta_ingrediente` salió de la lista por otra razón: el único archivo que la
+consultaba, `dao/RecetaDAO.java`, se eliminó en el PR #253 al centralizar la
+conexión. El `pom.xml` todavía lo excluye del build, junto con
+`modelo/Receta.java` y `modelo/RecetaDetalle.java`, que tampoco existen ya.
+
+---
+
 ## Pendientes conocidos
 
-- `mesas.ddl` define el índice `ix_mesas_zona_estado` sobre `zona_id` y `estado_mesa_id`,
-  columnas que no existen: se llaman `id_zona` e `id_estado_mesa`. El archivo falla al correrlo.
+- `service/DisponibilidadService` y las funciones `fn_*` de HU-28 calculan lo
+  mismo por caminos distintos: el primero lee la receta de `plato_insumo`, las
+  segundas de `productos.ingredientes` (JSONB). Son dos fuentes para el mismo
+  dato y dos implementaciones de la misma regla. Hay que decidir cuál queda.
 - Unificar las dos convenciones de restricciones: este README usa `uq_`, y las tablas que
   llegaron del módulo de usuarios y mesas usan `uk_`.
 - Definir trigger para que `fecha_actualizacion` se actualice sola en cada `UPDATE`.
@@ -160,3 +200,10 @@ evalúa por su propio `productos.stock_actual`.
   contra `ingredientes` ni `productos`.
 - Unificar convención de nombres: `movimientos_inventario` usa `id_movimiento` e
   `INTEGER GENERATED ALWAYS`; el resto usa `<tabla>_id` y `BIGINT GENERATED BY DEFAULT`.
+- `../functions/db-hu082-login.sql` inserta en una tabla `usuario` que creaba
+  Hibernate cuando el proyecto iba a usar Spring. Con JDBC esa tabla no existe, así
+  que el archivo falla siempre y `setup.sh` lo salta. Los usuarios de acceso los
+  siembra la migración `008`. Queda por decidir si se borra.
+- Las tablas de HU-115 usan `id` como llave primaria, igual que `detalle_pedido`,
+  porque es el nombre que esperan los repositorios que las consultan. El resto del
+  esquema usa `<tabla>_id`. Son dos convenciones conviviendo.
