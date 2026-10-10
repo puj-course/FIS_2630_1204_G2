@@ -65,5 +65,12 @@
               prefHeight="30.0"
               prefWidth="145.0"
               text="Abrir pedido" />
+
+      <Button alignment="CENTER" layoutX="177.0" layoutY="565.0"
+              mnemonicParsing="false"
+              onAction="#cambiarEstadoMesaSeleccionada"
+              prefHeight="30.0"
+              prefWidth="145.0"
+              text="Cambiar estado" />
    </children>
 </Pane>

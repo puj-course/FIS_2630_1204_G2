@@ -1,104 +1,44 @@
 package entity;
 
-import com.restaurante.enums.TipoMovimiento;
-import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(
-        name = "movimiento_inventario",
-        indexes = {
-                @Index(
-                        name = "idx_kardex_ingrediente",
-                        columnList = "ingrediente_id"
-                ),
-                @Index(
-                        name = "idx_kardex_pedido",
-                        columnList = "pedido_id"
-                )
-        }
-)
 public class MovimientoInventario {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "ingrediente_id", nullable = false)
-    private Ingrediente ingrediente;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pedido_id")
-    private Pedido pedido;
-
-    @Column(
-            nullable = false,
-            precision = 12,
-            scale = 4
-    )
-    private BigDecimal cantidad;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_movimiento", nullable = false)
+    private Long productoId;      // exactamente uno de productoId / ingredienteId debe venir informado
+    private Long ingredienteId;
     private TipoMovimiento tipoMovimiento;
-
-    @Column(nullable = false)
-    private LocalDateTime fecha;
-
-    @Column(name = "created_by")
-    private String createdBy;
+    private BigDecimal cantidad;
+    private String motivo;
+    private Long usuarioId;
+    private LocalDateTime fechaMovimiento;
 
     public MovimientoInventario() {
-        this.fecha = LocalDateTime.now();
+        this.fechaMovimiento = LocalDateTime.now();
     }
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public Ingrediente getIngrediente() {
-        return ingrediente;
-    }
+    public Long getProductoId() { return productoId; }
+    public void setProductoId(Long productoId) { this.productoId = productoId; }
 
-    public void setIngrediente(Ingrediente ingrediente) {
-        this.ingrediente = ingrediente;
-    }
+    public Long getIngredienteId() { return ingredienteId; }
+    public void setIngredienteId(Long ingredienteId) { this.ingredienteId = ingredienteId; }
 
-    public Pedido getPedido() {
-        return pedido;
-    }
+    public TipoMovimiento getTipoMovimiento() { return tipoMovimiento; }
+    public void setTipoMovimiento(TipoMovimiento tipoMovimiento) { this.tipoMovimiento = tipoMovimiento; }
 
-    public void setPedido(Pedido pedido) {
-        this.pedido = pedido;
-    }
+    public BigDecimal getCantidad() { return cantidad; }
+    public void setCantidad(BigDecimal cantidad) { this.cantidad = cantidad; }
 
-    public BigDecimal getCantidad() {
-        return cantidad;
-    }
+    public String getMotivo() { return motivo; }
+    public void setMotivo(String motivo) { this.motivo = motivo; }
 
-    public void setCantidad(BigDecimal cantidad) {
-        this.cantidad = cantidad;
-    }
+    public Long getUsuarioId() { return usuarioId; }
+    public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
 
-    public TipoMovimiento getTipoMovimiento() {
-        return tipoMovimiento;
-    }
-
-    public void setTipoMovimiento(TipoMovimiento tipoMovimiento) {
-        this.tipoMovimiento = tipoMovimiento;
-    }
-
-    public LocalDateTime getFecha() {
-        return fecha;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
+    public LocalDateTime getFechaMovimiento() { return fechaMovimiento; }
+    public void setFechaMovimiento(LocalDateTime fechaMovimiento) { this.fechaMovimiento = fechaMovimiento; }
 }

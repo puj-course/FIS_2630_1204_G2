@@ -1,86 +1,76 @@
 package entity;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-@Entity
-@Table(
-        name = "ingrediente",
-        indexes = {
-                @Index(
-                        name = "idx_ingrediente_stock",
-                        columnList = "stock_actual, stock_minimo"
-                )
-        }
-)
 public class Ingrediente {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public static final String ESTADO_ACTIVO = "ACTIVO";
+    public static final String ESTADO_INACTIVO = "INACTIVO";
+
     private Long id;
-
-    @Column(nullable = false)
     private String nombre;
+    private String descripcion;
+    private Long unidadMedidaId;
+    private BigDecimal costoUnitario = BigDecimal.ZERO;
+    private BigDecimal stockActual = BigDecimal.ZERO;
+    private BigDecimal stockMinimo = BigDecimal.ZERO;
+    private BigDecimal stockMaximo;
+    private String proveedor;
+    private String lote;
+    private LocalDate fechaVencimiento;
+    private String categoria;
+    private String estado = ESTADO_ACTIVO;
+    private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaActualizacion;
 
-    @Column(
-            name = "stock_actual",
-            precision = 12,
-            scale = 4,
-            nullable = false
-    )
-    private BigDecimal stockActual;
+    public Ingrediente() {}
 
-    @Column(
-            name = "stock_minimo",
-            precision = 12,
-            scale = 4,
-            nullable = false
-    )
-    private BigDecimal stockMinimo;
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public Ingrediente() {
-    }
+    public String getDescripcion() { return descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
-    public Long getId() {
-        return id;
-    }
+    public Long getUnidadMedidaId() { return unidadMedidaId; }
+    public void setUnidadMedidaId(Long unidadMedidaId) { this.unidadMedidaId = unidadMedidaId; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public BigDecimal getCostoUnitario() { return costoUnitario; }
+    public void setCostoUnitario(BigDecimal costoUnitario) { this.costoUnitario = costoUnitario; }
 
-    public String getNombre() {
-        return nombre;
-    }
+    public BigDecimal getStockActual() { return stockActual; }
+    public void setStockActual(BigDecimal stockActual) { this.stockActual = stockActual; }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
+    public BigDecimal getStockMinimo() { return stockMinimo; }
+    public void setStockMinimo(BigDecimal stockMinimo) { this.stockMinimo = stockMinimo; }
 
-    public BigDecimal getStockActual() {
-        return stockActual;
-    }
+    public BigDecimal getStockMaximo() { return stockMaximo; }
+    public void setStockMaximo(BigDecimal stockMaximo) { this.stockMaximo = stockMaximo; }
 
-    public void setStockActual(BigDecimal stockActual) {
-        this.stockActual = stockActual;
-    }
+    public String getProveedor() { return proveedor; }
+    public void setProveedor(String proveedor) { this.proveedor = proveedor; }
 
-    public BigDecimal getStockMinimo() {
-        return stockMinimo;
-    }
+    public String getLote() { return lote; }
+    public void setLote(String lote) { this.lote = lote; }
 
-    public void setStockMinimo(BigDecimal stockMinimo) {
-        this.stockMinimo = stockMinimo;
-    }
+    public LocalDate getFechaVencimiento() { return fechaVencimiento; }
+    public void setFechaVencimiento(LocalDate fechaVencimiento) { this.fechaVencimiento = fechaVencimiento; }
 
-    public Boolean getIsActive() {
-        return isActive;
-    }
+    public String getCategoria() { return categoria; }
+    public void setCategoria(String categoria) { this.categoria = categoria; }
 
-    public void setIsActive(Boolean active) {
-        isActive = active;
-    }
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
+
+    public LocalDateTime getFechaCreacion() { return fechaCreacion; }
+    public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
+
+    public LocalDateTime getFechaActualizacion() { return fechaActualizacion; }
+    public void setFechaActualizacion(LocalDateTime fechaActualizacion) { this.fechaActualizacion = fechaActualizacion; }
+
+    public boolean isActivo() { return ESTADO_ACTIVO.equals(estado); }
 }

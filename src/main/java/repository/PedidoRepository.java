@@ -212,6 +212,29 @@ public class PedidoRepository {
         return Optional.empty();
     }
 
+    public java.util.List<Pedido> findPedidosParaCocina() throws SQLException {
+        java.util.List<Pedido> pedidos = new java.util.ArrayList<>();
+
+        String sql = "SELECT pedido_id, numero_pedido, mesa_id, usuario_id, productos, estado, fecha_pedido " +
+                "FROM pedidos WHERE estado IN (?, ?, ?, ?) ORDER BY fecha_pedido";
+
+        try (Connection conn = ConexionBD.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, EstadoPedido.PENDIENTE.name());
+            stmt.setString(2, EstadoPedido.ASIGNADO_MESA.name());
+            stmt.setString(3, EstadoPedido.EN_PREPARACION.name());
+            stmt.setString(4, EstadoPedido.COMPLETADO.name());
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    pedidos.add(map(rs));
+                }
+            }
+        }
+        return pedidos;
+    }
+
     private Pedido map(
             ResultSet rs
     ) throws SQLException {
@@ -328,4 +351,6 @@ public class PedidoRepository {
 
         return normalizado.equals("S");
     }
+
+
 }
