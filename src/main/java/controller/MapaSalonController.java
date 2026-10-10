@@ -73,6 +73,24 @@ public class MapaSalonController {
     private Label mensajeFiltro;
 
     @FXML
+    private Label contadorTotal;
+
+    @FXML
+    private Label contadorDisponibles;
+
+    @FXML
+    private Label contadorOcupadas;
+
+    @FXML
+    private Label contadorReservadas;
+
+    @FXML
+    private Label contadorPendientePago;
+
+    @FXML
+    private Label contadorInhabilitadas;
+
+    @FXML
     private Label tituloDetalleMesa;
 
     @FXML
@@ -116,6 +134,8 @@ public class MapaSalonController {
     private void cargarMesas() {
         try {
             List<Mesa> mesas = mesaRepository.obtenerTodas();
+            actualizarContadores(mesas);
+
             Set<Integer> mesasVisibles = new HashSet<>();
             Set<String> identificadoresMostrados = new HashSet<>();
             boolean hayIdentificadoresDuplicados = false;
@@ -781,6 +801,52 @@ public class MapaSalonController {
                 }
             }
             return null;
+        }
+    }
+
+    private void actualizarContadores(List<Mesa> mesas) {
+        ResumenMesas resumen = ResumenMesas.calcular(mesas);
+
+        actualizarTextoSiExiste(contadorTotal, "Total: " + resumen.total());
+        actualizarTextoSiExiste(contadorDisponibles, "Disponibles: " + resumen.disponibles());
+        actualizarTextoSiExiste(contadorOcupadas, "Ocupadas: " + resumen.ocupadas());
+        actualizarTextoSiExiste(contadorReservadas, "Reservadas: " + resumen.reservadas());
+        actualizarTextoSiExiste(contadorPendientePago, "Pendiente de pago: " + resumen.pendientesPago());
+        actualizarTextoSiExiste(contadorInhabilitadas, "Fuera de servicio: " + resumen.inhabilitadas());
+    }
+
+    private void actualizarTextoSiExiste(Label label, String texto) {
+        if (label != null) {
+            label.setText(texto);
+        }
+    }
+
+    private record ResumenMesas(
+            int total, int disponibles, int ocupadas, int reservadas,
+            int pendientesPago, int inhabilitadas, int noReconocidas
+    ) {
+
+        private static ResumenMesas calcular(List<Mesa> mesas) {
+            int disponibles = 0, ocupadas = 0, reservadas = 0,
+                    pendientesPago = 0, inhabilitadas = 0, noReconocidas = 0;
+
+            for (Mesa mesa : mesas) {
+                EstadoMesaVisual estado = EstadoMesaVisual.desdeCodigo(mesa.getCodigoEstado());
+                if (estado == null) {
+                    noReconocidas++;
+                    continue;
+                }
+                switch (estado) {
+                    case DISPONIBLE -> disponibles++;
+                    case OCUPADA -> ocupadas++;
+                    case RESERVADA -> reservadas++;
+                    case PENDIENTE_PAGO -> pendientesPago++;
+                    case INHABILITADA -> inhabilitadas++;
+                }
+            }
+
+            return new ResumenMesas(mesas.size(), disponibles, ocupadas, reservadas,
+                    pendientesPago, inhabilitadas, noReconocidas);
         }
     }
 }
