@@ -21,4 +21,4 @@ src/main/java/entity/Bar.java             →  package entity;
 src/main/java/repository/Baz.java         →  package repository;
 src/main/java/service/Qux.java            →  package service;
 src/main/java/exceptions/Err.java         →  package exceptions;
-src/main/java/ConexionDB/ConexionBD.java  →  package ConexionDB;
+src/main/java/ConexionBD/ConexionBD.java  →  package ConexionBD;

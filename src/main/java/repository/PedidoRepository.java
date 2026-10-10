@@ -1,7 +1,7 @@
 package repository;
 
-import ConexionDB.ConexionBD;
-import entity.EstadoPedido;
+import ConexionBD.ConexionBD;
+import enums.EstadoPedido;
 import entity.Pedido;
 import org.postgresql.util.PGobject;
 

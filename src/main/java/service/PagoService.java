@@ -1,11 +1,10 @@
 package service;
 
-import com.restaurante.entity.Pago;
+import entity.Pago;
 import entity.Pedido;
-import com.restaurante.enums.MetodoPago;
-import com.restaurante.enums.EstadoPedido;
-import com.restaurante.repository.PagoRepository;
-import com.restaurante.repository.PedidoRepository;
+import enums.MetodoPago;
+import repository.PagoRepository;
+import repository.PedidoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

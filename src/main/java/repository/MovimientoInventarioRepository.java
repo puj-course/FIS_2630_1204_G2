@@ -1,8 +1,8 @@
 package repository;
 
-import ConexionDB.ConexionBD;
+import ConexionBD.ConexionBD;
 import entity.MovimientoInventario;
-import entity.TipoMovimiento;
+import enums.TipoMovimiento;
 
 import java.sql.*;
 import java.util.ArrayList;

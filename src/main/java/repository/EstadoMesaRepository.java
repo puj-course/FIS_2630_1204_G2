@@ -1,6 +1,6 @@
 package repository;
 
-import database.ConexionBD;
+import ConexionBD.ConexionBD;
 import entity.EstadoMesa;
 
 import java.sql.Connection;
@@ -18,7 +18,7 @@ public class EstadoMesaRepository {
                 WHERE estado_mesa_id = ?
                 """;
 
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -39,7 +39,7 @@ public class EstadoMesaRepository {
                 WHERE UPPER(nombre) = UPPER(?)
                 """;
 
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, codigo.trim());

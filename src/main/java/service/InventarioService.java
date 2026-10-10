@@ -1,6 +1,6 @@
 package service;
 
-import ConexionDB.ConexionBD;
+import ConexionBD.ConexionBD;
 import exceptions.StockInsuficienteException;
 import repository.InventarioRepository;
 

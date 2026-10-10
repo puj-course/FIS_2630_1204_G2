@@ -1,5 +1,7 @@
 package entity;
 
+import enums.EstadoPedido;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
