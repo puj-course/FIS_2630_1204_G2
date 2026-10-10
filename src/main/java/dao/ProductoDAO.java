@@ -1,6 +1,6 @@
 package dao;
 
-import database.ConexionBD;
+import ConexionBD.ConexionBD;
 import entity.Producto;
 
 import java.sql.*;
@@ -20,11 +20,11 @@ public class ProductoDAO {
                 INNER JOIN categorias c ON c.categoria_id = p.categoria_id
                 WHERE p.estado IN ('DISPONIBLE', 'AGOTADO')
                   AND c.estado = 'ACTIVO'
-                ORDER BY c.orden_presentacion, c.nombre, p.nombre
+                ORDER BY c.orden_visual, c.nombre, p.nombre
                 """;
 
         Map<String, List<Producto>> menu = new LinkedHashMap<>();
-        try (Connection cn = ConexionBD.conectar();
+        try (Connection cn = ConexionBD.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {

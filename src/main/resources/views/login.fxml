@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
+
+<HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controller.LoginController" prefHeight="580.0" prefWidth="860.0">
+   <children>
+
+      <!-- Identidad -->
+      <VBox styleClass="marca-panel" spacing="14.0">
+         <children>
+            <StackPane maxWidth="-Infinity" minHeight="56.0">
+               <children>
+                  <SVGPath fx:id="iconoMarca" styleClass="icono-marca"
+                           content="M11,9H9V2H7v7H5V2H3v7c0,2.12,1.66,3.84,3.75,3.97V22h2.5v-9.03C11.34,12.84,13,11.12,13,9V2h-2V9z M16,6v8h2.5v8H21V2C18.24,2,16,4.24,16,6z" />
+               </children>
+            </StackPane>
+            <Label styleClass="marca" text="GastroFlow" />
+            <Label styleClass="marca-sub" text="Sistema de gestión del restaurante" wrapText="true" />
+            <Region VBox.vgrow="ALWAYS" />
+            <Label styleClass="marca-nota" wrapText="true"
+                   text="Ingrese con el usuario que le asignó el administrador. Cada rol ve únicamente los módulos que le corresponden." />
+         </children>
+      </VBox>
+
+      <!-- Formulario -->
+      <VBox fx:id="formulario" styleClass="formulario" spacing="7.0" HBox.hgrow="ALWAYS">
+         <children>
+            <Label styleClass="titulo-formulario" text="Iniciar sesión" />
+            <Label styleClass="subtitulo-formulario" text="Acceda con sus credenciales para continuar." wrapText="true" />
+
+            <Region minHeight="18.0" />
+
+            <Label styleClass="etiqueta-campo" text="USUARIO" />
+            <TextField fx:id="campoUsuario" styleClass="campo" promptText="Código de empleado o correo" />
+            <Label styleClass="ayuda-campo" text="Por ejemplo, MES-001" />
+
+            <Region minHeight="10.0" />
+
+            <Label styleClass="etiqueta-campo" text="CONTRASEÑA" />
+            <PasswordField fx:id="campoContrasena" styleClass="campo" promptText="Su contraseña" />
+
+            <Region minHeight="14.0" />
+
+            <!-- Mensaje de error, justo encima del botón -->
+            <HBox fx:id="cajaError" styleClass="caja-error" spacing="9.0" managed="false" visible="false">
+               <children>
+                  <StackPane minWidth="18.0">
+                     <children>
+                        <SVGPath fx:id="iconoError" styleClass="icono-error"
+                                 content="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M13,17h-2v-2h2V17z M13,13h-2V7h2V13z" />
+                     </children>
+                  </StackPane>
+                  <Label fx:id="mensajeError" styleClass="texto-error" wrapText="true" HBox.hgrow="ALWAYS" />
+               </children>
+            </HBox>
+
+            <Region fx:id="espacioError" minHeight="6.0" />
+
+            <Button fx:id="botonEntrar" styleClass="boton-principal" text="Entrar"
+                    onAction="#entrar" maxWidth="1.7976931348623157E308" defaultButton="true" />
+
+            <Region VBox.vgrow="ALWAYS" />
+
+            <Label fx:id="notaPie" styleClass="pie-nota" wrapText="true"
+                   text="¿Olvidó su contraseña? Comuníquese con el administrador del restaurante." />
+         </children>
+      </VBox>
+
+   </children>
+</HBox>

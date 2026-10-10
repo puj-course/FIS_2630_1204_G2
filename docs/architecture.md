@@ -47,7 +47,7 @@ No se utilizará Spring Boot, Spring Data JPA ni Spring Web en esta etapa del pr
 |-----|------|
 | Compilar | `mvn clean compile` |
 | App de escritorio | `mvn javafx:run` (clase principal: `Main`, cuando exista en la rama) |
-| Conexión JDBC | Clase de conexión del proyecto (p. ej. `ConexionDB.ConexionBD` / `conf.ConexionDB`) hacia PostgreSQL |
+| Conexión JDBC | Clase de conexión del proyecto (p. ej. `ConexionBD.ConexionBD` / `conf.ConexionDB`) hacia PostgreSQL |
 
 No existe arranque tipo `mvn spring-boot:run` en esta arquitectura.
 
@@ -59,7 +59,7 @@ Los fuentes viven bajo `src/main/java/` con carpetas de primer nivel alineadas a
 
 ```text
 src/main/java/
-├── ConexionDB/          # conexión JDBC (si aplica)
+├── ConexionBD/          # conexión JDBC (si aplica)
 ├── controller/          # solo controladores JavaFX
 ├── entity/              # POJOs (sin JPA)
 ├── repository/          # acceso a datos con JDBC

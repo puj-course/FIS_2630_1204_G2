@@ -1,6 +1,6 @@
 package service;
 
-import ConexionDB.ConexionBD;
+import ConexionBD.ConexionBD;
 import entity.EstadoMesa;
 import entity.HistorialEstadoMesa;
 import entity.Mesa;

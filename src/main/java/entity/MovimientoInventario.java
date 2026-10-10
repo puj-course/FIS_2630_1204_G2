@@ -1,4 +1,4 @@
-package com.restaurante.entity;
+package entity;
 
 import com.restaurante.enums.TipoMovimiento;
 import jakarta.persistence.*;

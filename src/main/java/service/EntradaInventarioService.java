@@ -1,5 +1,5 @@
 package service;
-import ConexionDB.ConexionBD;
+import ConexionBD.ConexionBD;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import entity.EntradaInventario;

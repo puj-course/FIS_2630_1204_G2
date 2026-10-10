@@ -2,7 +2,7 @@ package repository;
 
 import java.sql.*;
 import java.util.*;
-import ConexionDB.ConexionBD;
+import ConexionBD.ConexionBD;
 import entity.ReglaDescuento;
 
 public class ReglaDescuentoRepository {

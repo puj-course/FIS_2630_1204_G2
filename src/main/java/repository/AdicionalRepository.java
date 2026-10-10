@@ -1,6 +1,6 @@
 package repository;
 
-import ConexionDB.ConexionBD;
+import ConexionBD.ConexionBD;
 import entity.Adicional;
 
 import java.math.BigDecimal;

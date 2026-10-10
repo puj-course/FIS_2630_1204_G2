@@ -1,6 +1,6 @@
 package repository;
 
-import ConexionDB.ConexionBD;
+import ConexionBD.ConexionBD;
 import entity.Zona;
 
 import java.sql.*;
