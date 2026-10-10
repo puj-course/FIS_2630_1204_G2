@@ -51,7 +51,8 @@ public class MesaRepository {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
              stmt.setInt(1, idMesa);
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {return Optional.of(mapearMesa(rs));
+                if (rs.next()) {
+                    return Optional.of(mapearMesa(rs));
                 }
                 return Optional.empty();
             }
@@ -67,7 +68,8 @@ public class MesaRepository {
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idMesa);
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {return Optional.of(mapearMesa(rs));
+                if (rs.next()) {
+                    return Optional.of(mapearMesa(rs));
                 }
                 return Optional.empty();
             }
@@ -328,12 +330,7 @@ public class MesaRepository {
         }
         return null;
     }
-    /**
-     * Comprueba si existe al menos una de las columnas.
-     */
-    private boolean existeAlgunaColumna(Connection conn, String tabla, String... columnas) throws SQLException {
-        return primeraColumnaExistente(conn, tabla, columnas) != null;
-    }
+
     /**
      * Comprueba si existe una tabla.
      */
@@ -391,6 +388,22 @@ public class MesaRepository {
         }
     }
 
+    public boolean actualizarCantidadComensales(int idMesa, int cantidadComensales) throws SQLException {
+        if (cantidadComensales <= 0) {
+            throw new IllegalArgumentException("La cantidad de comensales debe ser mayor a cero.");
+        }
+
+        String sql = "UPDATE mesas " + "SET id_estado_mesa = COALESCE(?, id_estado_mesa) " + "WHERE id_mesa = ? " + "AND ? <= capacidad";
+        try (Connection conn = ConexionBD.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, cantidadComensales);
+            stmt.setInt(2, idMesa);
+            stmt.setInt(3, cantidadComensales);
+
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
     /**
      * Obtiene el ID de un estado de mesa.
      */
@@ -444,14 +457,7 @@ public class MesaRepository {
     private String generarCodigoMesa(int idZona, int numeroMesa) {
         return String.format("M-%02d-%02d", idZona, numeroMesa);
     }
-    /**
-     * Cambia el estado de una mesa.
-     */
-    public void cambiarEstadoMesa(int idMesa, String codigoEstado) throws SQLException {
-        try (Connection conn = ConexionBD.getConnection()) {
-            cambiarEstadoMesa(conn, idMesa, codigoEstado);
-        }
-    }
+
     /**
      * Cambia el estado usando una conexión existente.
      */
