@@ -79,4 +79,5 @@ public class MesaService {
         return estadoMesaRepository.findByCodigoEstado(codigo)
                 .orElseThrow(() -> new MesaNotFoundException("Estado no encontrado: " + codigo));
     }
+
 }
