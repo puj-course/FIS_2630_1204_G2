@@ -593,8 +593,16 @@ public class MapaSalonController {
         }
     }
 
-    private void cambiarEstadoMesa(Mesa mesa) {
+    @FXML
+    private void cambiarEstadoMesaSeleccionada() {
+        if (mesaSeleccionada == null) {
+            mostrarError("Seleccione una mesa primero.");
+            return;
+        }
+        cambiarEstadoMesa(mesaSeleccionada);
+    }
 
+    private void cambiarEstadoMesa(Mesa mesa) {
         List<String> estados = List.of(
                 "LIBRE",
                 "OCUPADA",
@@ -607,28 +615,43 @@ public class MapaSalonController {
         );
 
         dialog.setTitle("Cambiar estado");
-        dialog.setHeaderText("Mesa " + mesa.getNumeroMesa());
+        dialog.setHeaderText("Mesa " + obtenerIdentificadorMesa(mesa));
         dialog.setContentText("Seleccione el nuevo estado:");
 
         Optional<String> resultado = dialog.showAndWait();
 
-        if (resultado.isPresent()) {
-            try {
-                mesaService.cambiarEstado(
-                        mesa.getIdMesa(),
-                        resultado.get(),
-                        "MANUAL"
-                );
+        if (resultado.isEmpty()) {
+            return;
+        }
 
-                cargarMesas();
+        String nuevoEstado = resultado.get();
+        if (nuevoEstado.equalsIgnoreCase(mesa.getCodigoEstado())) {
+            return;
+        }
 
-            } catch (SQLException e) {
-                mostrarError(
-                        "Error al cambiar el estado: " + e.getMessage()
-                );
-            }
+        try {
+            mesaService.cambiarEstado(
+                    mesa.getIdMesa(),
+                    nuevoEstado,
+                    "MANUAL"
+            );
+
+            // Refresca mapa y panel de detalle para reflejar el estado de inmediato
+            cargarMesas();
+            mesaSeleccionada = mesaRepository.findById(mesa.getIdMesa())
+                    .orElse(mesa);
+            actualizarDetalleMesa(mesaSeleccionada);
+
+            mostrarInformacion(
+                    "Estado actualizado",
+                    "Mesa " + obtenerIdentificadorMesa(mesaSeleccionada)
+                            + " ahora está en estado " + nuevoEstado + "."
+            );
+        } catch (SQLException e) {
+            mostrarError("Error al cambiar el estado: " + e.getMessage());
         }
     }
+
     private void ajustarTamanoDialogo(Dialog<?> dialog) {
         Scene escena = dialog.getDialogPane().getScene();
         if (escena != null && escena.getWindow() != null) {
