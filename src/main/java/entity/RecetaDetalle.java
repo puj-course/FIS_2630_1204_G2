@@ -20,6 +20,6 @@ public class RecetaDetalle {
 
     @Override
     public String toString() {
-        return "  - " + ingrediente.getNombre() + ": " + cantidad + " " + ingrediente.getUnidadMedida();
+        return "  - " + ingrediente.getNombre() + ": " + cantidad + " " + ingrediente.getUnidadMedidaId();
     }
 }
