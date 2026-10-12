@@ -13,9 +13,9 @@ public class EstadoMesaRepository {
 
     public Optional<EstadoMesa> findById(long id) throws SQLException {
         String sql = """
-                SELECT estado_mesa_id, nombre
+                SELECT id_estado_mesa, codigo_estado
                 FROM estados_mesa
-                WHERE estado_mesa_id = ?
+                WHERE id_estado_mesa = ?
                 """;
 
         try (Connection conn = ConexionBD.getConnection();
@@ -34,9 +34,9 @@ public class EstadoMesaRepository {
             throws SQLException {
 
         String sql = """
-                SELECT estado_mesa_id, nombre
+                SELECT id_estado_mesa, codigo_estado
                 FROM estados_mesa
-                WHERE UPPER(nombre) = UPPER(?)
+                WHERE UPPER(codigo_estado) = UPPER(?)
                 """;
 
         try (Connection conn = ConexionBD.getConnection();
@@ -56,11 +56,11 @@ public class EstadoMesaRepository {
     private EstadoMesa map(ResultSet rs) throws SQLException {
         EstadoMesa estado = new EstadoMesa();
 
-        estado.setId(rs.getLong("estado_mesa_id"));
+        estado.setId(rs.getLong("id_estado_mesa"));
 
         // La base de datos guarda el nombre del estado,
         // por ejemplo: DISPONIBLE u OCUPADA.
-        String nombre = rs.getString("nombre");
+        String nombre = rs.getString("codigo_estado");
 
         estado.setCodigoEstado(nombre);
         estado.setDescripcion(nombre);
