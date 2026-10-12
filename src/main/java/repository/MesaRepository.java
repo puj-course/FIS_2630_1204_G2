@@ -15,11 +15,11 @@ public class MesaRepository {
 
     private static final String SELECT_BASE =
             "SELECT m.id_mesa, m.numero_mesa, m.codigo_mesa, m.capacidad, " +
-                    "       m.id_zona, z.nombre AS nombre_zona, " +
-                    "       m.id_estado_mesa, e.nombre AS codigo_estado " +
+                    "       m.id_zona, z.nombre_zona, " +
+                    "       m.id_estado_mesa, e.codigo_estado " +
                     "FROM mesas m " +
-                    "JOIN zonas z ON m.id_zona = z.zona_id " +
-                    "JOIN estados_mesa e ON m.id_estado_mesa = e.estado_mesa_id ";
+                    "JOIN zonas z ON m.id_zona = z.id_zona " +
+                    "JOIN estados_mesa e ON m.id_estado_mesa = e.id_estado_mesa ";
 
     private static final int ZONA_POR_DEFECTO = 1;
 
@@ -408,13 +408,13 @@ public class MesaRepository {
      * Obtiene el ID de un estado de mesa.
      */
     private Integer obtenerIdEstado(Connection conn, String... codigosEstado) throws SQLException {
-        String sql = "SELECT estado_mesa_id " + "FROM estados_mesa " + "WHERE UPPER(nombre) = UPPER(?)";
+        String sql = "SELECT id_estado_mesa " + "FROM estados_mesa " + "WHERE UPPER(codigo_estado) = UPPER(?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             for (String codigo : codigosEstado) {
                 stmt.setString(1, codigo);
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        return rs.getInt("estado_mesa_id");
+                       return rs.getInt("id_estado_mesa");
                     }
                 }
             }
@@ -462,7 +462,7 @@ public class MesaRepository {
      * Cambia el estado usando una conexión existente.
      */
     public void cambiarEstadoMesa(Connection conn, int idMesa, String codigoEstado) throws SQLException {
-        String sql = "UPDATE mesas " + "SET id_estado_mesa = (" + "    SELECT estado_mesa_id " + "    FROM estados_mesa " + "    WHERE UPPER(nombre) = UPPER(?)" + ") " + "WHERE id_mesa = ?";
+        String sql = "UPDATE mesas " + "SET id_estado_mesa = (" + "    SELECT id_estado_mesa " + "    FROM estados_mesa " + "    WHERE UPPER(codigo_estado) = UPPER(?)" + ") " + "WHERE id_mesa = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, codigoEstado);
             stmt.setInt(2, idMesa);
