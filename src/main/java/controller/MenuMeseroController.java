@@ -749,7 +749,7 @@ public class MenuMeseroController {
             pedidoActual = null;
             pedido.clear();
             actualizarPedido();
-            
+
             Alert exito = new Alert(Alert.AlertType.INFORMATION);
             exito.setTitle("Pedido cerrado");
             exito.setHeaderText("Pedido cerrado correctamente");
