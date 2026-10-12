@@ -2,6 +2,7 @@ package entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import enums.TipoMovimiento;
 
 public class MovimientoInventario {
 
