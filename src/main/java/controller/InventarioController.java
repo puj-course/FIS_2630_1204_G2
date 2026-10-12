@@ -1,9 +1,9 @@
-package com.restaurante.controller;
+package controller;
 
-import com.restaurante.dto.IngredienteStockDTO;
-import com.restaurante.entity.Ingrediente;
-import com.restaurante.repository.IngredienteRepository;
-import com.restaurante.service.InventarioService;
+import dto.IngredienteStockDTO;
+import entity.Ingrediente;
+import repository.IngredienteRepository;
+import service.InventarioService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;

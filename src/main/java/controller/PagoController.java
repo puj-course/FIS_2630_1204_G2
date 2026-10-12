@@ -1,6 +1,6 @@
-package com.restaurante.controller;
+package controller;
 
-import com.restaurante.enums.MetodoPago;
+import enums.MetodoPago;
 import com.restaurante.entity.Pago;
 import com.restaurante.service.PagoService;
 import org.springframework.web.bind.annotation.*;
