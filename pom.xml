@@ -66,8 +66,8 @@
                         <exclude>dao/RecetaDAO.java</exclude>
                         <exclude>entity/Mesero.java</exclude>
                         <exclude>entity/Pago.java</exclude>
-                        <exclude>modelo/Receta.java</exclude>
-                        <exclude>modelo/RecetaDetalle.java</exclude>
+                        <exclude>entity/Receta.java</exclude>
+                        <exclude>entity/RecetaDetalle.java</exclude>
                         <exclude>repository/DetallePedidoRepository.java</exclude>
                         <exclude>repository/MeseroRepository.java</exclude>
                         <exclude>repository/PagoRepository.java</exclude>
