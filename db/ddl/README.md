@@ -15,7 +15,7 @@ creadas en `../migrations/`.
 | `unidades_medida.ddl` | `unidades_medida` | HU-04 | Catálogo de unidades (kilogramo, litro, unidad…) con código, abreviatura y tipo. |
 | `ingredientes.ddl` | `ingredientes` | HU-04 | Insumos del inventario: costo, stock actual/mínimo/máximo, proveedor y vencimiento. |
 | `categorias.ddl` | `categorias` | HU-05 · HU-39 | Categorías del menú que administra el restaurante, con su orden de presentación. |
-| `productos.ddl` | `productos` | HU-05 | Catálogo de platos y bebidas: precio vigente, receta (`ingredientes` JSONB) y estado. |
+| `productos.ddl` | `productos` | HU-05 · HU-134 | Catálogo de platos y bebidas: precio vigente, estado y columna heredada `ingredientes` JSONB (solo compatibilidad temporal). |
 | `precios_producto.ddl` | `precios_producto` | HU-05 | Historial de precios. `productos.precio_venta` sigue siendo el precio vigente. |
 | `pedidos.ddl` | `pedidos` | HU-07 | Pedidos: mesa, mesero, líneas (`productos` JSONB), estado, totales y propina. |
 | `movimientos_inventario.ddl` | `movimientos_inventario` | HU-022 | Kardex de entradas y salidas, con el usuario responsable de cada movimiento. |
@@ -35,7 +35,7 @@ creadas en `../migrations/`.
 | `adicional.ddl` | `adicional` | HU-115 | Adicionales que se suman a una línea del pedido (extra de queso, porción aparte). |
 | `asignacion_mesa.ddl` | `asignacion_mesa` | HU-115 | Qué mesero atiende cada mesa. Una asignación activa por mesa; las anteriores quedan como historial. |
 | `detalle_pedido_adicional.ddl` | `detalle_pedido_adicional` | HU-115 | Adicionales aplicados a una línea concreta del pedido. |
-| `plato_insumo.ddl` | `plato_insumo` | HU-115 | Receta normalizada: cuánto insumo consume cada plato. Se solapa con `productos.ingredientes`. |
+| `plato_insumo.ddl` | `plato_insumo` | HU-115 · HU-134 | Fuente única oficial de recetas: relaciona cada plato con sus insumos y cantidades necesarias. |
 | `regla_descuento.ddl` | `regla_descuento` | HU-115 | Reglas de descuento aplicables al cobrar, por porcentaje o monto fijo. |
 
 ---
@@ -118,10 +118,11 @@ psql -d gastroflow -c '\df fn_*'
 | `fn_recalcular_estados_productos()` | `INTEGER` | Recalcula todo el catálogo; devuelve cuántos productos cambiaron de estado. |
 | `fn_recalcular_estado_producto(producto_id)` | `VARCHAR` | Recalcula un producto y devuelve su estado resultante. |
 | `fn_producto_disponible_cantidad(producto_id, cantidad)` | `BOOLEAN` | ¿Alcanza el inventario para N unidades? |
-| `fn_motivo_receta(ingredientes)` | `TEXT` | Nombres de los ingredientes faltantes, o `NULL` si no falta ninguno. |
+| `fn_motivo_receta(producto_id)` | `TEXT` | Nombres de los ingredientes faltantes, o `NULL` si no falta ninguno. Consulta `plato_insumo`. |
 
-Formato esperado de `productos.ingredientes`, donde la cantidad corresponde a **una**
-unidad del producto:
+Formato heredado de `productos.ingredientes` (JSONB), conservado temporalmente
+por compatibilidad. No es la fuente oficial de recetas. La cantidad corresponde
+a **una** unidad del producto:
 
 ```json
 [
@@ -185,10 +186,8 @@ conexión. El `pom.xml` todavía lo excluye del build, junto con
 
 ## Pendientes conocidos
 
-- `service/DisponibilidadService` y las funciones `fn_*` de HU-28 calculan lo
-  mismo por caminos distintos: el primero lee la receta de `plato_insumo`, las
-  segundas de `productos.ingredientes` (JSONB). Son dos fuentes para el mismo
-  dato y dos implementaciones de la misma regla. Hay que decidir cuál queda.
+- Fuente única de recetas (HU-134): `plato_insumo` es la fuente oficial para Java y las funciones SQL de disponibilidad e inventario. La migración `009_hu134_unificar_recetas.sql` migra las recetas JSONB válidas y registra referencias inválidas y discrepancias detectadas. La columna `productos.ingredientes` se conserva temporalmente por compatibilidad y solo se eliminará cuando se verifique que ningún componente depende de ella.
+- Productos sin receta: si un producto no tiene registros en `plato_insumo`, su disponibilidad se calcula con su propio `stock_actual`. Los productos con estado `INACTIVO` no deben reactivarse ni modificarse por la migración.
 - Unificar las dos convenciones de restricciones: este README usa `uq_`, y las tablas que
   llegaron del módulo de usuarios y mesas usan `uk_`.
 - Definir trigger para que `fecha_actualizacion` se actualice sola en cada `UPDATE`.
