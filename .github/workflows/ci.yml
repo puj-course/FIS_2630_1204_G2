@@ -1,4 +1,3 @@
-  ```yaml
   name: CI
 
   on:
@@ -21,7 +20,7 @@
           env:
             POSTGRES_DB: postgres
             POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: usuario_pass
+            POSTGRES_PASSWORD: postgres
           ports:
             - 5432:5432
           options: >-
@@ -63,4 +62,4 @@
 
         - name: Ejecutar pruebas automatizadas
           run: mvn --batch-mode test
-    ```
+
