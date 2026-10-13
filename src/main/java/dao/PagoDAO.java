@@ -71,7 +71,7 @@ public class PagoDAO {
                 INNER JOIN roles r ON r.id_rol = u.id_rol
                 WHERE u.id_usuario = ?
                   AND u.is_active = 1
-                  AND UPPER(r.nombre_rol) = 'CAJERO'
+                  AND UPPER(r.nombre) = 'CAJERO'
                 """;
 
         // Se releen los importes DENTRO de la transaccion, no solo el estado:
