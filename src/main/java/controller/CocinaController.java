@@ -1,6 +1,6 @@
 package controller;
 
-import entity.EstadoPedido;
+import enums.EstadoPedido;
 import entity.Mesa;
 import entity.Pedido;
 import javafx.animation.Animation;

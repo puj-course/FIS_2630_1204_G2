@@ -2,90 +2,44 @@ package entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import enums.TipoMovimiento;
 
 public class MovimientoInventario {
 
-    private Long idMovimiento;
-    private Long productoId;
+    private Long id;
+    private Long productoId;      // exactamente uno de productoId / ingredienteId debe venir informado
     private Long ingredienteId;
-    private String tipoMovimiento;
+    private TipoMovimiento tipoMovimiento;
     private BigDecimal cantidad;
     private String motivo;
     private Long usuarioId;
     private LocalDateTime fechaMovimiento;
 
     public MovimientoInventario() {
+        this.fechaMovimiento = LocalDateTime.now();
     }
 
-    public Long getIdMovimiento() {
-        return idMovimiento;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setIdMovimiento(Long idMovimiento) {
-        this.idMovimiento = idMovimiento;
-    }
+    public Long getProductoId() { return productoId; }
+    public void setProductoId(Long productoId) { this.productoId = productoId; }
 
-    public Long getProductoId() {
-        return productoId;
-    }
+    public Long getIngredienteId() { return ingredienteId; }
+    public void setIngredienteId(Long ingredienteId) { this.ingredienteId = ingredienteId; }
 
-    public void setProductoId(Long productoId) {
-        this.productoId = productoId;
-    }
+    public TipoMovimiento getTipoMovimiento() { return tipoMovimiento; }
+    public void setTipoMovimiento(TipoMovimiento tipoMovimiento) { this.tipoMovimiento = tipoMovimiento; }
 
-    public Long getIngredienteId() {
-        return ingredienteId;
-    }
+    public BigDecimal getCantidad() { return cantidad; }
+    public void setCantidad(BigDecimal cantidad) { this.cantidad = cantidad; }
 
-    public void setIngredienteId(Long ingredienteId) {
-        this.ingredienteId = ingredienteId;
-    }
+    public String getMotivo() { return motivo; }
+    public void setMotivo(String motivo) { this.motivo = motivo; }
 
-    public String getTipoMovimiento() {
-        return tipoMovimiento;
-    }
+    public Long getUsuarioId() { return usuarioId; }
+    public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
 
-    public void setTipoMovimiento(String tipoMovimiento) {
-        this.tipoMovimiento = tipoMovimiento;
-    }
-
-    public BigDecimal getCantidad() {
-        return cantidad;
-    }
-
-    public void setCantidad(BigDecimal cantidad) {
-        this.cantidad = cantidad;
-    }
-
-    public String getMotivo() {
-        return motivo;
-    }
-
-    public void setMotivo(String motivo) {
-        this.motivo = motivo;
-    }
-
-    public Long getUsuarioId() {
-        return usuarioId;
-    }
-
-    public void setUsuarioId(Long usuarioId) {
-        this.usuarioId = usuarioId;
-    }
-
-    public LocalDateTime getFechaMovimiento() {
-        return fechaMovimiento;
-    }
-
-    public void setFechaMovimiento(LocalDateTime fechaMovimiento) {
-        this.fechaMovimiento = fechaMovimiento;
-    }
-
-    public boolean esEntrada() {
-        return "ENTRADA".equalsIgnoreCase(tipoMovimiento);
-    }
-
-    public boolean esSalida() {
-        return "SALIDA".equalsIgnoreCase(tipoMovimiento);
-    }
+    public LocalDateTime getFechaMovimiento() { return fechaMovimiento; }
+    public void setFechaMovimiento(LocalDateTime fechaMovimiento) { this.fechaMovimiento = fechaMovimiento; }
 }

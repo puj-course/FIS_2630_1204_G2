@@ -1,6 +1,6 @@
-package com.restaurante.entity;
+package entity;
 
-import com.restaurante.enums.MetodoPago;
+import enums.MetodoPago;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;

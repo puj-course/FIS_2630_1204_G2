@@ -1,6 +1,6 @@
 package repository;
 
-import database.ConexionBD;
+import ConexionBD.ConexionBD;
 import entity.UsuarioAutenticable;
 
 import java.sql.Connection;
@@ -16,10 +16,10 @@ public class UsuarioRepository {
 
     private static final String SELECT_ACCESO =
             "SELECT u.id_usuario, u.codigo_empleado, u.nombre, u.apellido, " +
-                    "       u.password_hash, u.is_active, r.nombre_rol " +
-                    "FROM usuarios u " +
-                    "JOIN roles r ON r.rol_id = u.id_rol " +
-                    "WHERE LOWER(u.codigo_empleado) = LOWER(?) OR LOWER(u.correo) = LOWER(?)";
+            "       u.password_hash, u.is_active, r.nombre_rol " +
+            "FROM usuarios u " +
+            "JOIN roles r ON r.id_rol = u.id_rol " +
+            "WHERE LOWER(u.codigo_empleado) = LOWER(?) OR LOWER(u.correo) = LOWER(?)";
 
     /**
      * Busca al usuario por código de empleado o por correo.
@@ -33,7 +33,7 @@ public class UsuarioRepository {
 
         String valor = identificador.trim();
 
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(SELECT_ACCESO)) {
 
             stmt.setString(1, valor);
@@ -50,8 +50,7 @@ public class UsuarioRepository {
                         (rs.getString("nombre") + " " + rs.getString("apellido")).trim(),
                         rs.getString("nombre_rol"),
                         rs.getString("password_hash"),
-                        rs.getInt("is_active") == 1
-                ));
+                        rs.getInt("is_active") == 1));
             }
         }
     }
@@ -69,7 +68,7 @@ public class UsuarioRepository {
                 WHERE id_usuario = ?
                 """;
 
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, nuevoHash);

@@ -1,9 +1,10 @@
-package com.restaurante.enums;
+package enums;
 
 public enum EstadoPedido {
-
     PENDIENTE,
-    CONFIRMADO,
-    EN_COCINA,
+    ASIGNADO_MESA,
+    EN_PREPARACION,
+    COMPLETADO,
+    ENTREGADO,
     CANCELADO
 }

@@ -1,72 +1,70 @@
 package entity;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class Ingrediente {
 
-    private long ingredienteId;
+    public static final String ESTADO_ACTIVO = "ACTIVO";
+    public static final String ESTADO_INACTIVO = "INACTIVO";
+
+    private Long id;
     private String nombre;
-    private BigDecimal stockActual;
-    private BigDecimal stockMinimo;
-    private String estado;
+    private String descripcion;
+    private Long unidadMedidaId;
+    private BigDecimal costoUnitario = BigDecimal.ZERO;
+    private BigDecimal stockActual = BigDecimal.ZERO;
+    private BigDecimal stockMinimo = BigDecimal.ZERO;
+    private BigDecimal stockMaximo;
+    private String proveedor;
+    private String lote;
+    private LocalDate fechaVencimiento;
+    private String categoria;
+    private String estado = ESTADO_ACTIVO;
+    private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaActualizacion;
 
-    public Ingrediente() {
-    }
+    public Ingrediente() {}
 
-    public Ingrediente(
-            long ingredienteId,
-            String nombre,
-            BigDecimal stockActual,
-            BigDecimal stockMinimo,
-            String estado
-    ) {
-        this.ingredienteId = ingredienteId;
-        this.nombre = nombre;
-        this.stockActual = stockActual;
-        this.stockMinimo = stockMinimo;
-        this.estado = estado;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public long getIngredienteId() {
-        return ingredienteId;
-    }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public void setIngredienteId(long ingredienteId) {
-        this.ingredienteId = ingredienteId;
-    }
+    public String getDescripcion() { return descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
-    public String getNombre() {
-        return nombre;
-    }
+    public Long getUnidadMedidaId() { return unidadMedidaId; }
+    public void setUnidadMedidaId(Long unidadMedidaId) { this.unidadMedidaId = unidadMedidaId; }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
+    public BigDecimal getCostoUnitario() { return costoUnitario; }
+    public void setCostoUnitario(BigDecimal costoUnitario) { this.costoUnitario = costoUnitario; }
 
-    public BigDecimal getStockActual() {
-        return stockActual;
-    }
+    public BigDecimal getStockActual() { return stockActual; }
+    public void setStockActual(BigDecimal stockActual) { this.stockActual = stockActual; }
 
-    public void setStockActual(BigDecimal stockActual) {
-        this.stockActual = stockActual;
-    }
+    public BigDecimal getStockMinimo() { return stockMinimo; }
+    public void setStockMinimo(BigDecimal stockMinimo) { this.stockMinimo = stockMinimo; }
 
-    public BigDecimal getStockMinimo() {
-        return stockMinimo;
-    }
+    public BigDecimal getStockMaximo() { return stockMaximo; }
+    public void setStockMaximo(BigDecimal stockMaximo) { this.stockMaximo = stockMaximo; }
 
-    public void setStockMinimo(BigDecimal stockMinimo) {
-        this.stockMinimo = stockMinimo;
-    }
+    public String getProveedor() { return proveedor; }
+    public void setProveedor(String proveedor) { this.proveedor = proveedor; }
 
-    public String getEstado() {
-        return estado;
-    }
+    public String getLote() { return lote; }
+    public void setLote(String lote) { this.lote = lote; }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
+    public LocalDate getFechaVencimiento() { return fechaVencimiento; }
+    public void setFechaVencimiento(LocalDate fechaVencimiento) { this.fechaVencimiento = fechaVencimiento; }
 
+    public String getCategoria() { return categoria; }
+    public void setCategoria(String categoria) { this.categoria = categoria; }
+
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
     public boolean estaActivo() {
         return "ACTIVO".equalsIgnoreCase(estado);
     }
@@ -79,6 +77,13 @@ public class Ingrediente {
         return stockActual.compareTo(stockMinimo) <= 0;
     }
 
+    public LocalDateTime getFechaCreacion() { return fechaCreacion; }
+    public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
+
+    public LocalDateTime getFechaActualizacion() { return fechaActualizacion; }
+    public void setFechaActualizacion(LocalDateTime fechaActualizacion) { this.fechaActualizacion = fechaActualizacion; }
+
+    public boolean isActivo() { return ESTADO_ACTIVO.equals(estado); }
     @Override
     public String toString() {
         return nombre;

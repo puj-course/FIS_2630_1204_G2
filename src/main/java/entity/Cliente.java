@@ -14,6 +14,7 @@ public class Cliente {
     private String tipoDocumento; // "CC", "CE", etc.
     // Indica el tipo de documento del cliente.
     // Por ejemplo: "CC" (Cédula de Ciudadanía) o "CE" (Cédula de Extranjería).
+    // Debe coincidir con tipos_documento.codigo en la base de datos.
 
 
     private String documento;
@@ -22,6 +23,11 @@ public class Cliente {
 
     private String nombre;
     // Guarda el nombre del cliente.
+
+
+    private String apellido;
+    // Guarda el apellido del cliente.
+    // La tabla clientes lo exige, igual que el nombre.
 
 
     private String telefono;
@@ -50,6 +56,19 @@ public class Cliente {
     }
 
 
+    public Cliente(String tipoDocumento, String documento, String nombre,
+                   String apellido, String correo, String telefono) {
+        // Constructor con todo lo que la tabla clientes necesita para guardar.
+
+        this.tipoDocumento = tipoDocumento;
+        this.documento = documento;
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.correo = correo;
+        this.telefono = telefono;
+    }
+
+
     public int getId() { return id; }
     // Getter del ID.
 
@@ -58,12 +77,37 @@ public class Cliente {
     // Setter del ID.
 
 
+    public String getTipoDocumento() { return tipoDocumento; }
+    // Getter del tipo de documento.
+
+
+    public void setTipoDocumento(String tipoDocumento) { this.tipoDocumento = tipoDocumento; }
+    // Setter del tipo de documento.
+
+
+    public String getDocumento() { return documento; }
+    // Getter del número de documento.
+
+
+    public void setDocumento(String documento) { this.documento = documento; }
+    // Setter del número de documento.
+
+
     public String getNombre() { return nombre; }
     // Getter del nombre.
 
 
     public void setNombre(String nombre) { this.nombre = nombre; }
     // Setter del nombre.
+
+
+    public String getApellido() { return apellido; }
+    // Getter del apellido.
+
+
+    public void setApellido(String apellido) { this.apellido = apellido; }
+    // Setter del apellido.
+
 
     public String getTelefono() { return telefono; }
     // Getter del teléfono.

@@ -1,6 +1,6 @@
-package com.restaurante.repository;
+package repository;
 
-import com.restaurante.entity.Pago;
+import entity.Pago;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

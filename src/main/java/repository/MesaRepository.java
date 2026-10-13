@@ -1,5 +1,5 @@
 package repository;
-import database.ConexionBD;
+import ConexionBD.ConexionBD;
 import entity.Mesa;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -15,11 +15,11 @@ public class MesaRepository {
 
     private static final String SELECT_BASE =
             "SELECT m.id_mesa, m.numero_mesa, m.codigo_mesa, m.capacidad, " +
-                    "       m.id_zona, z.nombre AS nombre_zona, " +
-                    "       m.id_estado_mesa, e.nombre AS codigo_estado " +
+                    "       m.id_zona, z.nombre_zona, " +
+                    "       m.id_estado_mesa, e.codigo_estado " +
                     "FROM mesas m " +
-                    "JOIN zonas z ON m.id_zona = z.zona_id " +
-                    "JOIN estados_mesa e ON m.id_estado_mesa = e.estado_mesa_id ";
+                    "JOIN zonas z ON m.id_zona = z.id_zona " +
+                    "JOIN estados_mesa e ON m.id_estado_mesa = e.id_estado_mesa ";
 
     private static final int ZONA_POR_DEFECTO = 1;
 
@@ -30,7 +30,7 @@ public class MesaRepository {
 
         List<Mesa> mesas = new ArrayList<>();
         String sql = SELECT_BASE + "WHERE m.is_active = 1 " + "ORDER BY m.numero_mesa, m.id_mesa";
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
@@ -47,11 +47,12 @@ public class MesaRepository {
      */
     public Optional<Mesa> findById(int idMesa) throws SQLException {
         String sql = SELECT_BASE + "WHERE m.id_mesa = ?";
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
              stmt.setInt(1, idMesa);
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {return Optional.of(mapearMesa(rs));
+                if (rs.next()) {
+                    return Optional.of(mapearMesa(rs));
                 }
                 return Optional.empty();
             }
@@ -67,7 +68,8 @@ public class MesaRepository {
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idMesa);
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {return Optional.of(mapearMesa(rs));
+                if (rs.next()) {
+                    return Optional.of(mapearMesa(rs));
                 }
                 return Optional.empty();
             }
@@ -328,12 +330,7 @@ public class MesaRepository {
         }
         return null;
     }
-    /**
-     * Comprueba si existe al menos una de las columnas.
-     */
-    private boolean existeAlgunaColumna(Connection conn, String tabla, String... columnas) throws SQLException {
-        return primeraColumnaExistente(conn, tabla, columnas) != null;
-    }
+
     /**
      * Comprueba si existe una tabla.
      */
@@ -378,7 +375,7 @@ public class MesaRepository {
             throw new IllegalArgumentException("La cantidad de comensales debe ser mayor a cero.");
         }
         String sql = "UPDATE mesas " + "SET id_estado_mesa = COALESCE(?, id_estado_mesa) " + "WHERE id_mesa = ? " + "AND ? <= capacidad";
-        try (Connection conn = ConexionBD.conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = ConexionBD.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             Integer idOcupada = obtenerIdEstado(conn, "OCUPADA");
             if (idOcupada != null) {
                 stmt.setInt(1, idOcupada);
@@ -391,17 +388,33 @@ public class MesaRepository {
         }
     }
 
+    public boolean actualizarCantidadComensales(int idMesa, int cantidadComensales) throws SQLException {
+        if (cantidadComensales <= 0) {
+            throw new IllegalArgumentException("La cantidad de comensales debe ser mayor a cero.");
+        }
+
+        String sql = "UPDATE mesas " + "SET id_estado_mesa = COALESCE(?, id_estado_mesa) " + "WHERE id_mesa = ? " + "AND ? <= capacidad";
+        try (Connection conn = ConexionBD.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, cantidadComensales);
+            stmt.setInt(2, idMesa);
+            stmt.setInt(3, cantidadComensales);
+
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
     /**
      * Obtiene el ID de un estado de mesa.
      */
     private Integer obtenerIdEstado(Connection conn, String... codigosEstado) throws SQLException {
-        String sql = "SELECT estado_mesa_id " + "FROM estados_mesa " + "WHERE UPPER(nombre) = UPPER(?)";
+        String sql = "SELECT id_estado_mesa " + "FROM estados_mesa " + "WHERE UPPER(codigo_estado) = UPPER(?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             for (String codigo : codigosEstado) {
                 stmt.setString(1, codigo);
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        return rs.getInt("estado_mesa_id");
+                       return rs.getInt("id_estado_mesa");
                     }
                 }
             }
@@ -414,7 +427,7 @@ public class MesaRepository {
     public void liberarMesa(int idMesa) throws SQLException {
         String sql = "UPDATE mesas " + "SET id_estado_mesa = COALESCE(?, id_estado_mesa) " + "WHERE id_mesa = ?";
 
-        try (Connection conn = ConexionBD.conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = ConexionBD.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             Integer idLibre = obtenerIdEstado(conn, "LIBRE", "DISPONIBLE");
             if (idLibre != null) {
                 stmt.setInt(1, idLibre);
@@ -430,7 +443,7 @@ public class MesaRepository {
      */
     public void agregarMesa(int numeroMesa) throws SQLException {
         String sql = "INSERT INTO mesas " + "(numero_mesa, codigo_mesa, capacidad, id_zona, id_estado_mesa) " + "VALUES (?, ?, 2, ?, 1)";
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, numeroMesa);
             stmt.setString(2, generarCodigoMesa(ZONA_POR_DEFECTO, numeroMesa));
@@ -444,19 +457,12 @@ public class MesaRepository {
     private String generarCodigoMesa(int idZona, int numeroMesa) {
         return String.format("M-%02d-%02d", idZona, numeroMesa);
     }
-    /**
-     * Cambia el estado de una mesa.
-     */
-    public void cambiarEstadoMesa(int idMesa, String codigoEstado) throws SQLException {
-        try (Connection conn = ConexionBD.conectar()) {
-            cambiarEstadoMesa(conn, idMesa, codigoEstado);
-        }
-    }
+
     /**
      * Cambia el estado usando una conexión existente.
      */
     public void cambiarEstadoMesa(Connection conn, int idMesa, String codigoEstado) throws SQLException {
-        String sql = "UPDATE mesas " + "SET id_estado_mesa = (" + "    SELECT estado_mesa_id " + "    FROM estados_mesa " + "    WHERE UPPER(nombre) = UPPER(?)" + ") " + "WHERE id_mesa = ?";
+        String sql = "UPDATE mesas " + "SET id_estado_mesa = (" + "    SELECT id_estado_mesa " + "    FROM estados_mesa " + "    WHERE UPPER(codigo_estado) = UPPER(?)" + ") " + "WHERE id_mesa = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, codigoEstado);
             stmt.setInt(2, idMesa);
@@ -468,7 +474,7 @@ public class MesaRepository {
      */
     public void cambiarCapacidadMesa(int idMesa, int capacidad) throws SQLException {
         String sql = "UPDATE mesas " + "SET capacidad = ? " + "WHERE id_mesa = ?";
-        try (Connection conn = ConexionBD.conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = ConexionBD.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, capacidad);
             stmt.setInt(2, idMesa);
             stmt.executeUpdate();
@@ -496,7 +502,7 @@ public class MesaRepository {
 
         String sql = "UPDATE mesas " + "SET is_active = 0 " + "WHERE id_mesa = ?";
 
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idMesa);
             stmt.executeUpdate();

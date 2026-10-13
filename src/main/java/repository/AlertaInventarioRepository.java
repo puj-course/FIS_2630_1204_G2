@@ -1,6 +1,6 @@
 package repository;
 
-import database.ConexionBD;
+import ConexionBD.ConexionBD;
 import entity.AlertaInventario;
 
 import java.sql.Connection;
@@ -36,7 +36,7 @@ public class AlertaInventarioRepository {
 
         List<AlertaInventario> alertas = new ArrayList<>();
 
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
@@ -72,7 +72,7 @@ public class AlertaInventarioRepository {
                 LIMIT 1
                 """;
 
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setLong(1, ingredienteId);
@@ -99,7 +99,7 @@ public class AlertaInventarioRepository {
                 WHERE estado = 'PENDIENTE'
                 """;
 
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
@@ -131,7 +131,7 @@ public class AlertaInventarioRepository {
                 RETURNING id, created_at
                 """;
 
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt =
                      conn.prepareStatement(sql)) {
 
@@ -202,7 +202,7 @@ public class AlertaInventarioRepository {
                 WHERE id = ?
                 """;
 
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt =
                      conn.prepareStatement(sql)) {
 

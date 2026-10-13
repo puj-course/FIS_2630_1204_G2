@@ -1,6 +1,6 @@
 package repository;
 
-import database.ConexionBD;
+import ConexionBD.ConexionBD;
 import entity.Zona;
 
 import java.sql.*;
@@ -12,7 +12,7 @@ public class ZonaRepository {
 
     public Optional<Zona> findById(long id) throws SQLException {
         String sql = "SELECT id_zona, nombre_zona, descripcion, is_active FROM zonas WHERE id_zona = ?";
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -27,7 +27,7 @@ public class ZonaRepository {
     public List<Zona> findAllActivas() throws SQLException {
         String sql = "SELECT id_zona, nombre_zona, descripcion, is_active FROM zonas WHERE is_active = 1";
         List<Zona> lista = new ArrayList<>();
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {

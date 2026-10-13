@@ -1,280 +1,115 @@
 package repository;
 
-import database.ConexionBD;
+import ConexionBD.ConexionBD;
 import entity.MovimientoInventario;
+import enums.TipoMovimiento;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class MovimientoInventarioRepository {
 
-    /**
-     * Obtiene todos los movimientos de un ingrediente.
-     */
-    public List<MovimientoInventario> findByIngredienteId(
-            long ingredienteId
-    ) throws SQLException {
+    private static final String SELECT_BASE =
+            "SELECT id_movimiento, producto_id, ingrediente_id, tipo_movimiento, cantidad, " +
+                    "motivo, usuario_id, fecha_movimiento FROM movimientos_inventario ";
 
-        String sql = """
-                SELECT id_movimiento,
-                       producto_id,
-                       ingrediente_id,
-                       tipo_movimiento,
-                       cantidad,
-                       motivo,
-                       usuario_id,
-                       fecha_movimiento
-                FROM movimientos_inventario
-                WHERE ingrediente_id = ?
-                ORDER BY fecha_movimiento DESC
-                """;
-
-        List<MovimientoInventario> movimientos =
-                new ArrayList<>();
-
-        try (Connection conn = ConexionBD.conectar();
+    public Optional<MovimientoInventario> findById(long id) throws SQLException {
+        String sql = SELECT_BASE + "WHERE id_movimiento = ?";
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setLong(1, ingredienteId);
-
+            stmt.setLong(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    movimientos.add(map(rs));
-                }
+                return rs.next() ? Optional.of(map(rs)) : Optional.empty();
             }
         }
-
-        return movimientos;
     }
 
-    /**
-     * Obtiene movimientos asociados a un producto.
-     */
-    public List<MovimientoInventario> findByProductoId(
-            long productoId
-    ) throws SQLException {
+    // Kardex de un ingrediente, del más reciente al más antiguo
+    public List<MovimientoInventario> findByIngredienteId(long ingredienteId) throws SQLException {
+        String sql = SELECT_BASE + "WHERE ingrediente_id = ? ORDER BY fecha_movimiento DESC";
+        return consultarLista(sql, ingredienteId);
+    }
 
-        String sql = """
-                SELECT id_movimiento,
-                       producto_id,
-                       ingrediente_id,
-                       tipo_movimiento,
-                       cantidad,
-                       motivo,
-                       usuario_id,
-                       fecha_movimiento
-                FROM movimientos_inventario
-                WHERE producto_id = ?
-                ORDER BY fecha_movimiento DESC
-                """;
+    public List<MovimientoInventario> findByProductoId(long productoId) throws SQLException {
+        String sql = SELECT_BASE + "WHERE producto_id = ? ORDER BY fecha_movimiento DESC";
+        return consultarLista(sql, productoId);
+    }
 
-        List<MovimientoInventario> movimientos =
-                new ArrayList<>();
+    public MovimientoInventario save(MovimientoInventario m) throws SQLException {
+        try (Connection conn = ConexionBD.getConnection()) {
+            return save(conn, m);
+        }
+    }
 
-        try (Connection conn = ConexionBD.conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setLong(1, productoId);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    movimientos.add(map(rs));
-                }
-            }
+    // Versión transaccional: reutiliza la Connection recibida para que el movimiento
+    // y el cambio de stock del ingrediente puedan confirmarse o revertirse juntos.
+    public MovimientoInventario save(Connection conn, MovimientoInventario m) throws SQLException {
+        if (m.getUsuarioId() == null) {
+            throw new SQLException("usuario_id es obligatorio para registrar un movimiento");
         }
 
-        return movimientos;
-    }
+        String sql = "INSERT INTO movimientos_inventario (producto_id, ingrediente_id, tipo_movimiento, " +
+                "cantidad, motivo, usuario_id, fecha_movimiento) VALUES (?, ?, ?, ?, ?, ?, ?) " +
+                "RETURNING id_movimiento";
 
-    /**
-     * Obtiene los últimos movimientos del inventario.
-     */
-    public List<MovimientoInventario> findUltimos(
-            int limite
-    ) throws SQLException {
-
-        String sql = """
-                SELECT id_movimiento,
-                       producto_id,
-                       ingrediente_id,
-                       tipo_movimiento,
-                       cantidad,
-                       motivo,
-                       usuario_id,
-                       fecha_movimiento
-                FROM movimientos_inventario
-                ORDER BY fecha_movimiento DESC
-                LIMIT ?
-                """;
-
-        List<MovimientoInventario> movimientos =
-                new ArrayList<>();
-
-        try (Connection conn = ConexionBD.conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, limite);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    movimientos.add(map(rs));
-                }
-            }
-        }
-
-        return movimientos;
-    }
-
-    /**
-     * Registra un movimiento de inventario.
-     *
-     * El movimiento debe corresponder a un ingrediente
-     * o a un producto, pero no a ambos.
-     */
-    public long save(
-            MovimientoInventario movimiento
-    ) throws SQLException {
-
-        String sql = """
-                INSERT INTO movimientos_inventario (
-                    producto_id,
-                    ingrediente_id,
-                    tipo_movimiento,
-                    cantidad,
-                    motivo,
-                    usuario_id
-                )
-                VALUES (?, ?, ?, ?, ?, ?)
-                RETURNING id_movimiento
-                """;
-
-        try (Connection conn = ConexionBD.conectar();
-             PreparedStatement stmt =
-                     conn.prepareStatement(sql)) {
-
-            if (movimiento.getProductoId() != null) {
-                stmt.setLong(
-                        1,
-                        movimiento.getProductoId()
-                );
-            } else {
-                stmt.setNull(
-                        1,
-                        java.sql.Types.BIGINT
-                );
-            }
-
-            if (movimiento.getIngredienteId() != null) {
-                stmt.setLong(
-                        2,
-                        movimiento.getIngredienteId()
-                );
-            } else {
-                stmt.setNull(
-                        2,
-                        java.sql.Types.BIGINT
-                );
-            }
-
-            stmt.setString(
-                    3,
-                    movimiento.getTipoMovimiento()
-            );
-
-            stmt.setBigDecimal(
-                    4,
-                    movimiento.getCantidad()
-            );
-
-            stmt.setString(
-                    5,
-                    movimiento.getMotivo()
-            );
-
-            if (movimiento.getUsuarioId() != null) {
-                stmt.setLong(
-                        6,
-                        movimiento.getUsuarioId()
-                );
-            } else {
-                stmt.setNull(
-                        6,
-                        java.sql.Types.BIGINT
-                );
-            }
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            setLongNullable(stmt, 1, m.getProductoId());
+            setLongNullable(stmt, 2, m.getIngredienteId());
+            stmt.setString(3, m.getTipoMovimiento().name());
+            stmt.setBigDecimal(4, m.getCantidad());
+            stmt.setString(5, m.getMotivo());
+            stmt.setLong(6, m.getUsuarioId());
+            stmt.setTimestamp(7, Timestamp.valueOf(
+                    m.getFechaMovimiento() != null ? m.getFechaMovimiento() : java.time.LocalDateTime.now()));
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    long id = rs.getLong(
-                            "id_movimiento"
-                    );
-
-                    movimiento.setIdMovimiento(id);
-
-                    return id;
+                    m.setId(rs.getLong(1));
                 }
             }
         }
-
-        return 0;
+        return m;
     }
 
-    private MovimientoInventario map(
-            ResultSet rs
-    ) throws SQLException {
-
-        MovimientoInventario movimiento =
-                new MovimientoInventario();
-
-        movimiento.setIdMovimiento(
-                rs.getLong("id_movimiento")
-        );
-
-        long productoId =
-                rs.getLong("producto_id");
-
-        if (!rs.wasNull()) {
-            movimiento.setProductoId(productoId);
+    private List<MovimientoInventario> consultarLista(String sql, long id) throws SQLException {
+        List<MovimientoInventario> resultado = new ArrayList<>();
+        try (Connection conn = ConexionBD.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    resultado.add(map(rs));
+                }
+            }
         }
+        return resultado;
+    }
 
-        long ingredienteId =
-                rs.getLong("ingrediente_id");
-
-        if (!rs.wasNull()) {
-            movimiento.setIngredienteId(ingredienteId);
+    private void setLongNullable(PreparedStatement stmt, int index, Long valor) throws SQLException {
+        if (valor != null) {
+            stmt.setLong(index, valor);
+        } else {
+            stmt.setNull(index, Types.BIGINT);
         }
+    }
 
-        movimiento.setTipoMovimiento(
-                rs.getString("tipo_movimiento")
-        );
+    private Long getLongOrNull(ResultSet rs, String columna) throws SQLException {
+        long valor = rs.getLong(columna);
+        return rs.wasNull() ? null : valor;
+    }
 
-        movimiento.setCantidad(
-                rs.getBigDecimal("cantidad")
-        );
-
-        movimiento.setMotivo(
-                rs.getString("motivo")
-        );
-
-        movimiento.setUsuarioId(
-                rs.getLong("usuario_id")
-        );
-
-        if (rs.wasNull()) {
-            movimiento.setUsuarioId(null);
-        }
-
-        if (rs.getTimestamp("fecha_movimiento") != null) {
-            movimiento.setFechaMovimiento(
-                    rs.getTimestamp("fecha_movimiento")
-                            .toLocalDateTime()
-            );
-        }
-
-        return movimiento;
+    private MovimientoInventario map(ResultSet rs) throws SQLException {
+        MovimientoInventario m = new MovimientoInventario();
+        m.setId(rs.getLong("id_movimiento"));
+        m.setProductoId(getLongOrNull(rs, "producto_id"));
+        m.setIngredienteId(getLongOrNull(rs, "ingrediente_id"));
+        m.setTipoMovimiento(TipoMovimiento.valueOf(rs.getString("tipo_movimiento")));
+        m.setCantidad(rs.getBigDecimal("cantidad"));
+        m.setMotivo(rs.getString("motivo"));
+        m.setUsuarioId(rs.getLong("usuario_id"));
+        m.setFechaMovimiento(rs.getTimestamp("fecha_movimiento").toLocalDateTime());
+        return m;
     }
 }

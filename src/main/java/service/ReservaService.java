@@ -1,6 +1,6 @@
 package service;
 
-import entity.EstadoPedido;
+import enums.EstadoPedido;
 import entity.Reserva;
 import exceptions.ReservaNoCancelableException;
 import exceptions.ReservaNotFoundException;

@@ -1,4 +1,4 @@
-package com.restaurante.dto;
+package dto;
 
 import java.math.BigDecimal;
 

@@ -1,6 +1,6 @@
 package repository;
 
-import database.ConexionBD;
+import ConexionBD.ConexionBD;
 import entity.HistorialEstadoMesa;
 
 import java.sql.*;
@@ -9,7 +9,7 @@ public class HistorialEstadoMesaRepository {
 
     // Versión normal: abre su propia conexión (para usos sueltos, fuera de una transacción)
     public HistorialEstadoMesa save(HistorialEstadoMesa h) throws SQLException {
-        try (Connection conn = ConexionBD.conectar()) {
+        try (Connection conn = ConexionBD.getConnection()) {
             return save(conn, h);
         }
     }

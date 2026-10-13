@@ -1,6 +1,6 @@
 package repository;
 
-import database.ConexionBD;
+import ConexionBD.ConexionBD;
 import entity.Mesa;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assumptions;
@@ -63,7 +63,7 @@ class MesaModuloFuncionalTest {
 
     @BeforeAll
     static void prepararDatos() {
-        try (Connection conn = ConexionBD.conectar()) {
+        try (Connection conn = ConexionBD.getConnection()) {
             asegurarEstados(conn);
             idZona = crearZonaDePrueba(conn);
             idMesaCuatro = crearMesa(conn, NUMERO_BASE + 1, 4);
@@ -76,7 +76,7 @@ class MesaModuloFuncionalTest {
 
     @AfterAll
     static void limpiarDatos() {
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              Statement stmt = conn.createStatement()) {
 
             stmt.executeUpdate("DELETE FROM mesas WHERE numero_mesa >= " + NUMERO_BASE);
@@ -90,7 +90,7 @@ class MesaModuloFuncionalTest {
     /** Cada caso empieza con las dos mesas libres y sin comensales. */
     @BeforeEach
     void reiniciarMesas() throws SQLException {
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              Statement stmt = conn.createStatement()) {
 
             stmt.executeUpdate(
@@ -274,7 +274,7 @@ class MesaModuloFuncionalTest {
 
         Mesa mesa = buscar(idMesaCuatro);
 
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT m.numero_mesa, m.capacidad, m.cantidad_comensales, e.codigo_estado " +
                      "FROM mesas m JOIN estados_mesa e ON e.id_estado_mesa = m.id_estado_mesa " +
@@ -327,7 +327,7 @@ class MesaModuloFuncionalTest {
     }
 
     private static Integer comensalesEnBaseDeDatos(int idMesa) throws SQLException {
-        try (Connection conn = ConexionBD.conectar();
+        try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT cantidad_comensales FROM mesas WHERE id_mesa = ?")) {
 

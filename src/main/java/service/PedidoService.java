@@ -1,6 +1,6 @@
 package service;
 
-import entity.EstadoPedido;
+import enums.EstadoPedido;
 import entity.Pedido;
 import exceptions.MesaNotFoundException;
 import exceptions.MesaOcupadaException;
