@@ -1,0 +1,63 @@
+
+CP-01 · Las mesas activas se cargan y se listan
+  OK     CP-01     obtenerTodas devuelve mesas (2)
+  OK     CP-01     la mesa de prueba aparece en el listado
+  OK     CP-01     sin mesas repetidas
+
+CP-02 · Cada mesa trae numero, capacidad y estado
+  OK     CP-02     numero = 9001
+  OK     CP-02     capacidad = 4
+  OK     CP-02     estado = LIBRE
+  OK     CP-02     zona = ZONA PRUEBAS HU-087
+
+CP-03 · Se asigna una mesa disponible
+  OK     CP-03     asignarComensales devuelve true
+  OK     CP-03     quedan 3 comensales en la base
+
+CP-06 · El estado pasa de LIBRE a OCUPADA al asignar
+  OK     CP-06     antes esta LIBRE
+  OK     CP-06     despues esta OCUPADA (real: OCUPADA)
+
+CP-05 y CP-07 · Al liberar vuelve a LIBRE y sin comensales
+  OK     CP-05     estado tras liberar = LIBRE
+  OK     CP-07     comensales vacios tras liberar
+
+CP-04 · Una mesa ocupada no se puede volver a asignar
+         (la mesa quedo en estado OCUPADA con 2 comensales)
+  OK     CP-04     la segunda asignacion sobre mesa OCUPADA se rechaza (devolvio false)
+  OK     CP-04     los comensales originales no se sobrescriben (hay 2)
+
+CP-10 · Comensales iguales a la capacidad: se asigna
+  OK     CP-10     2 comensales en mesa de capacidad 2
+  OK     CP-10     quedan 2 en la base
+
+CP-09 · Comensales por encima de la capacidad: no se asigna
+  OK     CP-09     3 comensales en mesa de capacidad 2 se rechaza
+  OK     CP-09     no se guardo cantidad
+  OK     CP-09     la mesa sigue LIBRE
+
+CP-11a · Cero comensales: se rechaza
+  OK     CP-11a    lanza IllegalArgumentException: La cantidad de comensales debe ser mayor a cero.
+
+CP-11b · Comensales negativos: se rechaza
+  OK     CP-11b    lanza IllegalArgumentException
+
+CP-11c · Capacidad mas uno: no se asigna
+  OK     CP-11c    5 comensales en mesa de capacidad 4 se rechaza
+  OK     CP-11c    no se guardo cantidad
+
+CP-14 · No se puede bajar la capacidad por debajo de los comensales
+  OK     CP-14     la base lo impide: ERROR: new row for relation "mesas" violates check constraint "ck_mesas_comensales_capacidad"
+  OK     CP-14     la capacidad sigue en 4
+
+CP-12 · Lo que muestra el repositorio coincide con la base
+  OK     CP-12     numero coincide
+  OK     CP-12     capacidad coincide
+  OK     CP-12     comensales coinciden
+  OK     CP-12     estado coincide
+
+CP-13 · Cinco ciclos seguidos de asignar y liberar
+  OK     CP-13     los 5 ciclos dejan la mesa consistente
+
+======================================================================
+TOTAL: 31 comprobaciones, 31 pasan, 0 fallan

@@ -1,0 +1,169 @@
+/*
+ * Pantalla de inicio de sesión de GastroFlow.
+ *
+ * Misma paleta y tipografía que la navegación principal, para que las dos
+ * pantallas se lean como el mismo sistema.
+ *
+ *   Verde GastroFlow   #16823b
+ *   Verde profundo     #0d4f27
+ *   Fondo              #f4f6f5
+ *   Texto principal    #1f2a24
+ *   Texto secundario   #6b7a72
+ *   Error              #b42318
+ */
+
+.root {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial", sans-serif;
+    -fx-background-color: #f4f6f5;
+}
+
+/* ================================================================
+   Panel izquierdo: identidad
+   ================================================================ */
+
+.marca-panel {
+    -fx-background-color: linear-gradient(to bottom right, #16823b 0%, #0d4f27 100%);
+    -fx-padding: 48 42 42 42;
+    -fx-pref-width: 320;
+    -fx-min-width: 320;
+}
+
+.marca {
+    -fx-font-size: 33px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.marca-sub {
+    -fx-font-size: 13px;
+    -fx-text-fill: #a8d8ba;
+}
+
+.marca-nota {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: rgba(255, 255, 255, 0.65);
+}
+
+.icono-marca {
+    -fx-fill: rgba(255, 255, 255, 0.9);
+}
+
+/* ================================================================
+   Formulario
+   ================================================================ */
+
+.formulario {
+    -fx-padding: 48 52 42 52;
+    -fx-alignment: center-left;
+}
+
+.titulo-formulario {
+    -fx-font-size: 23px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2a24;
+}
+
+.subtitulo-formulario {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: #6b7a72;
+}
+
+.etiqueta-campo {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #3d4a43;
+}
+
+.ayuda-campo {
+    -fx-font-size: 11px;
+    -fx-text-fill: #8a978f;
+}
+
+/* --- Campos --- */
+
+.campo {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #d7dfda;
+    -fx-border-width: 1;
+    -fx-padding: 11 14 11 14;
+    -fx-font-size: 13.5px;
+    -fx-text-fill: #1f2a24;
+    -fx-prompt-text-fill: #a9b5ae;
+}
+
+.campo:focused {
+    -fx-border-color: #16823b;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(gaussian, rgba(22, 130, 59, 0.18), 10, 0, 0, 0);
+}
+
+/* Campo señalado cuando el acceso falla */
+.campo.con-error {
+    -fx-border-color: #b42318;
+}
+
+.campo.con-error:focused {
+    -fx-border-color: #b42318;
+    -fx-effect: dropshadow(gaussian, rgba(180, 35, 24, 0.18), 10, 0, 0, 0);
+}
+
+/* --- Botón principal --- */
+
+.boton-principal {
+    -fx-background-color: #16823b;
+    -fx-background-radius: 8;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 13 20 13 20;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(22, 130, 59, 0.28), 12, 0, 0, 4);
+}
+
+.boton-principal:hover {
+    -fx-background-color: #137033;
+}
+
+.boton-principal:pressed {
+    -fx-background-color: #0f5c29;
+    -fx-effect: none;
+}
+
+.boton-principal:disabled {
+    -fx-opacity: 1;
+    -fx-background-color: #c3d4c9;
+    -fx-text-fill: #f2f6f3;
+    -fx-cursor: default;
+    -fx-effect: none;
+}
+
+/* --- Mensaje de error, pegado al formulario --- */
+
+.caja-error {
+    -fx-background-color: #fdf1f0;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #f0c9c5;
+    -fx-border-width: 1;
+    -fx-padding: 11 14 11 14;
+}
+
+.texto-error {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: #b42318;
+    -fx-wrap-text: true;
+}
+
+.icono-error {
+    -fx-fill: #b42318;
+}
+
+/* --- Pie --- */
+
+.pie-nota {
+    -fx-font-size: 11px;
+    -fx-text-fill: #8a978f;
+    -fx-wrap-text: true;
+}

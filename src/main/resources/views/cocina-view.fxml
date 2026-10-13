@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.CocinaController">
+    <top>
+        <HBox spacing="15" alignment="CENTER_LEFT" styleClass="header">
+            <Label text="Tablero de cocina" styleClass="titulo"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="Se actualiza automáticamente cada 30s" styleClass="subtitulo"/>
+        </HBox>
+    </top>
+    <center>
+        <HBox spacing="16" styleClass="tablero">
+            <VBox spacing="10" styleClass="columna columna-pendiente" HBox.hgrow="ALWAYS">
+                <Label fx:id="lblPendientes" text="Pendientes" styleClass="columna-titulo"/>
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="columna-scroll">
+                    <VBox fx:id="columnaPendientes" spacing="12"/>
+                </ScrollPane>
+            </VBox>
+
+            <VBox spacing="10" styleClass="columna columna-preparacion" HBox.hgrow="ALWAYS">
+                <Label fx:id="lblPreparacion" text="En preparación" styleClass="columna-titulo"/>
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="columna-scroll">
+                    <VBox fx:id="columnaPreparacion" spacing="12"/>
+                </ScrollPane>
+            </VBox>
+
+            <VBox spacing="10" styleClass="columna columna-listo" HBox.hgrow="ALWAYS">
+                <Label fx:id="lblListos" text="Listos" styleClass="columna-titulo"/>
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="columna-scroll">
+                    <VBox fx:id="columnaListos" spacing="12"/>
+                </ScrollPane>
+            </VBox>
+        </HBox>
+    </center>
+</BorderPane>
