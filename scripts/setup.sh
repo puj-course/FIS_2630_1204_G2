@@ -239,7 +239,7 @@ funciones=$(psql -At -d "$DB_NOMBRE" -c \
        JOIN pg_namespace n ON n.oid = p.pronamespace
       WHERE n.nspname = 'public' AND p.proname LIKE 'fn\\_%'")
 
-esperadas=${#TABLAS[@]}
+esperadas=$((${#TABLAS[@]} + 1))
 
 if [ "$tablas" -ne "$esperadas" ]; then
     error "se esperaban $esperadas tablas y hay $tablas."
