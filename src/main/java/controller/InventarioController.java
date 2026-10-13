@@ -252,7 +252,7 @@ public class InventarioController {
         try {
 
             List<Ingrediente> resultados =
-                    ingredienteRepository.buscarActivosPorNombre(
+                    ingredienteRepository.findActivosPorNombre(
                             texto.trim()
                     );
 
