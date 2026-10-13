@@ -13,9 +13,10 @@ creadas en `../migrations/`.
 | Archivo | Tabla | Historia | Descripción |
 |---|---|---|---|
 | `unidades_medida.ddl` | `unidades_medida` | HU-04 | Catálogo de unidades (kilogramo, litro, unidad…) con código, abreviatura y tipo. |
-| `ingredientes.ddl` | `ingredientes` | HU-04 | Insumos del inventario: costo, stock actual/mínimo/máximo, proveedor y vencimiento. |
+| `ingredientes.ddl` | `ingredientes` | HU-04 · HU-138 | Datos generales del insumo y columnas heredadas de lote/vencimiento, conservadas por compatibilidad. |
+| `lote_ingrediente.ddl` | `lote_ingrediente` | HU-138 | Lotes por ingrediente, cantidad disponible, fecha de ingreso y vencimiento. |
 | `categorias.ddl` | `categorias` | HU-05 · HU-39 | Categorías del menú que administra el restaurante, con su orden de presentación. |
-| `productos.ddl` | `productos` | HU-05 · HU-134 | Catálogo de platos y bebidas: precio vigente, estado y columna heredada `ingredientes` JSONB (solo compatibilidad temporal). |
+| `productos.ddl` | `productos` | HU-05 | Catálogo de platos y bebidas: precio vigente, receta (`ingredientes` JSONB) y estado. |
 | `precios_producto.ddl` | `precios_producto` | HU-05 | Historial de precios. `productos.precio_venta` sigue siendo el precio vigente. |
 | `pedidos.ddl` | `pedidos` | HU-07 | Pedidos: mesa, mesero, líneas (`productos` JSONB), estado, totales y propina. |
 | `movimientos_inventario.ddl` | `movimientos_inventario` | HU-022 | Kardex de entradas y salidas, con el usuario responsable de cada movimiento. |
@@ -52,23 +53,24 @@ escrita para leer.
  3. clientes                   ← tipos_documento, usuarios
  4. mesas                      ← zonas, estados_mesa
  5. ingredientes               ← unidades_medida
- 6. productos                  ← categorias
- 7. precios_producto           ← productos
- 8. pedidos                    ← clientes, mesas, usuarios
- 9. detalle_pedido             ← pedidos, productos
-10. movimientos_inventario     ← productos, ingredientes, usuarios
-11. alerta_inventario          ← ingredientes, productos
-12. pagos                      ← pedidos, usuarios
-13. historial_estado_mesa      ← mesas, estados_mesa
-14. nota_mesa                  ← mesas
-15. reservas                   ← mesas
-16. adicional
-17. asignacion_mesa            ← mesas, usuarios
-18. detalle_pedido_adicional   ← detalle_pedido, adicional
-19. plato_insumo               ← productos, ingredientes
-20. regla_descuento
-21. ../functions/hu28_disponibilidad.sql
-22. ../migrations/*.sql en orden numérico
+ 6. lote_ingrediente           ← ingredientes (HU-138)
+ 7. productos                  ← categorias
+ 8. precios_producto           ← productos
+ 9. pedidos                    ← clientes, mesas, usuarios
+10. detalle_pedido             ← pedidos, productos
+11. movimientos_inventario     ← productos, ingredientes, usuarios
+12. alerta_inventario          ← ingredientes, productos
+13. pagos                      ← pedidos, usuarios
+14. historial_estado_mesa      ← mesas, estados_mesa
+15. nota_mesa                  ← mesas
+16. reservas                   ← mesas
+17. adicional
+18. asignacion_mesa            ← mesas, usuarios
+19. detalle_pedido_adicional   ← detalle_pedido, adicional
+20. plato_insumo               ← productos, ingredientes
+21. regla_descuento
+22. ../functions/hu28_disponibilidad.sql
+23. ../migrations/*.sql en orden numérico
 ```
 
 ---
@@ -90,7 +92,7 @@ de PostgreSQL (`PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`), las mismas que usa
 `psql`; si no están definidas asume `localhost:5432` con el usuario `postgres`.
 
 El script se detiene en el primer error con el archivo y el mensaje de
-PostgreSQL. Si termina, verifica que estén las 25 tablas y las funciones `fn_*`
+PostgreSQL. Si termina, verifica que estén las 26 tablas declaradas y la tabla de auditoría de HU-134 (27 en total), además de las funciones `fn_*`
 antes de darse por bueno.
 
 Se puede correr dos veces. Sobre una base que ya existe no borra nada: salta las
@@ -183,6 +185,10 @@ conexión. El `pom.xml` todavía lo excluye del build, junto con
 `modelo/Receta.java` y `modelo/RecetaDetalle.java`, que tampoco existen ya.
 
 ---
+
+## Lotes de ingredientes (HU-138)
+
+`lote_ingrediente` es la tabla para registrar lotes por insumo. La migración `010_hu138_lotes_ingrediente.sql` crea la tabla si falta y copia los datos heredados de `ingredientes.lote`, `ingredientes.fecha_vencimiento` y `ingredientes.stock_actual` cuando existe información relevante. Si hay stock o vencimiento pero no código de lote, genera un código `LEGACY-<ingrediente_id>`. La migración es idempotente y no sobrescribe lotes existentes. Las columnas antiguas `ingredientes.lote` y `ingredientes.fecha_vencimiento` se conservan; su eliminación queda pendiente y no forma parte de HU-138.
 
 ## Pendientes conocidos
 

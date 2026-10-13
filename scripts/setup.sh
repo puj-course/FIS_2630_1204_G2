@@ -158,6 +158,7 @@ TABLAS=(
     clientes                  # tipos_documento, usuarios
     mesas                     # zonas, estados_mesa
     ingredientes              # unidades_medida
+    lote_ingrediente          # ingredientes (HU-138)
     productos                 # categorias
     precios_producto          # productos
     pedidos                   # clientes, mesas, usuarios
@@ -239,7 +240,7 @@ funciones=$(psql -At -d "$DB_NOMBRE" -c \
        JOIN pg_namespace n ON n.oid = p.pronamespace
       WHERE n.nspname = 'public' AND p.proname LIKE 'fn\\_%'")
 
-esperadas=$((${#TABLAS[@]} + 1))
+esperadas=$((${#TABLAS[@]} + 1)) # auditoria_recetas_hu134 (HU-134)
 
 if [ "$tablas" -ne "$esperadas" ]; then
     error "se esperaban $esperadas tablas y hay $tablas."
