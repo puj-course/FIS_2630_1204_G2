@@ -371,17 +371,27 @@ public class MesaRepository {
      * la capacidad y se cambia el estado a OCUPADA.
      */
     public boolean asignarComensales(int idMesa, int cantidadComensales) throws SQLException {
+
         if (cantidadComensales <= 0) {
             throw new IllegalArgumentException("La cantidad de comensales debe ser mayor a cero.");
         }
-        String sql = "UPDATE mesas " + "SET id_estado_mesa = COALESCE(?, id_estado_mesa) " + "WHERE id_mesa = ? " + "AND ? <= capacidad";
-        try (Connection conn = ConexionBD.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            Integer idOcupada = obtenerIdEstado(conn, "OCUPADA");
-            if (idOcupada != null) {
-                stmt.setInt(1, idOcupada);
-            } else {
-                stmt.setNull(1, Types.INTEGER);
-            }
+        String sql =
+                "UPDATE mesas " +
+                        "SET cantidad_comensales = ?, " +
+                        "    id_estado_mesa = (" +
+                        "        SELECT id_estado_mesa FROM estados_mesa " +
+                        "        WHERE UPPER(codigo_estado) = 'OCUPADA'" +
+                        "    ) " +
+                        "WHERE id_mesa = ? " +
+                        "AND ? <= capacidad " +
+                        "AND UPPER((" +
+                        "    SELECT codigo_estado FROM estados_mesa " +
+                        "    WHERE id_estado_mesa = mesas.id_estado_mesa" +
+                        ")) IN ('LIBRE', 'DISPONIBLE')";
+
+        try (Connection conn = ConexionBD.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, cantidadComensales);
             stmt.setInt(2, idMesa);
             stmt.setInt(3, cantidadComensales);
             return stmt.executeUpdate() > 0;
@@ -389,17 +399,25 @@ public class MesaRepository {
     }
 
     public boolean actualizarCantidadComensales(int idMesa, int cantidadComensales) throws SQLException {
-        if (cantidadComensales <= 0) {
-            throw new IllegalArgumentException("La cantidad de comensales debe ser mayor a cero.");
+
+        if (cantidadComensales <= 0) {throw new IllegalArgumentException("La cantidad de comensales debe ser mayor a cero.");
         }
 
-        String sql = "UPDATE mesas " + "SET id_estado_mesa = COALESCE(?, id_estado_mesa) " + "WHERE id_mesa = ? " + "AND ? <= capacidad";
-        try (Connection conn = ConexionBD.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        String sql =
+                "UPDATE mesas " +
+                        "SET cantidad_comensales = ? " +
+                        "WHERE id_mesa = ? " +
+                        "AND ? <= capacidad " +
+                        "AND UPPER((" +
+                        "    SELECT codigo_estado FROM estados_mesa " +
+                        "    WHERE id_estado_mesa = mesas.id_estado_mesa" +
+                        ")) = 'OCUPADA'";
 
+        try (Connection conn = ConexionBD.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, cantidadComensales);
             stmt.setInt(2, idMesa);
             stmt.setInt(3, cantidadComensales);
-
             return stmt.executeUpdate() > 0;
         }
     }
@@ -425,17 +443,23 @@ public class MesaRepository {
      * Libera una mesa y la devuelve a DISPONIBLE.
      */
     public void liberarMesa(int idMesa) throws SQLException {
-        String sql = "UPDATE mesas " + "SET id_estado_mesa = COALESCE(?, id_estado_mesa) " + "WHERE id_mesa = ?";
+        String sql =
+                "UPDATE mesas " +
+                        "SET id_estado_mesa = ?, " +
+                        "    cantidad_comensales = NULL " +
+                        "WHERE id_mesa = ?";
 
-        try (Connection conn = ConexionBD.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = ConexionBD.getConnection()) {
             Integer idLibre = obtenerIdEstado(conn, "LIBRE", "DISPONIBLE");
-            if (idLibre != null) {
-                stmt.setInt(1, idLibre);
-            } else {
-                stmt.setNull(1, Types.INTEGER);
+
+            if (idLibre == null) {
+                throw new SQLException("No existe un estado LIBRE o DISPONIBLE en estados_mesa.");
             }
-            stmt.setInt(2, idMesa);
-            stmt.executeUpdate();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, idLibre);
+                stmt.setInt(2, idMesa);
+                stmt.executeUpdate();
+            }
         }
     }
     /**
@@ -473,11 +497,31 @@ public class MesaRepository {
      * Cambia la capacidad de una mesa.
      */
     public void cambiarCapacidadMesa(int idMesa, int capacidad) throws SQLException {
-        String sql = "UPDATE mesas " + "SET capacidad = ? " + "WHERE id_mesa = ?";
-        try (Connection conn = ConexionBD.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+        if (capacidad <= 0) {throw new SQLException("La capacidad debe ser mayor que cero.");
+        }
+
+        String sql =
+                "UPDATE mesas " +
+                        "SET capacidad = ? " +
+                        "WHERE id_mesa = ? " +
+                        "AND (cantidad_comensales IS NULL " +
+                        "     OR cantidad_comensales <= ?)";
+
+        try (Connection conn = ConexionBD.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, capacidad);
             stmt.setInt(2, idMesa);
-            stmt.executeUpdate();
+            stmt.setInt(3, capacidad);
+            int filasActualizadas = stmt.executeUpdate();
+
+            if (filasActualizadas == 0) {
+                throw new SQLException(
+                        "No se pudo cambiar la capacidad. " +
+                                "La mesa no existe o la capacidad es inferior " +
+                                "a la cantidad de comensales actuales."
+                );
+            }
         }
     }
     /**
