@@ -53,31 +53,6 @@
                 <version>3.13.0</version>
                 <configuration>
                     <release>21</release>
-                    <!--
-                        Clases que todavia usan Spring Data JPA y jakarta.persistence.
-                        El proyecto quedo definido con JDBC en el PR #172 y esas
-                        dependencias salieron del pom, asi que estas clases no compilan.
-                        Se excluyen del build para no perderlas: siguen en el repositorio
-                        y se van sacando de esta lista a medida que se migren a JDBC.
-                    -->
-                    <excludes>
-                        <exclude>controller/InventarioController.java</exclude>
-                        <exclude>controller/PagoController.java</exclude>
-                        <exclude>dao/RecetaDAO.java</exclude>
-                        <exclude>entity/Mesero.java</exclude>
-                        <exclude>entity/Pago.java</exclude>
-                        <exclude>modelo/Receta.java</exclude>
-                        <exclude>modelo/RecetaDetalle.java</exclude>
-                        <exclude>repository/DetallePedidoRepository.java</exclude>
-                        <exclude>repository/MeseroRepository.java</exclude>
-                        <exclude>repository/PagoRepository.java</exclude>
-                        <exclude>service/PagoService.java</exclude>
-                        <!-- Inventario migrado a JDBC: salieron de excludes
-                             Ingrediente, MovimientoInventario, AlertaInventario,
-                             sus repositories e InventarioService.
-                             PlatoIngrediente + repository eliminados del proyecto
-                             (cubiertos por PlatoInsumo / productos.ingredientes). -->
-                    </excludes>
                 </configuration>
             </plugin>
             <plugin>
