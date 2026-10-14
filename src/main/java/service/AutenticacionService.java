@@ -94,8 +94,7 @@ public class AutenticacionService {
                 );
             }
 
-            SesionUsuario.iniciarSesion(
-                    usuario.idUsuario(),
+            SesionUsuario.getInstance().iniciarSesion(usuario.idUsuario(), //cambio para singleton de session
                     usuario.nombreCompleto(),
                     usuario.nombre_rol()
             );
