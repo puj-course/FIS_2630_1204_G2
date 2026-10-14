@@ -761,7 +761,7 @@ public class MapaSalonController {
             return;
         }
 
-        if (!SesionUsuario.estaAutenticado()) {
+        if (!SesionUsuario.getInstance().estaAutenticado()) { //cambio por singleton
             mostrarError("No hay un mesero autenticado.");
             return;
         }
@@ -777,7 +777,7 @@ public class MapaSalonController {
 
             controller.configurarMesa(
                     mesaSeleccionada.getIdMesa(),
-                    SesionUsuario.getUsuarioId()
+                    SesionUsuario.getInstance().getUsuarioId() //cambio por singleton sesión usuario
             );
 
             Stage ventana = new Stage();
