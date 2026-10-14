@@ -624,7 +624,7 @@ public class MapaSalonController {
 
     private void cambiarEstadoMesa(Mesa mesa) {
         List<String> estados = List.of(
-                "LIBRE",
+                "DISPONIBLE",
                 "OCUPADA",
                 "RESERVADA"
         );
