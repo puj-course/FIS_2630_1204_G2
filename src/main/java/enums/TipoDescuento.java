@@ -47,3 +47,4 @@ public enum TipoDescuento {
     public String toString() {
         return nombre;
     }
+}
