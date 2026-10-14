@@ -2,6 +2,7 @@ package controller;
 
 import dao.PagoDAO;
 import dto.CuentaPago;
+import enums.TipoDescuento;
 import session.SesionUsuario;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -23,6 +24,7 @@ public class CajeroPagoController {
     @FXML private Label subtotalLabel;
     @FXML private Label impuestosLabel;
     @FXML private Label subtotalResumenLabel;
+    @FXML private ComboBox<TipoDescuento> tipoDescuentoCombo;
     @FXML private Label impuestosResumenLabel;
     @FXML private TextField descuentoField;
     @FXML private TextField motivoDescuentoField;
@@ -42,6 +44,11 @@ public class CajeroPagoController {
 
     @FXML
     public void initialize() {
+        // se implementa el patrón Strategy para calcular las formas en que se calcula y el cajero pueda elegir
+
+        tipoDescuentoCombo.getItems().addAll(TipoDescuento.values());
+        tipoDescuentoCombo.getSelectionModel().selectFirst();
+        tipoDescuentoCombo.valueProperty().addListener((obs, anterior, nuevo) -> recalcular());
         limpiarCuenta();
 
         descuentoField.textProperty().addListener((obs, anterior, nuevo) -> recalcular());
@@ -97,6 +104,8 @@ public class CajeroPagoController {
         impuestosLabel.setText(moneda.format(cuentaActual.getImpuestos()));
         subtotalResumenLabel.setText(moneda.format(cuentaActual.getSubtotal()));
         impuestosResumenLabel.setText(moneda.format(cuentaActual.getImpuestos()));
+        // El descuento guardado ya está en pesos: se muestra como monto fijo.
+        tipoDescuentoCombo.getSelectionModel().selectFirst();
         descuentoField.setText(cuentaActual.getDescuento().setScale(2, RoundingMode.HALF_UP).toPlainString());
         propinaField.setText(cuentaActual.getPropina().setScale(2, RoundingMode.HALF_UP).toPlainString());
         motivoDescuentoField.clear();
@@ -122,7 +131,11 @@ public class CajeroPagoController {
             return;
         }
 
-        BigDecimal descuento = leerValor(descuentoField.getText());
+        BigDecimal valorDescuento = leerValor(descuentoField.getText());
+        // El valor escrito se convierte a pesos con la estrategia elegida.
+        BigDecimal descuento = valorDescuento == null
+                ? null
+                : tipoDescuentoCombo.getValue().calcular(cuentaActual.getSubtotal(), valorDescuento);
         BigDecimal propina = leerValor(propinaField.getText());
 
         if (descuento == null || propina == null) {
@@ -172,6 +185,7 @@ public class CajeroPagoController {
 
     @FXML
     private void eliminarDescuento() {
+        tipoDescuentoCombo.getSelectionModel().selectFirst();
         descuentoField.setText("0.00");
         motivoDescuentoField.clear();
     }
@@ -254,6 +268,7 @@ public class CajeroPagoController {
         impuestosLabel.setText(moneda.format(BigDecimal.ZERO));
         subtotalResumenLabel.setText(moneda.format(BigDecimal.ZERO));
         impuestosResumenLabel.setText(moneda.format(BigDecimal.ZERO));
+        tipoDescuentoCombo.getSelectionModel().selectFirst();
         descuentoField.setText("0.00");
         motivoDescuentoField.clear();
         propinaField.setText("0.00");
@@ -264,6 +279,7 @@ public class CajeroPagoController {
     }
 
     private void setEdicionCuenta(boolean habilitada) {
+        tipoDescuentoCombo.setDisable(!habilitada);
         descuentoField.setDisable(!habilitada);
         motivoDescuentoField.setDisable(!habilitada);
         propinaField.setDisable(!habilitada);
