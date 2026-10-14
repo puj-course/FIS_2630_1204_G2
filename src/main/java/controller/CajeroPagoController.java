@@ -48,7 +48,7 @@ public class CajeroPagoController {
         propinaField.textProperty().addListener((obs, anterior, nuevo) -> recalcular());
         motivoDescuentoField.textProperty().addListener((obs, anterior, nuevo) -> recalcular());
 
-        if (!SesionUsuario.estaAutenticado() || !SesionUsuario.esCajero()) {
+        if (!SesionUsuario.getInstance().estaAutenticado() || !SesionUsuario.getInstance().esCajero()) { //cambio a instance por singleton
             cajeroLabel.setText("Sin sesión de Cajero");
             bloquearPantalla(true);
             Platform.runLater(() -> mostrarAlerta(
@@ -57,7 +57,7 @@ public class CajeroPagoController {
                     "Debe iniciar sesión con el rol Cajero para gestionar pagos."
             ));
         } else {
-            cajeroLabel.setText(SesionUsuario.getNombre());
+            cajeroLabel.setText(SesionUsuario.getInstance().getNombre()); //cambio por singleton inicio sesión
             bloquearPantalla(false);
         }
     }
@@ -205,7 +205,7 @@ public class CajeroPagoController {
         try {
             pagoDAO.cerrarPago(
                     cuentaActual,
-                    SesionUsuario.getUsuarioId(),
+                    SesionUsuario.getInstance().getUsuarioId(), //cambio por singleton iniciar sesión
                     motivoDescuentoField.getText()
             );
 
