@@ -1,6 +1,6 @@
 package controller;
 
-import dao.DisponibilidadDAO;
+
 import dao.ProductoDAO;
 import dto.ItemPedido;
 import entity.Producto;
@@ -13,7 +13,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import entity.Pedido;
 import service.PedidoService;
-import service.InventarioService;
+import service.PedidoFacade;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -35,8 +35,7 @@ public class MenuMeseroController {
     @FXML private Label resultadosLabel;
 
     private final PedidoService pedidoService = new PedidoService();
-    private final InventarioService inventarioService =
-            new InventarioService();
+    private final PedidoFacade pedidoFacade = new PedidoFacade();
     private Long mesaId;
     private Long usuarioId;
     private Pedido pedidoActual;
@@ -44,8 +43,6 @@ public class MenuMeseroController {
     private static final String TODAS_LAS_CATEGORIAS = "Todas";
 
     private final ProductoDAO productoDAO = new ProductoDAO();
-    private final DisponibilidadDAO disponibilidadDAO =
-            new DisponibilidadDAO();
 
     private final Map<Long, ItemPedido> pedido =
             new LinkedHashMap<>();
@@ -529,27 +526,16 @@ public class MenuMeseroController {
             alerta.showAndWait();
             return;
         }
-
-        Map<Long, Integer> lineas = new LinkedHashMap<>();
-        BigDecimal subtotal = BigDecimal.ZERO;
-        for (ItemPedido item : pedido.values()) {lineas.put(item.getProducto().getProductoId(), item.getCantidad());subtotal = subtotal.add(item.getSubtotal());
-        }
-        final BigDecimal subtotalFinal = subtotal;
+        
+final BigDecimal subtotalFinal = pedidoFacade.calcularSubtotal(pedido.values());
         Task<List<String>> tarea = new Task<>() {
             @Override
             protected List<String> call() throws SQLException {
-                System.out.println(">>> INICIANDO VALIDACION " + "DE INVENTARIO");
-                List<String> resultado = disponibilidadDAO.faltantesDelPedido(lineas);
-                System.out.println(">>> VALIDACION TERMINADA: " + resultado);
-                return resultado;
+                return pedidoFacade.validarDisponibilidad(pedido.values());
             }
         };
         tarea.setOnSucceeded(e -> {
             List<String> faltantes = tarea.getValue();
-            /*
-             * Primero mostramos los ingredientes/productos
-             * que no tienen disponibilidad suficiente.
-             */
             if (!faltantes.isEmpty()) {
                 Alert alerta = new Alert(Alert.AlertType.WARNING);
                 alerta.setHeaderText("El pedido completo " + "no se puede preparar");
@@ -558,98 +544,10 @@ public class MenuMeseroController {
                 cargarMenu();
                 return;
             }
-
-            /*
-             * Construimos el JSON completo del pedido.
-             */
-            StringBuilder json = new StringBuilder();
-            json.append("[");
-            boolean primero = true;
-            for (ItemPedido item : pedido.values()) {
-                if (!primero) {json.append(",");
-                }
-                json.append("{")
-                        .append("\"producto_id\":")
-                        .append(item.getProducto().getProductoId())
-                        .append(",")
-                        .append("\"cantidad\":")
-                        .append(item.getCantidad())
-                        .append(",")
-                        .append("\"precio_unitario\":")
-                        .append(item.getProducto().getPrecioVenta())
-                        .append(",")
-                        .append("\"subtotal\":")
-                        .append(item.getSubtotal())
-                        .append("}");
-                primero = false;
-            }
-            json.append("]");
-            /*
-             * Indica si tuvimos que crear un pedido nuevo.
-             *
-             * Si el descuento falla en un pedido recién creado,
-             * podremos cancelarlo para no dejar una comanda vacía
-             * ocupando la mesa.
-             */
-            boolean pedidoNuevo = pedidoActual == null || pedidoActual.getId() == null;
             try {
-                /*
-                 * Busca el pedido activo.
-                 *
-                 * Si ya existe, utiliza ese mismo pedido.
-                 * Si no existe, crea uno nuevo.
-                 */
-                pedidoActual = pedidoService.obtenerOCrearPedido(mesaId, usuarioId);
-                /*
-                 * Seguridad adicional:
-                 * volvemos a comprobar que el inventario
-                 * no haya sido descontado.
-                 */
-                if (pedidoActual.isInventarioDescontado()) {
-                    Alert alerta = new Alert(Alert.AlertType.WARNING);
-                    alerta.setTitle("Pedido ya confirmado");
-                    alerta.setHeaderText("El inventario ya fue descontado");
-                    alerta.setContentText("Este pedido ya tiene registrado " + "el descuento de inventario.");
-                    alerta.showAndWait();
-                    return;
-                }
-                /*
-                 * Guardamos los datos actuales del pedido
-                 * antes de descontar el inventario.
-                 */
-                pedidoActual.setProductos(json.toString());
-                pedidoActual.setSubtotal(subtotalFinal);
-                pedidoActual.setTotal(subtotalFinal);
-                /*
-                 * Primero actualizamos el pedido para asegurarnos
-                 * de que existe y tiene su información completa.
-                 */
-                pedidoService.actualizarPedido(pedidoActual);
-                /*
-                 * AHORA SE REALIZA EL DESCUENTO REAL DEL INVENTARIO.
-                 *
-                 * InventarioService:
-                 * - obtiene las recetas
-                 * - calcula cantidades
-                 * - bloquea los ingredientes
-                 * - verifica stock
-                 * - descuenta stock
-                 * - registra movimientos SALIDA
-                 */
-                System.out.println(">>> INICIANDO DESCUENTO REAL DE INVENTARIO");
-                inventarioService.descontarIngredientes(pedidoActual.getId(), lineas, usuarioId);
-                System.out.println(">>> DESCUENTO DE INVENTARIO COMPLETADO");
-                /*
-                 * Marcamos el pedido para indicar que sus
-                 * ingredientes ya fueron descontados.
-                 */
-                pedidoActual.setInventarioDescontado(true);
-                /*
-                 * Guardamos nuevamente el pedido con:
-                 *
-                 * inventario_descontado = '1'
-                 */
-                pedidoService.actualizarPedido(pedidoActual);
+                // Una sola llamada: la fachada coordina pedido, inventario y rollback.
+                pedidoActual = pedidoFacade.confirmarPedido(mesaId, usuarioId, pedido.values());
+ 
                 Alert alerta = new Alert(Alert.AlertType.INFORMATION);
                 alerta.setTitle("Pedido actualizado");
                 alerta.setHeaderText("Pedido registrado correctamente");
@@ -665,24 +563,8 @@ public class MenuMeseroController {
                                 + moneda.format(subtotalFinal)
                                 + "\n\nInventario descontado correctamente.");
                 alerta.showAndWait();
-                /*
-                 * Actualizamos la interfaz para que los controles
-                 * de modificación queden bloqueados.
-                 */
                 actualizarPedido();
             } catch (Exception ex) {
-                /*
-                 * Si acabábamos de crear el pedido y el descuento
-                 * falla, cancelamos ese pedido para no dejar
-                 * una comanda vacía ocupando la mesa.
-                 */
-                if (pedidoNuevo && pedidoActual != null && pedidoActual.getId() != null) {
-                    try {pedidoService.cancelarPedido(pedidoActual.getId(), "DISPONIBLE");
-                        pedidoActual = null;
-                    } catch (Exception errorCancelacion) {
-                        System.err.println(">>> NO SE PUDO CANCELAR " + "EL PEDIDO CREADO: " + errorCancelacion.getMessage());
-                    }
-                }
                 mostrarError(ex);
             }
         });

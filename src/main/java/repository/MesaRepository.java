@@ -479,8 +479,8 @@ public class MesaRepository {
      * Genera el código de una mesa.
      */
     private String generarCodigoMesa(int idZona, int numeroMesa) {
-        return String.format("M-%02d-%02d", idZona, numeroMesa);
-    }
+    return String.format("MESA-%03d", numeroMesa);
+}
 
     /**
      * Cambia el estado usando una conexión existente.

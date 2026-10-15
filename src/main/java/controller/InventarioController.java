@@ -216,7 +216,7 @@ public class InventarioController {
         try {
 
             List<Ingrediente> lista =
-                    ingredienteRepository.findAllActivos();
+                    ingredienteRepository.findActivos();
 
             ingredientes.setAll(lista);
 
@@ -252,9 +252,7 @@ public class InventarioController {
         try {
 
             List<Ingrediente> resultados =
-                    ingredienteRepository.findActivosPorNombre(
-                            texto.trim()
-                    );
+                    ingredienteRepository.findActivosPorNombre(texto.trim());
 
             ingredientes.setAll(resultados);
 
