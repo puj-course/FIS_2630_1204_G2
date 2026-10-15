@@ -19,8 +19,8 @@ public class InventarioService {
     /**
      * Descuenta los ingredientes correspondientes a una comanda.
      *
-     * El cálculo se realiza utilizando la receta almacenada
-     * en productos.ingredientes.
+     * El cálculo se realiza utilizando la receta oficial
+     * almacenada en plato_insumo.
      */
     public void descontarIngredientes(
             long pedidoId,

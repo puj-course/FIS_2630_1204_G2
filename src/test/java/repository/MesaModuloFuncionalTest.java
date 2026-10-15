@@ -62,15 +62,16 @@ class MesaModuloFuncionalTest {
     // ------------------------------------------------------------------
 
     @BeforeAll
-    static void prepararDatos() {
+    static void prepararDatos() throws SQLException {
         try (Connection conn = ConexionBD.getConnection()) {
             asegurarEstados(conn);
             idZona = crearZonaDePrueba(conn);
             idMesaCuatro = crearMesa(conn, NUMERO_BASE + 1, 4);
             idMesaDos = crearMesa(conn, NUMERO_BASE + 2, 2);
         } catch (SQLException e) {
-            Assumptions.abort("No hay base de datos disponible, se omiten las pruebas "
-                    + "del modulo de mesas: " + e.getMessage());
+            System.err.println("ERROR preparando las pruebas de mesas:");
+            e.printStackTrace();
+            throw e;
         }
     }
 
@@ -346,8 +347,8 @@ class MesaModuloFuncionalTest {
     private static void asegurarEstados(Connection conn) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement(
                 "INSERT INTO estados_mesa (codigo_estado, descripcion) " +
-                "SELECT ?, ? WHERE NOT EXISTS " +
-                "  (SELECT 1 FROM estados_mesa WHERE UPPER(codigo_estado) = ?)")) {
+                        "SELECT ?, ? WHERE NOT EXISTS " +
+                        "  (SELECT 1 FROM estados_mesa WHERE UPPER(codigo_estado) = ?)")) {
 
             for (String[] estado : new String[][]{
                     {"LIBRE", "Libre"}, {"OCUPADA", "Ocupada"}, {"RESERVADA", "Reservada"}}) {
