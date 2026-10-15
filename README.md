@@ -86,10 +86,8 @@ FIS_2630_1204_G2/
 ├── mvnw.cmd
 └── pom.xml
 ```
-
 BOILERPLATE_template.md documenta la estructura del repositorio: qué carpetas existen, qué contiene cada una y qué responsabilidad cumple. Describe la organización en capas del código fuente, el contenido de db con las definiciones de tablas, migraciones y datos de prueba, la documentación en docs, los scripts de instalación y los archivos de configuración de la raíz.
 
-Su propósito es que cualquier persona que llegue al proyecto sepa dónde buscar y dónde ubicar lo que escriba, sin tener que recorrer el repositorio ni preguntarle al equipo.
 ---
 
 ## Requisitos
