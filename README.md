@@ -37,47 +37,54 @@ El problema que busca solucionar es la falta de organización y trazabilidad que
 
 ```text
 FIS_2630_1204_G2/
-├── pom.xml                    Aplicación de escritorio (JavaFX + Maven)
-├── src/
-│   ├── main/java/
-│   │   ├── Main.java          Menú principal: abre cada módulo en su ventana
-│   │   ├── conf/              Conexión a PostgreSQL del módulo de salón
-│   │   ├── controller/        Controladores de las vistas JavaFX
-│   │   ├── dao/               Acceso a datos con JDBC
-│   │   ├── database/          Conexión a PostgreSQL del resto de módulos
-│   │   ├── dto/               Objetos que se pasan entre capas
-│   │   ├── entity/            Entidades del dominio
-│   │   ├── enums/             Enumeraciones (todavía sin contenido)
-│   │   ├── exceptions/        Excepciones propias (todavía sin contenido)
-│   │   ├── models/            Modelos del módulo de registro
-│   │   ├── repositories/      Consultas del módulo de registro
-│   │   ├── repository/        Consultas del módulo de salón
-│   │   ├── service/           Reglas de negocio del módulo de salón
-│   │   ├── services/          Reglas de negocio del módulo de registro
-│   │   ├── session/           Usuario autenticado
-│   │   └── util/              Utilidades sin dependencias
-│   ├── main/resources/        Vistas FXML y hojas de estilo
-│   ├── test/java/             Pruebas unitarias con JUnit 5
-│   └── tests/                 Repositorios del módulo de datos
-│
-├── db/                        Base de datos
-│   ├── ddl/                   Una tabla por archivo, con su README
-│   ├── functions/             Funciones almacenadas
-│   └── migrations/            Cambios sobre bases ya creadas
-│
+├── .github/
+│   ├── workflows/
+│   │   └── ci.yml
+│   └── pull_request_template.md
+├── .mvn/
+│   └── wrapper/
+├── db/
+│   ├── ddl/
+│   ├── functions/
+│   └── migrations/
 ├── docs/
-│   ├── aplicacion.md          Módulos implementados y cómo ejecutarlos
-│   ├── Cliente.md             Documentación por módulo
-│   ├── Inventario.md
-│   ├── Mesas.md
-│   ├── Pedido.md
-│   ├── Usuario.md
-│   └── database/              Diagrama entidad-relación y documentación del modelo
-│
-├── conf/                      Configuración común y script de carga de la base
-├── BOILERPLATE_template.md    Plantilla de estructura para proyectos del curso
+│   ├── Imagenes/
+│   ├── database/
+│   └── pruebas/
+├── scripts/
+│   └── setup.sh
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   ├── ConexionBD/
+│   │   │   ├── controller/
+│   │   │   ├── dao/
+│   │   │   ├── dto/
+│   │   │   ├── entity/
+│   │   │   ├── enums/
+│   │   │   ├── exceptions/
+│   │   │   ├── repository/
+│   │   │   ├── service/
+│   │   │   ├── session/
+│   │   │   ├── util/
+│   │   │   └── Main.java
+│   │   └── resources/
+│   │       ├── css/
+│   │       └── views/
+│   └── test/
+│       └── java/
+│           ├── dto/
+│           ├── repository/
+│           └── util/
+├── .gitattributes
+├── .gitignore
+├── BOILERPLATE_template.md
+├── CONTRIBUTING.md
 ├── LICENSE
-└── README.md
+├── README.md
+├── mvnw
+├── mvnw.cmd
+└── pom.xml
 ```
 
 El proyecto Maven vive en la raíz del repositorio, así que `src/main/java`,
