@@ -495,3 +495,91 @@ for n in nadie:
     print(f'   {POR[n]["paquete"]:11} {n}{"  (excluida en pom.xml)" if n in EXCL else ""}')
 print(f'\ntablas consultadas desde el codigo: {len(usadas)} de {len(E)}')
 print('tablas sin repositorio:', sueltas or 'ninguna')
+
+# ===========================================================================
+# 13 y 14. las versiones resumidas de los diagramas 04 y 06
+#
+# Van aqui y no en gen_componentes_simple.py porque usan las mismas tablas y
+# los mismos artefactos ya medidos arriba: duplicar la extraccion en el otro
+# script seria arriesgarse a que las dos versiones de un diagrama dejen de
+# decir lo mismo.
+# ===========================================================================
+CAB_SIMPLE = '''@startuml
+allowmixing
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 6
+skinparam nodesep 28
+skinparam ranksep 70
+skinparam ArrowColor #475569
+skinparam ArrowThickness 1.1
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentFontSize 12
+skinparam ComponentBorderColor #334155
+skinparam ArtifactBackgroundColor #FFFFFF
+skinparam ArtifactFontSize 12
+skinparam DatabaseBackgroundColor #FFFFFF
+'''
+COLOR_CAPA = {'ui': '#DBEAFE', 'negocio': '#DCFCE7', 'datos': '#FFEDD5',
+              'conexion': '#F1F5F9', 'apoyo': '#F3E8FF'}
+
+# --- 13: resumen de 04, una caja por componente y una por tabla ------------
+L = [CAB_SIMPLE]
+puesta = set()
+for n in sorted(sql):
+    L.append(f'component "{n}" as {ali(n)} '
+             f'{COLOR_CAPA[SUB[POR[n]["paquete"]]]}')
+    # la tabla se declara justo detras del componente que la toca: asi
+    # graphviz los pone enfrentados y las flechas salen cortas
+    for t in sorted(sql[n]['tablas']):
+        if t not in puesta:
+            puesta.add(t)
+            L.append(f'database "{t}" as T_{t}')
+for n in sorted(sql):
+    for t in sorted(sql[n]['tablas']):
+        L.append(f'{ali(n)} {"-->" if t in sql[n]["escribe"] else "..>"} T_{t}')
+L.append('@enduml')
+open(f'{DIR}/13_Simple_Datos.puml', 'w', encoding='utf-8').write(
+    '\n'.join(L) + '\n')
+
+# --- 14: resumen de 06, los archivos agrupados por carpeta -----------------
+# aqui si se dibujan las cajas de carpeta: son tres y sin ellas los paquetes
+# que no tienen flecha quedan sueltos por el dibujo sin decir donde viven
+L = [CAB_SIMPLE.replace('left to right direction', 'top to bottom direction')]
+L.append('package "src/main/java" #F8FAFC {')
+for p_ in sorted(porpaq):
+    dir_ = '(raiz)' if p_ == '(raiz)' else p_ + '/'
+    d_real = (REPO + '/src/main/java') if p_ == '(raiz)' \
+        else f'{REPO}/src/main/java/{p_}'
+    njava = len(glob.glob(f'{d_real}/*.java')) if os.path.isdir(d_real) \
+        else len(porpaq[p_])
+    L.append(f'  artifact "{dir_}\\n<size:10>{njava} .java</size>" as '
+             f'J_{ali(p_)} {COLOR_CAPA[SUB[p_]]}')
+js = [f'J_{ali(p_)}' for p_ in sorted(porpaq)]
+for i_ in range(1, len(js)):
+    L.append(f'  {js[i_-1]} -[hidden]right- {js[i_]}')
+L.append('}')
+n_fxml, n_css = len(PAREJA), len(set(CSS.values()) | set(CSS_MAIN))
+L.append('package "src/main/resources" #FEF9C3 {')
+L.append(f'  artifact "views/\\n<size:10>{n_fxml} .fxml</size>" as A_fxml')
+L.append(f'  artifact "css/\\n<size:10>{n_css} .css</size>" as A_css')
+L.append('  A_fxml -[hidden]right- A_css')
+L.append('}')
+n_db = len(glob.glob(REPO + '/db/ddl/*.ddl')) \
+    + len(glob.glob(REPO + '/db/migrations/*.sql')) \
+    + len(glob.glob(REPO + '/db/functions/*')) + 1
+L.append('package "db" #DCFCE7 {')
+L.append(f'  artifact "scripts\\n<size:10>{n_db} archivos</size>" as A_db')
+L.append('}')
+L.append(f'database "**gastroflow**\\n<size:10>{len(E)} tablas</size>" as bd')
+L.append(f'A_fxml ..> J_controller : {n_fxml}')
+L.append(f'J_{ali("(raiz)")} ..> A_css : {len(CSS) + len(CSS_MAIN)}')
+L.append('A_db --> bd')
+L.append('J_ConexionBD --> bd')
+L.append('@enduml')
+open(f'{DIR}/14_Simple_Artefactos.puml', 'w', encoding='utf-8').write(
+    '\n'.join(L) + '\n')
+print(f'resumenes: 13_Simple_Datos ({len(sql)} componentes, {len(puesta)} '
+      f'tablas)   14_Simple_Artefactos ({len(porpaq) + 4} cajas)')

@@ -1,6 +1,6 @@
 # Diagramas de componentes
 
-Documentan en qué piezas sustituibles está dividido el sistema y cómo dependen unas de otras, con las operaciones que cada componente provee y los archivos que lo forman. Las interfaces no son un diseño sobre el papel: cada una corresponde a las llamadas que de verdad cruzan el límite entre dos componentes. Cuatro de las vistas llevan debajo una versión resumida, con una caja por componente y una flecha por dependencia, para leerlas de un vistazo.
+Documentan en qué piezas sustituibles está dividido el sistema y cómo dependen unas de otras, con las operaciones que cada componente provee y los archivos que lo forman. Las interfaces no son un diseño sobre el papel: cada una corresponde a las llamadas que de verdad cruzan el límite entre dos componentes. Seis de las ocho vistas llevan debajo una versión resumida, con una caja por componente y una flecha por dependencia, para leerlas de un vistazo.
 
 ---
 
@@ -42,7 +42,7 @@ Documentan en qué piezas sustituibles está dividido el sistema y cómo depende
 
 **Qué muestra.** Son 29 componentes y 16 tablas, con 36 conexiones, y cada flecha sale de una consulta real. Los tres DAO aparecen aquí junto a los repositorios porque hacen lo mismo: ejecutar SQL. Las tablas que solo toca un componente son las de bajo riesgo; las compartidas van en el diagrama siguiente.
 
----
+![Qué tabla toca cada componente de datos](Imagenes/DiagramaComponentes_S5_Datos.png)
 
 ## Las tablas que escriben varios componentes
 
@@ -62,7 +62,7 @@ Documentan en qué piezas sustituibles está dividido el sistema y cómo depende
 
 **Qué muestra.** Son 24 artefactos y 18 relaciones. Relaciona los paquetes de código, los .fxml, las hojas de estilo y los recursos con el componente al que pertenecen. Sirve de índice para localizar dónde se implementa cada pieza.
 
----
+![En qué carpeta vive cada componente](Imagenes/DiagramaComponentes_S6_Artefactos.png)
 
 ## Las tres piezas de las que depende medio sistema
 

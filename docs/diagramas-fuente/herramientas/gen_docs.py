@@ -226,6 +226,14 @@ COMPONENTES_SIMPLE = [
      'ConexionBD, SesionUsuario y TextoBusqueda, con el número de componentes '
      'de cada capa que las usan. ConexionBD es con diferencia la más usada, '
      'porque sin ORM cada repositorio abre su propia conexión.'),
+    ('puml_componentes/13_Simple_Datos.puml',
+     'DiagramaComponentes_S5_Datos',
+     'Qué tabla toca cada componente de datos',
+     'resumen', 'resumen'),
+    ('puml_componentes/14_Simple_Artefactos.puml',
+     'DiagramaComponentes_S6_Artefactos',
+     'En qué carpeta vive cada componente',
+     'resumen', 'resumen'),
 ]
 
 COMPONENTES = [
@@ -388,6 +396,8 @@ DEBAJO_DE = {
     'DiagramaComponentes_UI': 'DiagramaComponentes_S2_UI',
     'DiagramaComponentes_Negocio': 'DiagramaComponentes_S3_Negocio',
     'DiagramaComponentes_Infraestructura': 'DiagramaComponentes_S4_Apoyo',
+    'DiagramaComponentes_Datos': 'DiagramaComponentes_S5_Datos',
+    'DiagramaComponentes_Artefactos': 'DiagramaComponentes_S6_Artefactos',
 }
 POR_NOMBRE = {d[1]: d for d in COMPONENTES_SIMPLE}
 COMPONENTES_MEZCLA = []
@@ -411,7 +421,7 @@ SECCIONES = [
      'dependen unas de otras, con las operaciones que cada componente provee '
      'y los archivos que lo forman. Las interfaces no son un diseño sobre el '
      'papel: cada una corresponde a las llamadas que de verdad cruzan el '
-     'límite entre dos componentes. Cuatro de las vistas llevan debajo una '
+     'límite entre dos componentes. Seis de las ocho vistas llevan debajo una '
      'versión resumida, con una caja por componente y una flecha por '
      'dependencia, para leerlas de un vistazo.'),
     ('diagramaArquitectura.md', 'Diagrama de arquitectura', ARQUITECTURA,
