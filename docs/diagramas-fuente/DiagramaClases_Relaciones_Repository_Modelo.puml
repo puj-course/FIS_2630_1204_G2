@@ -137,12 +137,11 @@ package "entity" #F3E8FF {
   entity_ReglaDescuento -[hidden]down- entity_Zona
 }
 package "enums" #FEF9C3 {
-  enum "EstadoMesa" as enums_EstadoMesa
   enum "EstadoPedido" as enums_EstadoPedido
   enum "TipoMovimiento" as enums_TipoMovimiento
 }
 repository_AdicionalRepository -[hidden]down- entity_Adicional
-entity_Adicional -[hidden]down- enums_EstadoMesa
+entity_Adicional -[hidden]down- enums_EstadoPedido
 class JpaRepository <<externa>> #FFFFFF
 repository_DetallePedidoRepository --|> JpaRepository : <DetallePedido, Long>
 repository_MeseroRepository --|> JpaRepository : <Mesero, Long>
@@ -154,7 +153,7 @@ repository_ClienteRepository -[#7E22CE,dashed]-> entity_Cliente
 repository_DetallePedidoAdicionalRepository -[#7E22CE,dashed]-> entity_DetallePedidoAdicional
 repository_DetallePedidoRepository -[#7E22CE,dashed]-> entity_DetallePedido
 repository_EntradaInventarioRepository -[#7E22CE,dashed]-> entity_EntradaInventario
-repository_EstadoMesaRepository -[#A16207,dashed]-> entity_EstadoMesa
+repository_EstadoMesaRepository -[#7E22CE,dashed]-> entity_EstadoMesa
 repository_HistorialEstadoMesaRepository -[#7E22CE,dashed]-> entity_HistorialEstadoMesa
 repository_IngredienteRepository -[#7E22CE,dashed]-> entity_Ingrediente
 repository_MesaRepository -[#7E22CE,dashed]-> entity_Mesa

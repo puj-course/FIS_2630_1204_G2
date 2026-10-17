@@ -69,11 +69,10 @@ enums_EstadoPedido -[hidden]down- session_SesionUsuario
 session_SesionUsuario -[hidden]down- util_TextoBusqueda
 class Application <<externa>> #FFFFFF
 raiz_Main --|> Application
-controller_CajeroPagoController -[#A16207]-> "1 tipoDescuentoCombo" enums_TipoDescuento
+controller_CajeroPagoController -[#A16207]-> "* tipoDescuentoCombo" enums_TipoDescuento
 controller_CajeroPagoController -[#A16207]-> "1 cuentaActual" dto_CuentaPago
-controller_DisponibilidadAdminController -[#A16207]-> "1 tablaProductos\ncolCodigo\ncolNombre\ncolCategoria\ncolEstado\ncolMotivo" dto_ProductoDisponibilidad
-controller_InventarioController -[#7E22CE]-> "1 tablaIngredientes\ncolumnaId\ncolumnaNombre\ncolumnaStock\ncolumnaStockMinimo\ncolumnaEstado\ncolumnaAlerta" entity_Ingrediente
-controller_InventarioController -[#7E22CE]-> "* ingredientes" entity_Ingrediente
+controller_DisponibilidadAdminController -[#A16207]-> "* tablaProductos\ncolCodigo\ncolNombre\ncolCategoria\ncolEstado\ncolMotivo" dto_ProductoDisponibilidad
+controller_InventarioController -[#7E22CE]-> "* tablaIngredientes\ncolumnaId\ncolumnaNombre\ncolumnaStock\ncolumnaStockMinimo\ncolumnaEstado\ncolumnaAlerta\ningredientes" entity_Ingrediente
 controller_MapaSalonController -[#7E22CE]-> "1 mesaSeleccionada" entity_Mesa
 controller_MenuMeseroController -[#7E22CE]-> "1 pedidoActual" entity_Pedido
 controller_MenuMeseroController -[#A16207]-> "* pedido" dto_ItemPedido

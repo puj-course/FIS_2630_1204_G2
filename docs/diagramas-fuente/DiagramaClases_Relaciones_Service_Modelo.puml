@@ -103,7 +103,6 @@ package "dto" #FEF9C3 {
   class "ProductoDisponibilidad" as dto_ProductoDisponibilidad
 }
 package "enums" #FEF9C3 {
-  enum "EstadoMesa" as enums_EstadoMesa
   enum "EstadoPedido" as enums_EstadoPedido
   enum "MetodoPago" as enums_MetodoPago
 }
@@ -133,8 +132,8 @@ package "session" #FEF9C3 {
 service_AdicionalService -[hidden]down- dao_DisponibilidadDAO
 dao_DisponibilidadDAO -[hidden]down- entity_Adicional
 entity_Adicional -[hidden]down- dto_CuentaPago
-dto_CuentaPago -[hidden]down- enums_EstadoMesa
-enums_EstadoMesa -[hidden]down- exceptions_AdicionalNoDisponibleException
+dto_CuentaPago -[hidden]down- enums_EstadoPedido
+enums_EstadoPedido -[hidden]down- exceptions_AdicionalNoDisponibleException
 exceptions_AdicionalNoDisponibleException -[hidden]down- session_SesionUsuario
 service_PedidoService -[#A16207]-> "* ESTADOS_YA_CERRADOS" enums_EstadoPedido
 dao_DisponibilidadDAO -[#A16207,dashed]-> dto_ProductoDisponibilidad
@@ -150,7 +149,7 @@ service_AutenticacionService -[#7E22CE,dashed]-> entity_UsuarioAutenticable
 service_DisponibilidadService -[#7E22CE,dashed]-> entity_PlatoInsumo
 service_EntradaInventarioService -[#7E22CE,dashed]-> entity_EntradaInventario
 service_InventarioService -[#A16207,dashed]-> exceptions_StockInsuficienteException
-service_MesaService -[#A16207,dashed]-> entity_EstadoMesa
+service_MesaService -[#7E22CE,dashed]-> entity_EstadoMesa
 service_MesaService -[#7E22CE,dashed]-> entity_HistorialEstadoMesa
 service_MesaService -[#7E22CE,dashed]-> entity_Mesa
 service_MesaService -[#A16207,dashed]-> exceptions_MesaNotFoundException

@@ -13,7 +13,29 @@ DIR = BASE + '/puml_clases'
 os.makedirs(DIR, exist_ok=True)
 T = json.load(open(BASE + '/clases.json', encoding='utf-8'))
 R = json.load(open(BASE + '/relaciones.json', encoding='utf-8'))
-POR = {t['nombre']: t for t in T}
+# Dos tipos pueden compartir nombre simple (entity.EstadoMesa y
+# enums.EstadoMesa). Indexar por nombre a secas hace que uno pise al otro y
+# que las flechas lleguen a la caja equivocada. Se resuelve por evidencia:
+# gana el que algun archivo importa de verdad.
+import glob as _glob
+_por_nombre = collections.defaultdict(list)
+for t in T:
+    _por_nombre[t['nombre']].append(t)
+_SRC = REPO + '/src/main/java'
+_fuentes = ' '.join(open(r, encoding='utf-8').read()
+                    for r in _glob.glob(_SRC + '/**/*.java', recursive=True)
+                    if os.path.getsize(r) > 0)
+POR, AMBIGUOS = {}, {}
+for nombre, tipos in _por_nombre.items():
+    if len(tipos) == 1:
+        POR[nombre] = tipos[0]
+        continue
+    importados = [t for t in tipos
+                  if f"import {t['paquete']}.{nombre};" in _fuentes]
+    POR[nombre] = importados[0] if len(importados) == 1 else tipos[0]
+    AMBIGUOS[nombre] = {'elegido': POR[nombre]['paquete'],
+                        'otros': [t['paquete'] for t in tipos
+                                  if t is not POR[nombre]]}
 
 COLOR = {'entity': '#F3E8FF', 'controller': '#DBEAFE', 'repository': '#FFEDD5',
          'service': '#DCFCE7', 'dao': '#DCFCE7', 'dto': '#FEF9C3',
@@ -322,9 +344,20 @@ for archivo, paquetes, destinos, con_gen in MAPAS:
     L = [CAB, 'hide members', 'hide circle',
          'skinparam linetype polyline', 'skinparam nodesep 25',
          'skinparam ranksep 70']
+    # Las cajas se eligen por el alias que de verdad usan las flechas, no por
+    # nombre simple: si no, un nombre duplicado (entity.EstadoMesa y
+    # enums.EstadoMesa) dibuja las dos y una queda suelta sin ninguna linea.
+    alias_usados = set()
+    for a in asoc:
+        alias_usados |= {_alias(a['origen']), _alias(a['destino'], a['origen'])}
+    for d in deps:
+        alias_usados |= {_alias(d['origen']), _alias(d['destino'], d['origen'])}
+    for h, _p, _a in gens:
+        alias_usados.add(_alias(h))
     porpaq = collections.defaultdict(list)
     for t in T:
-        if t['nombre'] in tocadas:
+        if t['nombre'] in tocadas and \
+                f"{_id(t['paquete'])}_{t['nombre']}" in alias_usados:
             porpaq[t['paquete']].append(t)
     # los paquetes se apilan en el orden de las capas: si se dejan uno al lado
     # del otro el dibujo sale larguisimo y las lineas se superponen

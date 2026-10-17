@@ -180,7 +180,7 @@ PERM = set('''startuml enduml allowmixing skinparam backgroundcolor shadowing
  excluye piezas usa todo sistema para lea consumidores agrupados
  dice cuantos son pantalla aparecen llaman otra compartidas
  pertenecen ninguna casi todo pocos triangulo rojo ejecutarse
- incluye fuera llega codigo ese sus
+ incluye fuera llega codigo ese sus paquetes dibujan
  fuera subsistema archivos raiz modulos nombre true false'''.split())
 # la leyenda es explicacion en castellano y los alias "as X" son nombres
 # internos que yo elijo: lo que tiene que salir del repositorio es el texto

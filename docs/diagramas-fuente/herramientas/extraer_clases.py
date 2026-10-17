@@ -30,13 +30,19 @@ def modificadores(n, src):
     return []
 
 
-def visibilidad(mods, kind=None):
+def visibilidad(mods, kind=None, constructor=False):
     for m in mods:
         if m in VIS:
             return VIS[m]
     # en una interfaz y en una anotacion, un miembro sin modificador es
     # publico por definicion del lenguaje, no package-private
-    return '+' if kind in ('interface', 'annotation') else '~'
+    if kind in ('interface', 'annotation'):
+        return '+'
+    # el constructor de un enum sin modificador es privado (JLS 8.9.2), no
+    # package-private: no se puede instanciar desde fuera
+    if constructor and kind == 'enum':
+        return '-'
+    return '~'
 
 
 def nombre_de(n, src):
@@ -96,7 +102,7 @@ def miembros(cuerpo, src, kind=None):
             mods = modificadores(h, src)
             metodos.append({'nombre': nombre_de(h, src), 'retorno': '',
                             'params': parametros(h, src),
-                            'vis': visibilidad(mods),
+                            'vis': visibilidad(mods, kind, constructor=True),
                             'static': False, 'abstract': False,
                             'constructor': True})
     return campos, metodos

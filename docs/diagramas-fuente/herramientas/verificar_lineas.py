@@ -11,8 +11,14 @@ NOMBRES = set(POR)
 DIBUJO = ''.join(open(f, encoding='utf-8').read()
                  for f in glob.glob(DIAG + '/puml_clases/*_rel_*.puml'))
 
-COLEC = ('List', 'ArrayList', 'Set', 'HashSet', 'LinkedHashSet', 'Collection',
-         'Map', 'HashMap', 'LinkedHashMap', 'ObservableList', 'Queue', 'Deque')
+COLEC = ('List', 'ArrayList', 'LinkedList', 'Set', 'HashSet', 'LinkedHashSet',
+         'TreeSet', 'Collection', 'Iterable', 'Queue', 'Deque',
+         'Map', 'HashMap', 'LinkedHashMap', 'TreeMap',
+         'ObservableList', 'ObservableSet', 'ObservableMap',
+         # controles JavaFX parametrizados por el tipo de elemento: un
+         # ComboBox<T> o un TableView<T> contienen 0..* de T, no uno
+         'ComboBox', 'ChoiceBox', 'TableView', 'TableColumn',
+         'ListView', 'TreeView', 'TreeTableView')
 fallos = []
 
 

@@ -40,7 +40,7 @@ Documentan en qué piezas sustituibles está dividido el sistema y cómo depende
 
 **Por qué está.** Sin ORM esta correspondencia solo existe dentro de las cadenas de SQL. Hacerla explícita es lo que permite saber el impacto de cambiar una tabla antes de cambiarla.
 
-**Qué muestra.** Son 27 componentes y 16 tablas, con 34 conexiones, y cada flecha sale de una consulta real. Los tres DAO aparecen aquí junto a los repositorios porque hacen lo mismo: ejecutar SQL. Las tablas que solo toca un componente son las de bajo riesgo; las compartidas van en el diagrama siguiente.
+**Qué muestra.** Son 39 componentes y 16 tablas, con 36 conexiones, y cada flecha sale de una consulta real. Los tres DAO aparecen aquí junto a los repositorios porque hacen lo mismo: ejecutar SQL. Las tablas que solo toca un componente son las de bajo riesgo; las compartidas van en el diagrama siguiente.
 
 ---
 
@@ -50,7 +50,7 @@ Documentan en qué piezas sustituibles está dividido el sistema y cómo depende
 
 **Por qué está.** Una tabla escrita desde varios sitios es donde aparecen las inconsistencias, porque ningún componente ve lo que hacen los otros. Esta vista las aísla para poder vigilarlas.
 
-**Qué muestra.** Son 11 tablas compartidas con 30 conexiones. El caso más expuesto es movimientos_inventario, escrita desde tres repositorios distintos. También lo están pedidos y mesas, que son justamente las dos entidades cuyos estados documentamos aparte.
+**Qué muestra.** Son 11 tablas compartidas con 33 conexiones. El caso más expuesto es movimientos_inventario, escrita desde tres repositorios distintos. También lo están pedidos y mesas, que son justamente las dos entidades cuyos estados documentamos aparte.
 
 ---
 

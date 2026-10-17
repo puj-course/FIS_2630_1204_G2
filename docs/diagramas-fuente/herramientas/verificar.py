@@ -129,8 +129,14 @@ ok(not R['generalizacion'] and not R['realizacion'],
    'asi que no se dibuja ninguna herencia interna')
 
 print('\n=== 5. multiplicidad ===')
-COLEC = ('List', 'ArrayList', 'Set', 'HashSet', 'LinkedHashSet', 'Collection',
-         'Map', 'HashMap', 'LinkedHashMap', 'ObservableList')
+COLEC = ('List', 'ArrayList', 'LinkedList', 'Set', 'HashSet', 'LinkedHashSet',
+         'TreeSet', 'Collection', 'Iterable', 'Queue', 'Deque',
+         'Map', 'HashMap', 'LinkedHashMap', 'TreeMap',
+         'ObservableList', 'ObservableSet', 'ObservableMap',
+         # controles JavaFX parametrizados por el tipo de elemento: un
+         # ComboBox<T> o un TableView<T> contienen 0..* de T, no uno
+         'ComboBox', 'ChoiceBox', 'TableView', 'TableColumn',
+         'ListView', 'TreeView', 'TreeTableView')
 malm = []
 for a in R['asociacion']:
     t = POR[a['origen']]
@@ -417,10 +423,16 @@ ok(not mal, f'las capas coinciden con el diagrama de componentes ({len(mal)})')
 for x in mal[:6]:
     print('      ', x)
 
-# los dao van en acceso a datos porque ejecutan SQL y ningun service lo hace
+# los dao van en acceso a datos porque ejecutan SQL. Dos service tambien lo
+# hacen, saltandose esa capa: eso es un hallazgo del codigo, no un fallo del
+# diagrama, pero el conjunto tiene que seguir siendo exactamente ese
 sqlmap = json.load(open(BASE + '/llamadas.json', encoding='utf-8'))['sql']
-ok(all(POR[n]['paquete'] in ('dao', 'repository') for n in sqlmap),
-   f'solo repository y dao ejecutan SQL ({sorted({POR[n]["paquete"] for n in sqlmap})})')
+paq_sql = sorted({POR[n]['paquete'] for n in sqlmap})
+ok(paq_sql == ['dao', 'repository', 'service'],
+   f'ejecutan SQL exactamente {paq_sql}')
+serv_sql = sorted(n for n in sqlmap if POR[n]['paquete'] == 'service')
+ok(serv_sql == ['DisponibilidadService', 'EntradaInventarioService'],
+   f'los service que ejecutan SQL propio son {serv_sql}')
 
 # contenido de cada caja: las clases de ese paquete, todas y solo esas
 mal = []

@@ -20,8 +20,17 @@ T = json.load(open(ENTRADA, encoding='utf-8'))
 NOMBRES = {t['nombre'] for t in T}
 POR_NOMBRE = {t['nombre']: t for t in T}
 
-COLECCIONES = ('List', 'ArrayList', 'Set', 'HashSet', 'LinkedHashSet', 'Collection',
-               'Map', 'HashMap', 'LinkedHashMap', 'Optional', 'ObservableList')
+# Contenedores: el campo guarda 0..* del tipo, no uno. Los controles de
+# JavaFX parametrizados por el tipo de elemento (ComboBox<T>, TableView<T>,
+# TableColumn<T,?>) tambien lo son: un ComboBox<TipoDescuento> no contiene un
+# TipoDescuento sino todos los que se le carguen.
+COLECCIONES = ('List', 'ArrayList', 'LinkedList', 'Set', 'HashSet',
+               'LinkedHashSet', 'TreeSet', 'Collection', 'Iterable',
+               'Queue', 'Deque',
+               'Map', 'HashMap', 'LinkedHashMap', 'TreeMap', 'Optional',
+               'ObservableList', 'ObservableSet', 'ObservableMap',
+               'ComboBox', 'ChoiceBox', 'TableView', 'TableColumn',
+               'ListView', 'TreeView', 'TreeTableView')
 
 
 def tipos_en(expr):

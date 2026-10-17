@@ -21,7 +21,9 @@ skinparam DatabaseBackgroundColor #FFFFFF
 left to right direction
 package "repository + dao" #FFEDD5 {
   component "**DisponibilidadDAO**" as DisponibilidadDAO
+  component "**DisponibilidadService**" as DisponibilidadService
   component "**EntradaInventarioRepository**" as EntradaInventarioRepository
+  component "**EntradaInventarioService**" as EntradaInventarioService
   component "**EstadoMesaRepository**" as EstadoMesaRepository
   component "**IngredienteRepository**" as IngredienteRepository
   component "**InventarioRepository**" as InventarioRepository
@@ -42,9 +44,9 @@ package "tablas que tocan dos o mas repositorios · 11" #DCFCE7 {
   database "ingredientes\n<size:9>escriben 2</size>" as T_ingredientes #FFFFFF
   database "mesas\n<size:9>escriben 1</size>" as T_mesas #FFFFFF
   database "movimientos_inventario\n<size:9>escriben 3</size>" as T_movimientos_inventario #FFFFFF
-  database "pedidos\n<size:9>escriben 1</size>" as T_pedidos #FFFFFF
+  database "pedidos\n<size:9>escriben 2</size>" as T_pedidos #FFFFFF
   database "plato_insumo\n<size:9>escriben 1</size>" as T_plato_insumo #FFFFFF
-  database "productos\n<size:9>escriben 1</size>" as T_productos #FFFFFF
+  database "productos\n<size:9>escriben 3</size>" as T_productos #FFFFFF
   database "roles\n<size:9>solo lectura</size>" as T_roles #FFFFFF
   database "usuarios\n<size:9>escriben 1</size>" as T_usuarios #FFFFFF
   database "zonas\n<size:9>solo lectura</size>" as T_zonas #FFFFFF
@@ -56,13 +58,14 @@ MesaRepository ..> T_estados_mesa : lee
 ReservaRepository ..> T_estados_mesa : lee
 IngredienteRepository --> T_ingredientes : escribe
 InventarioRepository --> T_ingredientes : escribe
+DisponibilidadService ..> T_ingredientes : lee
 PagoDAO ..> T_mesas : lee
 MesaRepository --> T_mesas : escribe
 ReservaRepository ..> T_mesas : lee
 EntradaInventarioRepository --> T_movimientos_inventario : escribe
 InventarioRepository --> T_movimientos_inventario : escribe
 MovimientoInventarioRepository --> T_movimientos_inventario : escribe
-PagoDAO ..> T_pedidos : lee
+PagoDAO --> T_pedidos : escribe
 MesaRepository ..> T_pedidos : lee (en ejecucion)
 PedidoRepository --> T_pedidos : escribe
 InventarioRepository ..> T_plato_insumo : lee
@@ -71,6 +74,8 @@ DisponibilidadDAO ..> T_productos : lee
 ProductoDAO ..> T_productos : lee
 InventarioRepository ..> T_productos : lee
 PlatoRepository --> T_productos : escribe
+DisponibilidadService --> T_productos : escribe
+EntradaInventarioService --> T_productos : escribe
 PagoDAO ..> T_roles : lee
 UsuarioRepository ..> T_roles : lee
 PagoDAO ..> T_usuarios : lee

@@ -137,12 +137,19 @@ for ruta in sorted(glob.glob(SRC + '/**/*.java', recursive=True)):
 # ------------------------------------------------- SQL de cada repositorio --
 TABLAS = set(json.load(open(BASE + '/esquema.json', encoding='utf-8')))
 sql = {}
+# tambien los service: cuatro de ellos abren su propia conexion y ejecutan
+# SQL, asi que no basta con mirar repository y dao
 for t in T:
-    if t['paquete'] not in ('repository', 'dao') or t['anidada_en']:
+    if t['paquete'] not in ('repository', 'dao', 'service') or t['anidada_en']:
         continue
     texto = open(f"{SRC}/{t['archivo']}", encoding='utf-8').read()
+    texto = re.sub(r'/\*.*?\*/|//[^\n]*', '', texto, flags=re.S)
     cadenas = ' '.join(re.findall(r'"((?:\\.|[^"\\])*)"', texto)) + ' ' + \
               ' '.join(re.findall(r'"""(.*?)"""', texto, re.S))
+    # FOR UPDATE es una clausula de bloqueo, no una sentencia: si se deja, su
+    # UPDATE se come el nombre de tabla de la sentencia siguiente
+    cadenas = re.sub(r'\bFOR\s+UPDATE(\s+(?:NOWAIT|SKIP\s+LOCKED))?', ' ',
+                     cadenas, flags=re.I)
     usadas, escritas = set(), set()
     for m in re.finditer(r'\b(FROM|JOIN|INTO|UPDATE|DELETE\s+FROM)\s+([a-z_][\w]*)',
                          cadenas, re.I):

@@ -214,7 +214,7 @@ package "dto · enums · exceptions · session · util · ConexionBD · Main" {
     --
     - nombre : String
     --
-    ~ TipoDescuento(nombre : String)
+    - TipoDescuento(nombre : String)
     + {abstract} calcular(subtotal : BigDecimal, valor : BigDecimal) : BigDecimal
     + toString() : String
   }
@@ -340,13 +340,13 @@ AdicionalNoDisponibleException --|> RuntimeException
 AdicionalService -[#A16207,dashed]-> AdicionalNoDisponibleException
 AsignacionActivaException --|> RuntimeException
 AsignacionMesaService -[#A16207,dashed]-> AsignacionActivaException
+CajeroPagoController -[#A16207]-> "* tipoDescuentoCombo" TipoDescuento
 CajeroPagoController -[#A16207]-> "1 cuentaActual" CuentaPago
-CajeroPagoController -[#A16207]-> "1 tipoDescuentoCombo" TipoDescuento
 CapacidadExcedidaException --|> RuntimeException
 CocinaController -[#A16207,dashed]-> EstadoPedido
-DisponibilidadAdminController -[#A16207]-> "1 tablaProductos\ncolCodigo\ncolNombre\ncolCategoria\ncolEstado\ncolMotivo" ProductoDisponibilidad
+DisponibilidadAdminController -[#A16207]-> "* tablaProductos\ncolCodigo\ncolNombre\ncolCategoria\ncolEstado\ncolMotivo" ProductoDisponibilidad
 DisponibilidadDAO -[#A16207,dashed]-> ProductoDisponibilidad
-EstadoMesaRepository -[#A16207,dashed]-> EstadoMesa
+EstadoMesaRepository -[#7E22CE,dashed]-> EstadoMesa
 InventarioService -[#A16207,dashed]-> StockInsuficienteException
 ItemPedido o-[#7E22CE]-> "1 producto" Producto
 Main --|> Application
@@ -354,7 +354,7 @@ Main -[#475569]-> "* MODULOS" Modulo
 MenuMeseroController -[#A16207]-> "* pedido" ItemPedido
 MesaNotFoundException --|> RuntimeException
 MesaOcupadaException --|> RuntimeException
-MesaService -[#A16207,dashed]-> EstadoMesa
+MesaService -[#7E22CE,dashed]-> EstadoMesa
 MesaService -[#A16207,dashed]-> MesaNotFoundException
 MovimientoInventario -[#A16207]-> "1 tipoMovimiento" TipoMovimiento
 MovimientoInventarioRepository -[#A16207,dashed]-> TipoMovimiento

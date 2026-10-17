@@ -27,8 +27,10 @@ EXCL = {l.strip().rsplit('/', 1)[-1].replace('.java', '')
 PAQ_COMP = ('controller', 'service', 'dao', 'repository', 'ConexionBD',
             'session', 'util', '(raiz)')
 # Las capas son las mismas que en el diagrama de arquitectura. dao va en
-# acceso a datos, no en negocio: los tres DAO ejecutan SQL directamente y
-# ningun service lo hace.
+# acceso a datos, no en negocio: los tres DAO ejecutan SQL directamente.
+# Ojo: DisponibilidadService y EntradaInventarioService tambien ejecutan SQL
+# propio, saltandose la capa de datos. Siguen contando como negocio por su
+# paquete, pero aparecen en el mapa componente-tabla.
 # Mismas capas que el diagrama de arquitectura: ConexionBD es su propia
 # capa y session y util son apoyo transversal.
 SUB = {'controller': 'ui', '(raiz)': 'ui', 'service': 'negocio',
@@ -298,7 +300,7 @@ PROPIAS = sorted(t for t, v in quien.items() if len(v) == 1)
 L = [CAB]
 L.append('package "Acceso a datos · repository + dao" #FFEDD5 {')
 for n in sorted(COMPONENTES):
-    if POR[n]['paquete'] not in ('repository', 'dao'):
+    if POR[n]['paquete'] not in ('repository', 'dao', 'service'):
         continue
     d = sql.get(n, {})
     extra = []
@@ -311,7 +313,11 @@ for n in sorted(COMPONENTES):
     if not d:
         extra.append('sin SQL propio')
     L += [comp(n, extra)]
-nm = [n for n in sorted(COMPONENTES) if POR[n]['paquete'] in ('repository', 'dao')]
+# tambien los service con SQL propio: si no, el mapa componente-tabla
+# esconde quien escribe de verdad en productos e ingredientes
+nm = [n for n in sorted(COMPONENTES)
+      if POR[n]['paquete'] in ('repository', 'dao')
+      or (POR[n]['paquete'] == 'service' and n in sql)]
 COLS = 4
 for i in range(len(nm)):
     if i % COLS and i:
@@ -358,7 +364,9 @@ for n in sorted(requiere):
         L.append(f'{ali(n)} ..> I_ConexionBD : <<use>> '
                  f'{len(requiere[n]["ConexionBD"])}')
 # dependencias entre componentes de la propia capa de datos
-datos_comp = {n for n in COMPONENTES if POR[n]['paquete'] in ('repository', 'dao')}
+datos_comp = {n for n in COMPONENTES
+              if POR[n]['paquete'] in ('repository', 'dao')
+              or (POR[n]['paquete'] == 'service' and n in sql)}
 for o in sorted(datos_comp):
     for d, ops in sorted(requiere[o].items()):
         if d in datos_comp:
@@ -402,10 +410,23 @@ L = [CAB]
 porpaq = collections.defaultdict(list)
 for n in COMPONENTES:
     porpaq[POR[n]['paquete']].append(n)
-L.append('package "src/main/java" #F1F5F9 {')
+# el titulo decia src/main/java pero solo se dibujan los paquetes que
+# aportan componentes: entity, dto, enums, exceptions y database quedan
+# fuera, y conviene decirlo en vez de dar a entender que estan todos
+otros = sorted({os.path.basename(d) for d in glob.glob(REPO + "/src/main/java/*")
+                if os.path.isdir(d)} - set(porpaq))
+L.append('package "src/main/java · paquetes con componentes'
+         '\\n<size:9>no se dibujan ' + ', '.join(otros)
+         + '</size>" #F1F5F9 {' if otros else
+         'package "src/main/java" #F1F5F9 {')
 for p_ in sorted(porpaq):
     dir_ = '(raiz)' if p_ == '(raiz)' else p_ + '/'
-    L.append(f'  artifact "{dir_}\\n<size:9>{len(porpaq[p_])} .java</size>"'
+    # se cuentan los .java del directorio, no los componentes: controller
+    # tiene 8 archivos y uno de ellos (PagoController) esta vacio
+    d_real = (REPO + "/src/main/java") if p_ == "(raiz)" else f"{REPO}/src/main/java/{p_}"
+    njava = len(glob.glob(f'{d_real}/*.java')) if os.path.isdir(d_real) \
+        else len(porpaq[p_])
+    L.append(f'  artifact "{dir_}\\n<size:9>{njava} .java</size>"'
              f' as J_{ali(p_)} {COLOR[SUB[p_]]}')
 js = [f'J_{ali(p_)}' for p_ in sorted(porpaq)]
 for i_ in range(1, len(js)):

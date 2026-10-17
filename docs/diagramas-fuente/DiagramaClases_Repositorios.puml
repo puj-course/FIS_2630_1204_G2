@@ -264,7 +264,7 @@ package "referencias" <<otros paquetes>> #FAFAFA {
   }
   class EntradaInventarioService <<service>> #DCFCE7 {
   }
-  enum EstadoMesa <<enums>> #FEF9C3 {
+  class EstadoMesa <<entity>> #F3E8FF {
   }
   enum EstadoPedido <<enums>> #FEF9C3 {
   }
@@ -393,7 +393,7 @@ DetallePedidoRepository -[#7E22CE,dashed]-> DetallePedido
 DisponibilidadService "1" *-[#C2410C]-> "1 platoInsumoRepo" PlatoInsumoRepository
 EntradaInventarioRepository -[#7E22CE,dashed]-> EntradaInventario
 EntradaInventarioService "1" *-[#C2410C]-> "1 repo" EntradaInventarioRepository
-EstadoMesaRepository -[#A16207,dashed]-> EstadoMesa
+EstadoMesaRepository -[#7E22CE,dashed]-> EstadoMesa
 HistorialEstadoMesaRepository -[#7E22CE,dashed]-> HistorialEstadoMesa
 IngredienteRepository -[#7E22CE,dashed]-> Ingrediente
 InventarioController "1" *-[#C2410C]-> "1 ingredienteRepository" IngredienteRepository

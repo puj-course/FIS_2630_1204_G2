@@ -40,7 +40,7 @@ Documentan el modelo de clases del sistema: 98 tipos, 371 atributos y 663 métod
 
 **Por qué está.** Cada pantalla de la aplicación es un controlador, así que este diagrama es el inventario de lo que el usuario puede hacer. Sirve para saber qué funcionalidad está construida y cuál sigue sin interfaz.
 
-**Qué muestra.** Son 29 tipos y 13 relaciones. Hay ocho pantallas: acceso, mapa de salón, carta del mesero, cocina, caja, inventario y disponibilidad. El mapa de salón es con diferencia el controlador más grande, y declara dentro sus propias clases auxiliares (AccionMesa, ResumenMesas) y el enum EstadoMesaVisual, que traduce los códigos de la base a colores y etiquetas de pantalla.
+**Qué muestra.** Son 29 tipos y 12 relaciones. Hay ocho pantallas: acceso, mapa de salón, carta del mesero, cocina, caja, inventario y disponibilidad. El mapa de salón es con diferencia el controlador más grande, y declara dentro sus propias clases auxiliares (AccionMesa, ResumenMesas) y el enum EstadoMesaVisual, que traduce los códigos de la base a colores y etiquetas de pantalla.
 
 ---
 
@@ -90,7 +90,7 @@ Documentan el modelo de clases del sistema: 98 tipos, 371 atributos y 663 métod
 
 **Por qué está.** Complementa al anterior con la otra pregunta: además de a quién llama, qué datos del dominio toca cada pantalla directamente.
 
-**Qué muestra.** Son 19 tipos y 17 relaciones. Los controladores construyen y modifican entidades por su cuenta, no solo DTO, y usan los enums del dominio para decidir qué pintar. Es lo que explica que la lógica de estado del pedido esté repartida entre el servicio y la pantalla de cocina.
+**Qué muestra.** Son 19 tipos y 16 relaciones. Los controladores construyen y modifican entidades por su cuenta, no solo DTO, y usan los enums del dominio para decidir qué pintar. Es lo que explica que la lógica de estado del pedido esté repartida entre el servicio y la pantalla de cocina.
 
 ---
 
@@ -110,7 +110,7 @@ Documentan el modelo de clases del sistema: 98 tipos, 371 atributos y 663 métod
 
 **Por qué está.** Permite saber quién es responsable de cada entidad: si dos servicios escriben la misma, hay una regla de negocio repartida en dos sitios.
 
-**Qué muestra.** Son 45 tipos. Muestra con qué entidades y con qué enumeraciones trabaja cada servicio. EstadoPedido y EstadoMesa aparecen en varios, que es la razón por la que las transiciones de estado se documentan en su propio diagrama.
+**Qué muestra.** Son 44 tipos. Muestra con qué entidades y con qué enumeraciones trabaja cada servicio. EstadoPedido y EstadoMesa aparecen en varios, que es la razón por la que las transiciones de estado se documentan en su propio diagrama.
 
 ---
 
@@ -130,7 +130,7 @@ Documentan el modelo de clases del sistema: 98 tipos, 371 atributos y 663 métod
 
 **Por qué está.** Sin ORM, la correspondencia entre clase y tabla no está declarada en ninguna anotación: hay que deducirla del SQL. Este diagrama la deja escrita, y es lo que permite rastrear quién toca cada dato.
 
-**Qué muestra.** Son 48 tipos y 27 relaciones. La mayoría de repositorios mapean una entidad cada uno, pero algunos leen varias para componer un resultado. Las tres relaciones de herencia que aparecen son las de las interfaces de Spring que no compilan.
+**Qué muestra.** Son 47 tipos y 27 relaciones. La mayoría de repositorios mapean una entidad cada uno, pero algunos leen varias para componer un resultado. Las tres relaciones de herencia que aparecen son las de las interfaces de Spring que no compilan.
 
 ---
 

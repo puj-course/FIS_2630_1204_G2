@@ -111,7 +111,7 @@ package "controller" {
     - color : String
     - codigosValidos : Set<String>
     --
-    ~ EstadoMesaVisual(etiqueta : String, color : String, codigosValidos : String...)
+    - EstadoMesaVisual(etiqueta : String, color : String, codigosValidos : String...)
     - {static} desdeCodigo(codigo : String) : EstadoMesaVisual
   }
   class InventarioController #DBEAFE {
@@ -368,18 +368,17 @@ package "referencias" <<otros paquetes>> #FAFAFA {
   PedidoService -[hidden]down- TipoDescuento
 }
 CajeroPagoController "1" *-[#047857]-> "1 pagoDAO" PagoDAO
+CajeroPagoController -[#A16207]-> "* tipoDescuentoCombo" TipoDescuento
 CajeroPagoController -[#A16207]-> "1 cuentaActual" CuentaPago
-CajeroPagoController -[#A16207]-> "1 tipoDescuentoCombo" TipoDescuento
 CocinaController "1" *-[#C2410C]-> "1 mesaRepository" MesaRepository
 CocinaController "1" *-[#C2410C]-> "1 pedidoRepository" PedidoRepository
 CocinaController -[#7E22CE,dashed]-> Mesa
 CocinaController -[#7E22CE,dashed]-> Pedido
 CocinaController -[#A16207,dashed]-> EstadoPedido
 DisponibilidadAdminController "1" *-[#047857]-> "1 dao" DisponibilidadDAO
-DisponibilidadAdminController -[#A16207]-> "1 tablaProductos\ncolCodigo\ncolNombre\ncolCategoria\ncolEstado\ncolMotivo" ProductoDisponibilidad
+DisponibilidadAdminController -[#A16207]-> "* tablaProductos\ncolCodigo\ncolNombre\ncolCategoria\ncolEstado\ncolMotivo" ProductoDisponibilidad
 InventarioController "1" *-[#C2410C]-> "1 ingredienteRepository" IngredienteRepository
-InventarioController -[#7E22CE]-> "* ingredientes" Ingrediente
-InventarioController -[#7E22CE]-> "1 tablaIngredientes\ncolumnaId\ncolumnaNombre\ncolumnaStock\ncolumnaStockMinimo\ncolumnaEstado\ncolumnaAlerta" Ingrediente
+InventarioController -[#7E22CE]-> "* tablaIngredientes\ncolumnaId\ncolumnaNombre\ncolumnaStock\ncolumnaStockMinimo\ncolumnaEstado\ncolumnaAlerta\ningredientes" Ingrediente
 LoginController "1" *-[#047857]-> "1 autenticacion" AutenticacionService
 MapaSalonController "1" *-[#047857]-> "1 mesaService" MesaService
 MapaSalonController "1" *-[#C2410C]-> "1 mesaRepository" MesaRepository

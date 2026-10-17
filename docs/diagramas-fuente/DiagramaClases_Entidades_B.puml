@@ -231,8 +231,7 @@ package "referencias" <<otros paquetes>> #FAFAFA {
 CocinaController -[#7E22CE,dashed]-> Mesa
 HistorialEstadoMesaRepository -[#7E22CE,dashed]-> HistorialEstadoMesa
 IngredienteRepository -[#7E22CE,dashed]-> Ingrediente
-InventarioController -[#7E22CE]-> "* ingredientes" Ingrediente
-InventarioController -[#7E22CE]-> "1 tablaIngredientes\ncolumnaId\ncolumnaNombre\ncolumnaStock\ncolumnaStockMinimo\ncolumnaEstado\ncolumnaAlerta" Ingrediente
+InventarioController -[#7E22CE]-> "* tablaIngredientes\ncolumnaId\ncolumnaNombre\ncolumnaStock\ncolumnaStockMinimo\ncolumnaEstado\ncolumnaAlerta\ningredientes" Ingrediente
 MapaSalonController -[#7E22CE]-> "1 mesaSeleccionada" Mesa
 MesaRepository -[#7E22CE,dashed]-> Mesa
 MesaService -[#7E22CE,dashed]-> HistorialEstadoMesa

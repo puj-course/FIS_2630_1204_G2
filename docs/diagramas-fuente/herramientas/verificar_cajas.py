@@ -4,6 +4,7 @@ No cuenta miembros: reconstruye la caja que DEBERIA salir del archivo fuente
 y la compara con la dibujada, en orden, con visibilidad, modificadores,
 tipos de campo, tipos de retorno y tipos de cada parametro.
 """
+import collections
 import re, os, sys, glob, json, collections
 
 REPO, DIAG = sys.argv[1], sys.argv[2]
@@ -177,7 +178,11 @@ for t in T:
         cab = (con_vis or cands)[0].group(1)
         esp = ('+' if 'public' in cab else '-' if 'private' in cab
                else '#' if 'protected' in cab
-               else '+' if t['kind'] in ('interface', 'annotation') else '~')
+               else '+' if t['kind'] in ('interface', 'annotation')
+               # el constructor de un enum sin modificador es privado,
+               # no package-private (JLS 8.9.2)
+               else '-' if (t['kind'] == 'enum'
+                            and me['nombre'] == t['nombre']) else '~')
         if esp != me['vis']:
             mal.append(f"{t['nombre']}.{me['nombre']}(): dibujado {me['vis']}, "
                        f"en el codigo {esp}")
@@ -189,7 +194,15 @@ for x in mal[:12]:
 # 5. las cajas de referencia van vacias y con su paquete
 # ---------------------------------------------------------------------------
 print('\n=== 5. cajas de referencia ===')
-POR = {t['nombre']: t for t in T}
+# dos tipos pueden compartir nombre simple (entity.EstadoMesa y
+# enums.EstadoMesa): indexar por nombre a secas hace que uno pise al otro y
+# que este chequeo reclame el estereotipo del que no es
+_porn = collections.defaultdict(list)
+for t in T:
+    _porn[t['nombre']].append(t)
+POR, DUPES = {}, {n for n, v in _porn.items() if len(v) > 1}
+for n_, v_ in _porn.items():
+    POR[n_] = v_[0]
 mal = []
 for f in sorted(glob.glob(DIAG + '/puml_clases/0[1-7]_*.puml')):
     s = open(f, encoding='utf-8').read()
@@ -199,6 +212,10 @@ for f in sorted(glob.glob(DIAG + '/puml_clases/0[1-7]_*.puml')):
     for b in re.finditer(r'^\s*(?:class|interface|enum|annotation)\s+(\w+)\s+'
                          r'<<(\w+|\(raiz\))>>', bloque.group(1), re.M):
         n, paq = b.group(1), b.group(2)
+        if n in DUPES:
+            # con el nombre duplicado, vale cualquiera de los paquetes reales
+            if paq in {x['paquete'] for x in _porn[n]}:
+                continue
         if n in POR and POR[n]['paquete'] != paq:
             mal.append(f'{os.path.basename(f)}: {n} marcada <<{paq}>>, '
                        f'es de {POR[n]["paquete"]}')

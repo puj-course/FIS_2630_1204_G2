@@ -18,10 +18,10 @@ skinparam ArtifactBackgroundColor #FFFFFF
 skinparam ArtifactFontSize 11
 skinparam DatabaseBackgroundColor #FFFFFF
 
-package "src/main/java" #F1F5F9 {
+package "src/main/java · paquetes con componentes\n<size:9>no se dibujan database, dto, entity, enums, exceptions</size>" #F1F5F9 {
   artifact "(raiz)\n<size:9>1 .java</size>" as J__raiz_ #DBEAFE
   artifact "ConexionBD/\n<size:9>1 .java</size>" as J_ConexionBD #F1F5F9
-  artifact "controller/\n<size:9>7 .java</size>" as J_controller #DBEAFE
+  artifact "controller/\n<size:9>8 .java</size>" as J_controller #DBEAFE
   artifact "dao/\n<size:9>3 .java</size>" as J_dao #FFEDD5
   artifact "repository/\n<size:9>23 .java</size>" as J_repository #FFEDD5
   artifact "service/\n<size:9>12 .java</size>" as J_service #DCFCE7
