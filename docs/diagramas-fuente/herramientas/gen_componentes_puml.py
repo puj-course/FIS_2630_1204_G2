@@ -575,7 +575,10 @@ L.append(f'  artifact "scripts\\n<size:10>{n_db} archivos</size>" as A_db')
 L.append('}')
 L.append(f'database "**gastroflow**\\n<size:10>{len(E)} tablas</size>" as bd')
 L.append(f'A_fxml ..> J_controller : {n_fxml}')
-L.append(f'J_{ali("(raiz)")} ..> A_css : {len(CSS) + len(CSS_MAIN)}')
+# las hojas distintas que carga Main, no las veces que las carga:
+# disponibilidad-menu.css la cargan dos pantallas, y poner 6 aqui
+# contradecia el "5 .css" de la caja de destino
+L.append(f'J_{ali("(raiz)")} ..> A_css : {n_css}')
 L.append('A_db --> bd')
 L.append('J_ConexionBD --> bd')
 L.append('@enduml')

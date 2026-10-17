@@ -82,6 +82,7 @@ echo "  $AQUI/GastroFlow_Diagramas_develop.zip"
 echo
 echo "== 6. documentacion para docs/ =="
 python3 -I "$AQUI/gen_docs.py" | tail -3
+python3 -I "$AQUI/verificar_resumenes.py" "$REPO" "$AQUI" | tail -2
 rm -f "$AQUI/GastroFlow_docs.zip"
 ( cd "$AQUI/docs_entrega" && zip -rq ../GastroFlow_docs.zip . )
 echo "  $AQUI/GastroFlow_docs.zip"

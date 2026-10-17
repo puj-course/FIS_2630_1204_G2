@@ -43,7 +43,7 @@ package "db" #DCFCE7 {
 }
 database "**gastroflow**\n<size:10>27 tablas</size>" as bd
 A_fxml ..> J_controller : 7
-J__raiz_ ..> A_css : 6
+J__raiz_ ..> A_css : 5
 A_db --> bd
 J_ConexionBD --> bd
 @enduml
