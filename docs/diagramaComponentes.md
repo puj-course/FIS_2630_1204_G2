@@ -1,6 +1,30 @@
 # Diagramas de componentes (vista detallada)
 
-Documentan en qué piezas sustituibles está dividido el sistema y cómo dependen unas de otras, con las operaciones que cada componente provee y los archivos que lo forman. Las interfaces no son un diseño sobre el papel: cada una corresponde a las llamadas que de verdad cruzan el límite entre dos componentes. Para una lectura rápida sin este nivel de detalle está diagramaComponentesResumen.md.
+Documentan en qué piezas sustituibles está dividido el sistema y cómo dependen unas de otras, con las operaciones que cada componente provee y los archivos que lo forman. Las interfaces no son un diseño sobre el papel: cada una corresponde a las llamadas que de verdad cruzan el límite entre dos componentes. Para una lectura rápida sin este nivel de detalle está diagramaComponentesResumen.md. Arriba quedan los tres diagramas de componentes del taller 4 de análisis, uno por historia.
+
+---
+
+## Diagramas del taller 4 de análisis
+
+Los que ya había entregado el equipo para las historias HU-012, HU-015 y HU-033, tal como se escribieron. Los nuevos van debajo.
+
+### Diagrama Componentes - Registrar Plato
+
+![Diagrama de Componentes de Registrar Plato](imagenes/DiagramaComponentes_RegistrarPlato.JPG)
+
+El componente Administrador (DisponibilidadAdminController) consume una interfaz de Lógica de Registro de Plato, que agrupa Plato, Receta, RecetaDetalle y PlatoIngrediente. Esta lógica usa el componente Persistencia (PlatoRepository, PlatoIngredienteRepository, RecetaDAO), que accede a la base de datos.
+
+### Diagrama Componentes - Alerta Invetario
+
+![Diagrama de Componentes de Alerta Invetario](imagenes/DiagramaComponentes_AlertaInventario.JPG)
+
+El componente Inventario (InventarioController, AlertaInventarioController) se conecta por interfaz con Gestión de Alertas (AlertaInventario, AlertaInventarioService). Este componente usa Persistencia (AlertaInventarioRepository, IngredienteRepository, MovimientoInventarioRepository), que accede a la base de datos.
+
+### Diagrama Componentes - Control de cambios de Pedidos
+
+![Diagrama de Componentes de Control de cambios](imagenes/DiagramaComponentes_ControlCambios.JPG)
+
+El componente Mesero (MenuMeseroController) se comunica con Gestión de Pedidos (PedidoService, Pedido, DetallePedido, EstadoPedido). Esta se relaciona con Gestión de Inventario (InventarioService, MovimientoInventario) y con Persistencia (PedidoRepository, DetallePedidoRepository), que accede a la base de datos PostgreSQL.
 
 ---
 

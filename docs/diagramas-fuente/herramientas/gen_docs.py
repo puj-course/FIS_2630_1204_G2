@@ -384,13 +384,69 @@ ESTADOS = [
      'esos cambios no quedan registrados en historial_estado_mesa.'),
 ]
 
+# ================================================ diagramas ya entregados =
+# Los del taller 4 de analisis, que estaban en docs/Diagramas.md. Se copian
+# aqui palabra por palabra, con sus rutas de imagen tal como se escribieron,
+# para que cada archivo empiece por el diagrama antiguo de su tipo y siga
+# con los nuevos. No se corrige ni se reescribe nada de ese texto.
+CABEZA_PREVIOS = (
+    '## Diagramas del taller 4 de análisis\n\n'
+    'Los que ya había entregado el equipo para las historias HU-012, HU-015 '
+    'y HU-033, tal como se escribieron. Los nuevos van debajo.\n')
+
+PREVIOS = {
+    'diagramaClases.md': """### Diagrama de Clases - Registrar Plato
+
+![Diagrama de Clases de Registrar Plato](imagenes/DiagramaClases_RegistrarPlato.JPG)
+
+Plato es la entidad central, con código, nombre, descripción, categoría, precio de aventa, costo, stock actual, mínimo y máximo, y estado, además de sus getters y setters. PlatoRepository la usa mediante guardar(plato) y obtiene la conexión a PostgreSQL desde ConexionBD.obtenerConexion(), ubicada en el paquete conf.
+
+### Diagrama de Clases - Alerta Invetario
+
+![Diagrama de Clases de Alerta Inventario](imagenes/DiagramaClases_AlertaInventario.JPG)
+
+La solución está organizada por capas. AlertaInventarioController (paquete controller) recibe la petición y la delega a AlertaInventarioService (paquete service) mediante evaluarInventario(ingrediente). La entidad AlertaInventario (paquete entity) guarda el ingrediente, el stock actual y mínimo, la cantidad sugerida, si está resuelta y las fechas de creación y resolución. StockInsuficienteException queda en el paquete exception.
+
+### Diagrama de Clases - Control de cambios de Pedidos
+
+
+![Diagrama de Clases de Control de cambios](imagenes/DiagramaClases_ControlCambios.JPG)
+
+El diagrama muestra la entidad DetallePedido, que relaciona un Pedido con un Plato y una cantidad. Es el vínculo entre las líneas del pedido y el catálogo.""",
+
+    'diagramaComponentes.md': """### Diagrama Componentes - Registrar Plato
+
+![Diagrama de Componentes de Registrar Plato](imagenes/DiagramaComponentes_RegistrarPlato.JPG)
+
+El componente Administrador (DisponibilidadAdminController) consume una interfaz de Lógica de Registro de Plato, que agrupa Plato, Receta, RecetaDetalle y PlatoIngrediente. Esta lógica usa el componente Persistencia (PlatoRepository, PlatoIngredienteRepository, RecetaDAO), que accede a la base de datos.
+
+### Diagrama Componentes - Alerta Invetario
+
+![Diagrama de Componentes de Alerta Invetario](imagenes/DiagramaComponentes_AlertaInventario.JPG)
+
+El componente Inventario (InventarioController, AlertaInventarioController) se conecta por interfaz con Gestión de Alertas (AlertaInventario, AlertaInventarioService). Este componente usa Persistencia (AlertaInventarioRepository, IngredienteRepository, MovimientoInventarioRepository), que accede a la base de datos.
+
+### Diagrama Componentes - Control de cambios de Pedidos
+
+![Diagrama de Componentes de Control de cambios](imagenes/DiagramaComponentes_ControlCambios.JPG)
+
+El componente Mesero (MenuMeseroController) se comunica con Gestión de Pedidos (PedidoService, Pedido, DetallePedido, EstadoPedido). Esta se relaciona con Gestión de Inventario (InventarioService, MovimientoInventario) y con Persistencia (PedidoRepository, DetallePedidoRepository), que accede a la base de datos PostgreSQL.""",
+
+    'diagramaDespliegue.md': """### Diagrama de Despliegue - Registro de plato, Alerta inventario y Control de cambios de pñedido
+
+![Diagrama de Despliegue](imagenes/DiagramaDespliegue.JPG)
+El sistema se despliega en tres nodos. En Dispositivos de Usuario, el Dispositivo Administrador ejecuta la UI Administrador y el Dispositivo Mesero ejecuta la UI Mesero. Ambos se comunican por API/TCP con el Servidor de Aplicaciones, que aloja el Módulo de Inventario (atiende al administrador) y el Módulo de Pedidos (atiende al mesero). Los dos módulos envían datos al Servidor de Base de Datos, donde PostgreSQL almacena las tablas. Es una arquitectura de tres capas.""",
+}
+
 SECCIONES = [
     ('diagramaClases.md', 'Diagramas de clases', CLASES,
      'Documentan el modelo de clases del sistema: {n_tipos} tipos, {n_attr} '
      'atributos y {n_met} métodos. Están organizados siguiendo la arquitectura '
      'en capas del proyecto: primero las entidades del dominio, después cada '
      'capa con sus miembros, y al final las relaciones, separadas por origen y '
-     'destino para que cada vista responda una sola pregunta.'),
+     'destino para que cada vista responda una sola pregunta. Arriba quedan '
+     'los tres diagramas de clases del taller 4 de análisis, que siguen '
+     'siendo válidos para las historias que cubren.'),
     ('diagramaComponentesResumen.md', 'Diagramas de componentes (vista simple)',
      COMPONENTES_SIMPLE,
      'Cuatro vistas para entender la estructura de un vistazo: una caja por '
@@ -406,14 +462,17 @@ SECCIONES = [
      'y los archivos que lo forman. Las interfaces no son un diseño sobre el '
      'papel: cada una corresponde a las llamadas que de verdad cruzan el '
      'límite entre dos componentes. Para una lectura rápida sin este nivel de '
-     'detalle está diagramaComponentesResumen.md.'),
+     'detalle está diagramaComponentesResumen.md. Arriba quedan los tres '
+     'diagramas de componentes del taller 4 de análisis, uno por historia.'),
     ('diagramaArquitectura.md', 'Diagrama de arquitectura', ARQUITECTURA,
      'Documenta en una sola vista cómo está organizado el código y qué depende '
      'de qué, y contrasta el resultado con la decisión de arquitectura '
      'registrada en architecture.md.'),
     ('diagramaDespliegue.md', 'Diagrama de despliegue', DESPLIEGUE,
      'Documenta cómo se instala y se ejecuta el sistema hoy, y qué hace falta '
-     'para ponerlo en funcionamiento.'),
+     'para ponerlo en funcionamiento. Arriba queda el diagrama de despliegue '
+     'del taller 4 de análisis, que describe el despliegue previsto para las '
+     'tres historias de ese taller.'),
     ('diagramaEstados.md', 'Diagramas de estados', ESTADOS,
      'Documentan los estados por los que pasan un pedido y una mesa, y qué '
      'transiciones son válidas entre ellos. Cada flecha lleva un número y el '
@@ -514,6 +573,9 @@ def escribir():
            'n_met': sum(len(t['metodos']) for t in T)}
     for archivo, titulo, lista, intro in SECCIONES:
         L = [f'# {titulo}', '', intro.format(**tot), '', '---', '']
+        if archivo in PREVIOS:
+            L += (CABEZA_PREVIOS + '\n' + PREVIOS[archivo]).split('\n')
+            L += ['', '---', '']
         for ruta, nombre, tit, just, expl in lista:
             c = conteo(ruta)
             L += [f'## {tit}', '',
