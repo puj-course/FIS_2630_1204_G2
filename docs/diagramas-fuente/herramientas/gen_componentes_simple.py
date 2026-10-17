@@ -109,18 +109,9 @@ for d in destinos:
     L.append(caja(d).replace('#FFFFFF', COLOR[COMP[d]]))
 for (o, d) in sorted(par_ui):
     L.append(f'{al(o)} --> {al(d)}')
-# sin texto explicativo: solo la clave de colores, que es lo unico que el
-# dibujo no dice por si mismo
-sin_salida = sorted(n for n, c in COMP.items() if c == 'ui' and n not in uis)
-L += ['legend bottom',
-      '<b>Colores</b>  '
-      '<back:#DBEAFE>     </back> interfaz    '
-      '<back:#DCFCE7>     </back> negocio    '
-      '<back:#FFEDD5>     </back> datos    '
-      '<back:#F3E8FF>     </back> apoyo']
-if sin_salida:
-    L.append('<b>Sin dependencias</b>  ' + ', '.join(sin_salida))
-L.append('endlegend')
+# sin leyenda: el dibujo va solo. El color sigue agrupando las cajas por
+# capa, pero no se explica aqui: eso lo dice el diagrama detallado de
+# arriba, del que esta vista es el resumen
 escribe('10_Simple_UI.puml', L)
 
 # ============================================== S3. negocio hacia datos ===
@@ -150,15 +141,6 @@ for nom in orden_datos:
 for (o, d) in sorted(par_neg):
     muerta = o in EXCL          # si el origen no compila, la flecha no corre
     L.append(f'{al(o)} -[{"#B91C1C" if muerta else "#475569"}]-> {al(d)}')
-L += ['legend bottom',
-      '<b>Colores</b>  '
-      '<back:#DCFCE7>     </back> negocio    '
-      '<back:#FFEDD5>     </back> datos    '
-      '<back:#F1F5F9>     </back> conexion    '
-      '<back:#F3E8FF>     </back> apoyo',
-      '<b>Simbolos</b>  <&warning> excluida de la compilacion en pom.xml   '
-      '<back:#B91C1C>     </back> flecha roja: sale de una clase excluida',
-      'endlegend']
 escribe('11_Simple_Negocio.puml', L)
 
 # ============================================= S4. apoyo transversal ======

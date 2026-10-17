@@ -55,7 +55,4 @@ c_MenuMeseroController --> c_PedidoFacade
 c_MenuMeseroController --> c_PedidoService
 c_MenuMeseroController --> c_ProductoDAO
 c_MenuMeseroController --> c_TextoBusqueda
-legend bottom
-<b>Colores</b>  <back:#DBEAFE>     </back> interfaz    <back:#DCFCE7>     </back> negocio    <back:#FFEDD5>     </back> datos    <back:#F3E8FF>     </back> apoyo
-endlegend
 @enduml

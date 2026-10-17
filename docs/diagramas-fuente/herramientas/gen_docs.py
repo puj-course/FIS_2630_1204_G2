@@ -188,9 +188,11 @@ CLASES = [
      'son los grupos de casos de JUnit.'),
 ]
 
+# De estas cuatro solo se usa la imagen: van pegadas debajo del
+# diagrama detallado del que son resumen, sin titulo y sin texto.
 COMPONENTES_SIMPLE = [
     ('puml_componentes/09_Simple_Capas.puml', 'DiagramaComponentes_S1_Capas',
-     'Versión resumida: las cinco capas',
+     'Las cinco capas',
      'La misma división en cinco grupos, sin interfaces ni nombres de clase, '
      'para quedarse solo con la dirección de las dependencias.',
      'Las cinco capas con el número de operaciones distintas que se invocan a '
@@ -199,7 +201,7 @@ COMPONENTES_SIMPLE = [
      'siguen ese orden son los saltos de capa: la interfaz llamando '
      'directamente a datos y el negocio llamando directamente a la conexión.'),
     ('puml_componentes/10_Simple_UI.puml', 'DiagramaComponentes_S2_UI',
-     'Versión resumida: qué usa cada pantalla',
+     'Qué usa cada pantalla',
      'Lo mismo sin los archivos ni las operaciones: una caja por pantalla y '
      'una flecha por dependencia.',
      'Las ocho pantallas con los componentes que llaman, coloreados por capa. '
@@ -208,7 +210,7 @@ COMPONENTES_SIMPLE = [
      'directamente a repositorios en lugar de pasar por un servicio.'),
     ('puml_componentes/11_Simple_Negocio.puml',
      'DiagramaComponentes_S3_Negocio',
-     'Versión resumida: qué repositorio usa cada servicio',
+     'Qué repositorio usa cada servicio',
      'La misma capa sin las operaciones de cada interfaz, para seguir de un '
      'vistazo el camino de un servicio hasta la base de datos.',
      'Arriba quedan los servicios que se apoyan unos en otros: PedidoFacade '
@@ -218,7 +220,7 @@ COMPONENTES_SIMPLE = [
      'clases que el pom.xml excluye de la compilación.'),
     ('puml_componentes/12_Simple_Apoyo.puml',
      'DiagramaComponentes_S4_Apoyo',
-     'Versión resumida: quién usa cada pieza compartida',
+     'Quién usa cada pieza compartida',
      'Las mismas tres piezas con los consumidores agrupados por capa en lugar '
      'de uno a uno, que a ese nivel son 31 flechas cruzando el dibujo.',
      'ConexionBD, SesionUsuario y TextoBusqueda, con el número de componentes '
@@ -522,8 +524,13 @@ def escribir():
         for i, item in enumerate(lista):
             ruta, nombre, tit, just, expl = item[:5]
             sub = len(item) > 5          # la version resumida del anterior
+            if sub:
+                # solo la imagen, pegada al diagrama del que es resumen: sin
+                # titulo y sin texto, que es justo lo que sobraba
+                L += [f'![{tit}](Imagenes/{nombre}.png)', '']
+                continue
             c = conteo(ruta)
-            L += [('###' if sub else '##') + f' {tit}', '',
+            L += [f'## {tit}', '',
                   f'![{tit}](Imagenes/{nombre}.png)', '',
                   '**Por qué está.** ' + just.format(**c), '',
                   '**Qué muestra.** ' + expl.format(**c), '']
