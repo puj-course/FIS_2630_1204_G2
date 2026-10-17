@@ -20,11 +20,8 @@ skinparam DatabaseBackgroundColor #FFFFFF
 
 package "Acceso a datos · repository + dao" #FFEDD5 {
   component "**AdicionalRepository**" as AdicionalRepository
-  component "**AdicionalService**\n<size:9>sin SQL propio</size>" as AdicionalService
   component "**AlertaInventarioRepository**" as AlertaInventarioRepository
   component "**AsignacionMesaRepository**" as AsignacionMesaRepository
-  component "**AsignacionMesaService**\n<size:9>sin SQL propio</size>" as AsignacionMesaService
-  component "**AutenticacionService**\n<size:9>sin SQL propio</size>" as AutenticacionService
   component "**ClienteRepository**" as ClienteRepository
   component "**DetallePedidoAdicionalRepository**" as DetallePedidoAdicionalRepository
   component "**DetallePedidoRepository**\n<size:9>sin SQL propio</size>\n<size:9>excluida en pom.xml</size>" as DetallePedidoRepository
@@ -36,25 +33,18 @@ package "Acceso a datos · repository + dao" #FFEDD5 {
   component "**HistorialEstadoMesaRepository**" as HistorialEstadoMesaRepository
   component "**IngredienteRepository**\n<size:9>comparte: ingredientes</size>" as IngredienteRepository
   component "**InventarioRepository**\n<size:9>comparte: ingredientes, movimientos_inventario, plato_insumo, productos</size>" as InventarioRepository
-  component "**InventarioService**\n<size:9>sin SQL propio</size>" as InventarioService
   component "**MesaRepository**\n<size:9>comparte: estados_mesa, mesas, pedidos, usuarios, zonas</size>\n<size:9>elige en ejecucion: pedidos, usuarios</size>" as MesaRepository
-  component "**MesaService**\n<size:9>sin SQL propio</size>" as MesaService
   component "**MeseroRepository**\n<size:9>sin SQL propio</size>\n<size:9>excluida en pom.xml</size>" as MeseroRepository
   component "**MovimientoInventarioRepository**\n<size:9>comparte: movimientos_inventario</size>" as MovimientoInventarioRepository
   component "**NotaMesaRepository**" as NotaMesaRepository
   component "**PagoDAO**\n<size:9>comparte: mesas, pedidos, roles, usuarios</size>" as PagoDAO
   component "**PagoRepository**\n<size:9>sin SQL propio</size>\n<size:9>excluida en pom.xml</size>" as PagoRepository
-  component "**PagoService**\n<size:9>sin SQL propio</size>\n<size:9>excluida en pom.xml</size>" as PagoService
-  component "**PedidoFacade**\n<size:9>sin SQL propio</size>" as PedidoFacade
   component "**PedidoRepository**\n<size:9>comparte: pedidos</size>" as PedidoRepository
-  component "**PedidoService**\n<size:9>sin SQL propio</size>" as PedidoService
   component "**PlatoInsumoRepository**\n<size:9>comparte: plato_insumo</size>" as PlatoInsumoRepository
   component "**PlatoRepository**\n<size:9>comparte: productos</size>" as PlatoRepository
   component "**ProductoDAO**\n<size:9>comparte: categorias, productos</size>" as ProductoDAO
   component "**ReglaDescuentoRepository**" as ReglaDescuentoRepository
-  component "**ReglaDescuentoService**\n<size:9>sin SQL propio</size>" as ReglaDescuentoService
   component "**ReservaRepository**\n<size:9>comparte: estados_mesa, mesas, zonas</size>" as ReservaRepository
-  component "**ReservaService**\n<size:9>sin SQL propio</size>" as ReservaService
   component "**UsuarioRepository**\n<size:9>comparte: roles, usuarios</size>" as UsuarioRepository
   component "**ZonaRepository**\n<size:9>comparte: zonas</size>" as ZonaRepository
   AdicionalRepository -[hidden]right- AlertaInventarioRepository

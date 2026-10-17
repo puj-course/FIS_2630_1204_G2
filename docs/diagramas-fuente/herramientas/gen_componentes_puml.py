@@ -300,7 +300,10 @@ PROPIAS = sorted(t for t, v in quien.items() if len(v) == 1)
 L = [CAB]
 L.append('package "Acceso a datos · repository + dao" #FFEDD5 {')
 for n in sorted(COMPONENTES):
-    if POR[n]['paquete'] not in ('repository', 'dao', 'service'):
+    # repository y dao siempre; de service, solo los dos que ejecutan SQL
+    # propio: los otros diez no pintan nada en un mapa componente-tabla
+    if POR[n]['paquete'] not in ('repository', 'dao') and \
+            not (POR[n]['paquete'] == 'service' and n in sql):
         continue
     d = sql.get(n, {})
     extra = []
