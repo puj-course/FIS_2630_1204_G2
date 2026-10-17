@@ -37,18 +37,22 @@ CLASES = [
      'través de DetallePedidoAdicional, que la asignación de una mesa es una '
      'entidad propia y no un campo de Mesa, y que las alertas de inventario se '
      'guardan en lugar de calcularse al vuelo. Junto a cada entidad aparece el '
-     'repositorio y el servicio que la manejan.'),
+     'repositorio que la maneja y, cuando existe, el servicio: la mayoría de '
+     'estas entidades no tiene servicio propio y se usa directamente desde su '
+     'repositorio.'),
     ('puml_clases/02_entity_B.puml', 'DiagramaClases_Entidades_B',
      'Entidades del dominio (B): mesas, historial e inventario',
      'Aquí está el núcleo del salón. La mesa es la entidad con más estados y '
      'más escrituras concurrentes del sistema, y entenderla es condición para '
      'leer el diagrama de estados y el de componentes de datos.',
      'Son {tipos} tipos. Mesa no guarda su estado como texto sino como clave '
-     'hacia el catálogo estados_mesa, y cada cambio deja una fila en '
-     'HistorialEstadoMesa: el historial es parte del modelo, no una tabla de '
-     'auditoría añadida aparte. NotaMesa cuelga de la mesa con una nota por '
-     'mesa como máximo. El enum TipoMovimiento clasifica las entradas y '
-     'salidas de inventario.'),
+     'hacia el catálogo estados_mesa, y los cambios que pasan por MesaService '
+     'dejan una fila en HistorialEstadoMesa: el historial es parte del modelo, '
+     'no una tabla de auditoría añadida aparte. No todos pasan por ahí, y el '
+     'diagrama de estados de la mesa marca cuáles se saltan el historial. '
+     'NotaMesa cuelga de la mesa con una nota por mesa como máximo. El enum '
+     'TipoMovimiento solo tiene dos valores, VENTA_COMANDA y REVERSO_COMANDA: '
+     'clasifica la salida de inventario que genera una comanda y su reverso.'),
     ('puml_clases/03_entity_C.puml', 'DiagramaClases_Entidades_C',
      'Entidades del dominio (C): pedidos, pagos, carta y reservas',
      'Cierra el modelo con el flujo que da sentido al resto: un pedido se '
@@ -58,16 +62,20 @@ CLASES = [
      'una comanda, y MetodoPago las formas de cobro. Pago no cuelga del pedido '
      'por composición sino que lo referencia, de modo que un pedido puede '
      'existir sin pago; eso sí, la entidad Pago es una de las que el pom.xml '
-     'excluye de la compilación, así que el cobro no está cerrado. Reserva '
+     'excluye de la compilación, así que el cobro que de verdad funciona no '
+     'pasa por ella: lo resuelve PagoDAO escribiendo en la tabla pagos. '
+     'Reserva '
      'apunta a la mesa y no al revés, y Zona agrupa las mesas del salón.'),
     ('puml_clases/04_controller.puml', 'DiagramaClases_Controladores',
      'Capa de presentación: los controladores JavaFX',
      'Cada pantalla de la aplicación es un controlador, así que este diagrama '
      'es el inventario de lo que el usuario puede hacer. Sirve para saber qué '
      'funcionalidad está construida y cuál sigue sin interfaz.',
-     'Son {tipos} tipos y {flechas} relaciones. Hay ocho pantallas: acceso, '
-     'mapa de salón, carta del mesero, cocina, caja, inventario y '
-     'disponibilidad. El mapa de salón es con diferencia el controlador más '
+     'Son {tipos} tipos y {flechas} relaciones. Hay siete pantallas con '
+     'código: acceso, mapa de salón, carta del mesero, cocina, caja, '
+     'inventario y disponibilidad. El octavo controlador, PagoController, es '
+     'un archivo vacío que el pom.xml excluye de la compilación. El mapa de '
+     'salón es con diferencia el controlador más '
      'grande, y declara dentro sus propias clases auxiliares (AccionMesa, '
      'ResumenMesas) y el enum EstadoMesaVisual, que traduce los códigos de la '
      'base a colores y etiquetas de pantalla.'),
@@ -76,9 +84,10 @@ CLASES = [
      'La decisión de arquitectura fue JDBC sin ORM, lo que significa que cada '
      'repositorio escribe su propio SQL. Esa decisión concentra aquí el riesgo '
      'de inconsistencia, y por eso la capa se documenta completa.',
-     'Son {tipos} tipos y {flechas} relaciones. Cada repositorio expone '
-     'métodos de consulta con nombre propio en lugar de un CRUD genérico, '
-     'porque las consultas están escritas a mano. Tres interfaces '
+     'Son {tipos} tipos y {flechas} relaciones. Los repositorios que se '
+     'ejecutan exponen métodos de consulta con nombre propio en lugar de un '
+     'CRUD genérico, porque las consultas están escritas a mano. Tres '
+     'interfaces '
      '(DetallePedidoRepository, MeseroRepository y PagoRepository) extienden '
      'JpaRepository y son el residuo de la etapa con Spring: el pom.xml las '
      'excluye de la compilación y no forman parte del sistema que se ejecuta.'),
@@ -131,18 +140,21 @@ CLASES = [
      'Es el camino normal de una operación: una pantalla pide algo a un '
      'servicio y el servicio lo resuelve contra la base. Este diagrama lo '
      'traza entero.',
-     'Son {tipos} tipos y {flechas} relaciones. Cada servicio depende de '
-     'varios repositorios, señal de que las operaciones de negocio cruzan '
-     'varias tablas. PedidoFacade es el único que depende de otros servicios '
-     'en lugar de repositorios, que es justo lo que hace de él una fachada.'),
+     'Son {tipos} tipos y {flechas} relaciones. Siete de los doce servicios '
+     'dependen de un único repositorio; el que más cruza es MesaService, con '
+     'cuatro. Tres se apoyan en otros servicios además de, o en vez de, '
+     'repositorios: PedidoService, ReservaService y PedidoFacade. PedidoFacade '
+     'es el único que no toca ningún repositorio, y eso es lo que hace de él '
+     'una fachada.'),
     ('puml_clases/11_rel_service_modelo.puml',
      'DiagramaClases_Relaciones_Service_Modelo',
      'Qué entidades construye y modifica cada servicio',
      'Permite saber quién es responsable de cada entidad: si dos servicios '
      'escriben la misma, hay una regla de negocio repartida en dos sitios.',
      'Son {tipos} tipos. Muestra con qué entidades y con qué enumeraciones '
-     'trabaja cada servicio. EstadoPedido y EstadoMesa aparecen en varios, que '
-     'es la razón por la que las transiciones de estado se documentan en su '
+     'trabaja cada servicio. EstadoPedido aparece en tres servicios y '
+     'EstadoMesa solo en MesaService, que es donde se concentra el cambio de '
+     'estado de la mesa. Las transiciones de los dos se documentan en su '
      'propio diagrama.'),
     ('puml_clases/12_rel_repository_capas.puml',
      'DiagramaClases_Relaciones_Repository_Capas',
@@ -169,23 +181,24 @@ CLASES = [
      'Es el modelo conceptual del negocio, sin capas ni tecnología: qué '
      'pertenece a qué y con qué cardinalidad. Es la vista que hay que '
      'contrastar con el modelo de base de datos.',
-     'Son {tipos} tipos y {flechas} relaciones, con la multiplicidad deducida '
-     'del tipo declarado de cada campo. Se distingue composición de '
-     'agregación: un pedido se compone de sus ítems y no tienen vida propia, '
-     'mientras que un pago referencia al pedido sin ser parte de él. Solo las '
-     'composiciones llevan multiplicidad en el extremo de origen, porque es la '
-     'única que el código permite afirmar.'),
+     'Son {tipos} tipos y {flechas} relaciones, deducidas de los campos que '
+     'declara cada entidad. Ninguna entidad guarda una colección: las líneas '
+     'de un pedido no viven dentro de Pedido sino en DetallePedido, con la '
+     'clave del pedido, y quien dice que no tienen vida propia es el ON DELETE '
+     'CASCADE del esquema, no el código Java. Un pago, en cambio, referencia '
+     'al pedido sin ser parte de él.'),
     ('puml_clases/15_pruebas.puml', 'DiagramaClases_Pruebas',
      'Qué cubren las pruebas automáticas',
      'Las pruebas son parte de la entrega y delimitan qué partes del sistema '
      'están verificadas. Este diagrama responde qué se prueba y qué no.',
      'Son {tipos} tipos y {flechas} relaciones: 10 clases de prueba en 7 '
      'archivos, con las clases de producción que ejercita cada una. La '
-     'cobertura funcional se concentra en mesas y pedidos: son los dos únicos '
-     'módulos con pruebas contra la base de datos. El resto son pruebas '
-     'unitarias de clases sueltas (CuentaPago, ItemPedido, TextoBusqueda y '
-     'disponibilidad), sin inventario ni carta completos. Las clases anidadas '
-     'son los grupos de casos de JUnit.'),
+     'cobertura funcional se concentra en mesas y pedidos, pero no son los '
+     'únicos que necesitan la base: de los siete archivos, cuatro se conectan '
+     'a PostgreSQL (los dos módulos funcionales, el de disponibilidad de la '
+     'HU-134 y el de choques de nombre de tabla). Los otros tres son pruebas '
+     'unitarias de clases sueltas: CuentaPago, ItemPedido y TextoBusqueda. Las '
+     'clases anidadas son los grupos de casos de JUnit.'),
 ]
 
 # De estas cuatro solo se usa la imagen: van pegadas debajo del
@@ -253,9 +266,10 @@ COMPONENTES = [
      'resuelve pantalla por pantalla, incluidos los recursos que no son '
      'código.',
      'Son {componentes} componentes y {interfaces} interfaces consumidas, con '
-     '{flechas} conexiones. Cada componente agrupa su .fxml, su hoja de '
-     'estilos y su controlador, de modo que se ve qué archivos hay que tocar '
-     'para cambiar una pantalla. Las hojas de estilo las carga Main y no cada '
+     '{flechas} conexiones. Cada componente agrupa los archivos de su '
+     'pantalla: el .fxml, el controlador y, cuando la tiene, su hoja de '
+     'estilos. Inventario y el mapa de salón no tienen hoja propia, y Main no '
+     'tiene .fxml porque arma su interfaz en código. Las hojas de estilo las carga Main y no cada '
      'controlador, que es una dependencia fácil de pasar por alto.'),
     ('puml_componentes/03_Componentes_negocio.puml',
      'DiagramaComponentes_Negocio', 'Cómo se apoyan los servicios entre sí',
@@ -264,9 +278,11 @@ COMPONENTES = [
      'cumplir su función.',
      'Son {componentes} componentes y {interfaces} interfaces, con {flechas} '
      'conexiones. Aparece SesionUsuario, que es el Singleton del proyecto y el '
-     'único estado global del sistema: lo consultan varias pantallas para '
-     'saber el rol del usuario. PagoService figura marcada como excluida de la '
-     'compilación, así que la gestión de pagos está incompleta a este nivel.'),
+     'único estado global del sistema: lo consultan el arranque y dos '
+     'pantallas, casi siempre para saber si hay sesión y quién es; el rol solo '
+     'se mira en Main y en la pantalla de caja. PagoService figura marcada '
+     'como excluida de la compilación, así que el cobro funciona sin capa de '
+     'servicio: la pantalla de caja escribe directamente por PagoDAO.'),
     ('puml_componentes/04_Componentes_datos.puml', 'DiagramaComponentes_Datos',
      'Qué tabla toca cada componente de datos',
      'Sin ORM esta correspondencia solo existe dentro de las cadenas de SQL. '
@@ -279,14 +295,17 @@ COMPONENTES = [
      'compartidas van en el diagrama siguiente.'),
     ('puml_componentes/05_Componentes_datos_compartidos.puml',
      'DiagramaComponentes_Datos_Compartidos',
-     'Las tablas que escriben varios componentes',
+     'Las tablas que tocan varios componentes',
      'Una tabla escrita desde varios sitios es donde aparecen las '
      'inconsistencias, porque ningún componente ve lo que hacen los otros. '
-     'Esta vista las aísla para poder vigilarlas.',
-     'Son {tablas} tablas compartidas con {flechas} conexiones. El caso más '
-     'expuesto es movimientos_inventario, escrita desde tres repositorios '
-     'distintos. También lo están pedidos y mesas, que son justamente las dos '
-     'entidades cuyos estados documentamos aparte.'),
+     'Esta vista aísla las que tocan dos o más componentes para poder '
+     'vigilarlas.',
+     'Son {tablas} tablas compartidas con {flechas} conexiones. Solo se leen '
+     '{n_solo_lectura} de ellas ({solo_lectura}), así que el riesgo está en el '
+     'resto. Las más expuestas son {mas_escritas}, con {n_mas_escritas} '
+     'componentes escribiendo en cada una; productos además recibe escrituras '
+     'desde dos capas distintas, un repositorio y dos servicios. En mesas '
+     'escribe un único componente aunque la consulten otros dos.'),
     ('puml_componentes/06_Componentes_artefactos.puml',
      'DiagramaComponentes_Artefactos',
      'En qué archivo vive cada componente',
@@ -299,25 +318,29 @@ COMPONENTES = [
      'implementa cada pieza.'),
     ('puml_componentes/07_Componentes_infraestructura.puml',
      'DiagramaComponentes_Infraestructura',
-     'Las tres piezas de las que depende medio sistema',
-     'Hay componentes que no pertenecen a ninguna capa porque los usa todo el '
-     'mundo. Son los que más cuesta cambiar, y por eso conviene saber '
-     'exactamente quién los consume.',
+     'Las tres piezas compartidas y quién las usa',
+     'Hay tres componentes que no pertenecen a ninguna capa. Conviene saber '
+     'quién consume cada uno antes de tocarlo, porque el reparto es muy '
+     'desigual y desde fuera no se adivina.',
      'ConexionBD abre todas las conexiones a PostgreSQL, SesionUsuario guarda '
      'quién ha iniciado sesión y TextoBusqueda normaliza las búsquedas. Entre '
-     'las tres suman {flechas} consumidores. Cualquier cambio en su interfaz '
-     'afecta a buena parte del sistema.'),
+     'las tres suman {flechas} consumidores, pero muy mal repartidos: '
+     '{reparto}. Cambiar ConexionBD toca casi todo el sistema; cambiar '
+     'TextoBusqueda toca una sola pantalla.'),
     ('puml_componentes/08_Componentes_spring_sin_compilar.puml',
      'DiagramaComponentes_Spring_Sin_Compilar',
      'El código de la etapa con Spring que ya no compila',
-     'El proyecto empezó con Spring y se unificó después en JavaFX con JDBC, '
-     'según architecture.md. Parte de aquel código sigue en el repositorio. '
+     'architecture.md cuenta que quedó código residual con anotaciones Spring '
+     'y que el proyecto se unificó bajo JavaFX con JDBC para no mantener dos '
+     'arquitecturas mezcladas. Ese código sigue en el repositorio. '
      'Documentarlo evita que alguien lo dé por funcional o intente usarlo.',
      'Son {artefactos} artefactos. Seis clases importan Spring o Jakarta sin '
-     'que el pom.xml declare esas dependencias, y el maven-compiler-plugin las '
-     'excluye una por una de la compilación. Con ellas quedan fuera entidades '
-     'y repositorios de pagos y meseros, que es la funcionalidad que falta '
-     'completar.'),
+     'que el pom.xml declare esas dependencias, y el maven-compiler-plugin '
+     'excluye {n_excludes} archivos uno por uno: esos seis más '
+     'controller/PagoController.java, que está vacío. Quedan fuera las '
+     'entidades y los repositorios de pagos y meseros, y también '
+     'DetallePedidoRepository, el único sitio que tocaría la tabla '
+     'detalle_pedido.'),
 ]
 
 ARQUITECTURA = [
@@ -349,7 +372,8 @@ DESPLIEGUE = [
      'Son {nodos} nodos y {artefactos} artefactos. Para ejecutarlo hacen falta '
      'JDK 21, Maven 3.9 o superior y PostgreSQL 16, con las dependencias que '
      'declara el pom (JavaFX 21.0.5, el driver postgresql 42.7.5 y jbcrypt '
-     '0.4). La base se prepara con los scripts de db/ y el arranque es mvn '
+     '0.4). La base se prepara ejecutando scripts/setup.sh, que aplica en '
+     'orden los archivos de db/, y el arranque es mvn '
      'clean compile seguido de mvn javafx:run, contra la base en '
      'localhost:5432. El nodo de integración continua ejecuta los pasos '
      'declarados en .github/workflows/ci.yml.'),
@@ -375,9 +399,11 @@ ESTADOS = [
     ('puml/09_Estados_Mesa.puml', 'DiagramaEstados_Mesa',
      'Estados por los que pasa una mesa y transiciones válidas',
      'La mesa es el recurso que el salón reparte, y su estado determina si se '
-     'puede sentar a alguien. A diferencia del pedido, su estado no es un enum '
-     'de Java sino una fila de la tabla estados_mesa, y se cambia desde cinco '
-     'puntos distintos.',
+     'puede sentar a alguien. A diferencia del pedido, su estado no se guarda '
+     'en un enum de Java sino como una fila de la tabla estados_mesa, y se '
+     'escribe desde cuatro métodos de MesaRepository a los que se llega por '
+     'varios caminos. Existe un enum EstadoMesa en el código, pero no lo usa '
+     'nadie.',
      '{estados_catalogo} estados de catálogo y {transiciones} transiciones. La '
      'conclusión principal es que el sistema casi no restringe los cambios: '
      'salvo la asignación de comensales, que exige en su propio SQL que la '
@@ -445,6 +471,39 @@ FLECHA = re.compile(
     r'[-.]{0,2}[|o\*]?>', re.M)
 
 
+_EXTRA = {}
+
+
+def extras():
+    """Los datos que una frase cita por su nombre y no solo por su numero.
+
+    Salen de los propios .puml y del pom.xml, no se escriben a mano: si
+    manana otra tabla pasa a ser la mas escrita, el texto cambia solo en
+    lugar de quedarse mintiendo.
+    """
+    if _EXTRA:
+        return _EXTRA
+    import collections
+    p5 = open(f'{BASE}/puml_componentes/05_Componentes_datos_compartidos.puml',
+              encoding='utf-8').read()
+    esc = {t: int(n) for t, n in
+           re.findall(r'database "(\w+)\\n<size:\d+>escriben (\d+)', p5)}
+    lec = re.findall(r'database "(\w+)\\n<size:\d+>solo lectura', p5)
+    tope = max(esc.values()) if esc else 0
+    _EXTRA['mas_escritas'] = ' y '.join(sorted(t for t, n in esc.items()
+                                               if n == tope))
+    _EXTRA['n_mas_escritas'] = tope
+    _EXTRA['solo_lectura'] = ', '.join(sorted(lec))
+    _EXTRA['n_solo_lectura'] = len(lec)
+    p7 = open(f'{BASE}/puml_componentes/07_Componentes_infraestructura.puml',
+              encoding='utf-8').read()
+    cons = collections.Counter(re.findall(r'\.\.> I_(\w+) ', p7))
+    _EXTRA['reparto'] = ', '.join(f'{n} de {k}' for k, n in cons.most_common())
+    _EXTRA['n_excludes'] = len(re.findall(
+        r'<exclude>', open(f'{REPO}/pom.xml', encoding='utf-8').read()))
+    return _EXTRA
+
+
 def conteo(ruta):
     """Los numeros que el texto cita, leidos del propio .puml."""
     s = open(f'{BASE}/{ruta}', encoding='utf-8').read()
@@ -468,6 +527,7 @@ def conteo(ruta):
     c['tipos'] = c['clases'] + c['interfaces'] + c['enums']
     c['elementos'] = c['tipos'] + c['nodos'] + c['artefactos'] + \
         c['componentes'] + c['tablas']
+    c.update(extras())
     return c
 
 

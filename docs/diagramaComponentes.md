@@ -20,7 +20,7 @@ Documentan en qué piezas sustituibles está dividido el sistema y cómo depende
 
 **Por qué está.** Antes de tocar una pantalla conviene saber de qué depende. Esta vista lo resuelve pantalla por pantalla, incluidos los recursos que no son código.
 
-**Qué muestra.** Son 20 componentes y 14 interfaces consumidas, con 17 conexiones. Cada componente agrupa su .fxml, su hoja de estilos y su controlador, de modo que se ve qué archivos hay que tocar para cambiar una pantalla. Las hojas de estilo las carga Main y no cada controlador, que es una dependencia fácil de pasar por alto.
+**Qué muestra.** Son 20 componentes y 14 interfaces consumidas, con 17 conexiones. Cada componente agrupa los archivos de su pantalla: el .fxml, el controlador y, cuando la tiene, su hoja de estilos. Inventario y el mapa de salón no tienen hoja propia, y Main no tiene .fxml porque arma su interfaz en código. Las hojas de estilo las carga Main y no cada controlador, que es una dependencia fácil de pasar por alto.
 
 ![Qué usa cada pantalla](Imagenes/DiagramaComponentes_S2_UI.png)
 
@@ -30,7 +30,7 @@ Documentan en qué piezas sustituibles está dividido el sistema y cómo depende
 
 **Por qué está.** La capa de negocio es la que concentra las reglas. Esta vista muestra si están aisladas por componente o si un servicio depende de otro para cumplir su función.
 
-**Qué muestra.** Son 30 componentes y 23 interfaces, con 28 conexiones. Aparece SesionUsuario, que es el Singleton del proyecto y el único estado global del sistema: lo consultan varias pantallas para saber el rol del usuario. PagoService figura marcada como excluida de la compilación, así que la gestión de pagos está incompleta a este nivel.
+**Qué muestra.** Son 30 componentes y 23 interfaces, con 28 conexiones. Aparece SesionUsuario, que es el Singleton del proyecto y el único estado global del sistema: lo consultan el arranque y dos pantallas, casi siempre para saber si hay sesión y quién es; el rol solo se mira en Main y en la pantalla de caja. PagoService figura marcada como excluida de la compilación, así que el cobro funciona sin capa de servicio: la pantalla de caja escribe directamente por PagoDAO.
 
 ![Qué repositorio usa cada servicio](Imagenes/DiagramaComponentes_S3_Negocio.png)
 
@@ -44,13 +44,13 @@ Documentan en qué piezas sustituibles está dividido el sistema y cómo depende
 
 ![Qué tabla toca cada componente de datos](Imagenes/DiagramaComponentes_S5_Datos.png)
 
-## Las tablas que escriben varios componentes
+## Las tablas que tocan varios componentes
 
-![Las tablas que escriben varios componentes](Imagenes/DiagramaComponentes_Datos_Compartidos.png)
+![Las tablas que tocan varios componentes](Imagenes/DiagramaComponentes_Datos_Compartidos.png)
 
-**Por qué está.** Una tabla escrita desde varios sitios es donde aparecen las inconsistencias, porque ningún componente ve lo que hacen los otros. Esta vista las aísla para poder vigilarlas.
+**Por qué está.** Una tabla escrita desde varios sitios es donde aparecen las inconsistencias, porque ningún componente ve lo que hacen los otros. Esta vista aísla las que tocan dos o más componentes para poder vigilarlas.
 
-**Qué muestra.** Son 11 tablas compartidas con 33 conexiones. El caso más expuesto es movimientos_inventario, escrita desde tres repositorios distintos. También lo están pedidos y mesas, que son justamente las dos entidades cuyos estados documentamos aparte.
+**Qué muestra.** Son 11 tablas compartidas con 33 conexiones. Solo se leen 4 de ellas (categorias, estados_mesa, roles, zonas), así que el riesgo está en el resto. Las más expuestas son movimientos_inventario y productos, con 3 componentes escribiendo en cada una; productos además recibe escrituras desde dos capas distintas, un repositorio y dos servicios. En mesas escribe un único componente aunque la consulten otros dos.
 
 ---
 
@@ -64,13 +64,13 @@ Documentan en qué piezas sustituibles está dividido el sistema y cómo depende
 
 ![En qué carpeta vive cada componente](Imagenes/DiagramaComponentes_S6_Artefactos.png)
 
-## Las tres piezas de las que depende medio sistema
+## Las tres piezas compartidas y quién las usa
 
-![Las tres piezas de las que depende medio sistema](Imagenes/DiagramaComponentes_Infraestructura.png)
+![Las tres piezas compartidas y quién las usa](Imagenes/DiagramaComponentes_Infraestructura.png)
 
-**Por qué está.** Hay componentes que no pertenecen a ninguna capa porque los usa todo el mundo. Son los que más cuesta cambiar, y por eso conviene saber exactamente quién los consume.
+**Por qué está.** Hay tres componentes que no pertenecen a ninguna capa. Conviene saber quién consume cada uno antes de tocarlo, porque el reparto es muy desigual y desde fuera no se adivina.
 
-**Qué muestra.** ConexionBD abre todas las conexiones a PostgreSQL, SesionUsuario guarda quién ha iniciado sesión y TextoBusqueda normaliza las búsquedas. Entre las tres suman 31 consumidores. Cualquier cambio en su interfaz afecta a buena parte del sistema.
+**Qué muestra.** ConexionBD abre todas las conexiones a PostgreSQL, SesionUsuario guarda quién ha iniciado sesión y TextoBusqueda normaliza las búsquedas. Entre las tres suman 31 consumidores, pero muy mal repartidos: 26 de ConexionBD, 4 de SesionUsuario, 1 de TextoBusqueda. Cambiar ConexionBD toca casi todo el sistema; cambiar TextoBusqueda toca una sola pantalla.
 
 ![Quién usa cada pieza compartida](Imagenes/DiagramaComponentes_S4_Apoyo.png)
 
@@ -78,6 +78,6 @@ Documentan en qué piezas sustituibles está dividido el sistema y cómo depende
 
 ![El código de la etapa con Spring que ya no compila](Imagenes/DiagramaComponentes_Spring_Sin_Compilar.png)
 
-**Por qué está.** El proyecto empezó con Spring y se unificó después en JavaFX con JDBC, según architecture.md. Parte de aquel código sigue en el repositorio. Documentarlo evita que alguien lo dé por funcional o intente usarlo.
+**Por qué está.** architecture.md cuenta que quedó código residual con anotaciones Spring y que el proyecto se unificó bajo JavaFX con JDBC para no mantener dos arquitecturas mezcladas. Ese código sigue en el repositorio. Documentarlo evita que alguien lo dé por funcional o intente usarlo.
 
-**Qué muestra.** Son 12 artefactos. Seis clases importan Spring o Jakarta sin que el pom.xml declare esas dependencias, y el maven-compiler-plugin las excluye una por una de la compilación. Con ellas quedan fuera entidades y repositorios de pagos y meseros, que es la funcionalidad que falta completar.
+**Qué muestra.** Son 12 artefactos. Seis clases importan Spring o Jakarta sin que el pom.xml declare esas dependencias, y el maven-compiler-plugin excluye 7 archivos uno por uno: esos seis más controller/PagoController.java, que está vacío. Quedan fuera las entidades y los repositorios de pagos y meseros, y también DetallePedidoRepository, el único sitio que tocaría la tabla detalle_pedido.
