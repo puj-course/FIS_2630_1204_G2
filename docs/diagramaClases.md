@@ -1,31 +1,6 @@
 # Diagramas de clases
 
-Documentan el modelo de clases del sistema: 98 tipos, 371 atributos y 663 métodos. Están organizados siguiendo la arquitectura en capas del proyecto: primero las entidades del dominio, después cada capa con sus miembros, y al final las relaciones, separadas por origen y destino para que cada vista responda una sola pregunta. Arriba quedan los tres diagramas de clases del taller 4 de análisis, que siguen siendo válidos para las historias que cubren.
-
----
-
-## Diagramas del taller 4 de análisis
-
-Los que ya había entregado el equipo para las historias HU-012, HU-015 y HU-033, tal como se escribieron. Los nuevos van debajo.
-
-### Diagrama de Clases - Registrar Plato
-
-![Diagrama de Clases de Registrar Plato](imagenes/DiagramaClases_RegistrarPlato.JPG)
-
-Plato es la entidad central, con código, nombre, descripción, categoría, precio de aventa, costo, stock actual, mínimo y máximo, y estado, además de sus getters y setters. PlatoRepository la usa mediante guardar(plato) y obtiene la conexión a PostgreSQL desde ConexionBD.obtenerConexion(), ubicada en el paquete conf.
-
-### Diagrama de Clases - Alerta Invetario
-
-![Diagrama de Clases de Alerta Inventario](imagenes/DiagramaClases_AlertaInventario.JPG)
-
-La solución está organizada por capas. AlertaInventarioController (paquete controller) recibe la petición y la delega a AlertaInventarioService (paquete service) mediante evaluarInventario(ingrediente). La entidad AlertaInventario (paquete entity) guarda el ingrediente, el stock actual y mínimo, la cantidad sugerida, si está resuelta y las fechas de creación y resolución. StockInsuficienteException queda en el paquete exception.
-
-### Diagrama de Clases - Control de cambios de Pedidos
-
-
-![Diagrama de Clases de Control de cambios](imagenes/DiagramaClases_ControlCambios.JPG)
-
-El diagrama muestra la entidad DetallePedido, que relaciona un Pedido con un Plato y una cantidad. Es el vínculo entre las líneas del pedido y el catálogo.
+Documentan el modelo de clases del sistema: 98 tipos, 371 atributos y 663 métodos. Están organizados siguiendo la arquitectura en capas del proyecto: primero las entidades del dominio, después cada capa con sus miembros, y al final las relaciones, separadas por origen y destino para que cada vista responda una sola pregunta.
 
 ---
 

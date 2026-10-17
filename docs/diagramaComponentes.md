@@ -1,30 +1,6 @@
-# Diagramas de componentes (vista detallada)
+# Diagramas de componentes
 
-Documentan en qué piezas sustituibles está dividido el sistema y cómo dependen unas de otras, con las operaciones que cada componente provee y los archivos que lo forman. Las interfaces no son un diseño sobre el papel: cada una corresponde a las llamadas que de verdad cruzan el límite entre dos componentes. Para una lectura rápida sin este nivel de detalle está diagramaComponentesResumen.md. Arriba quedan los tres diagramas de componentes del taller 4 de análisis, uno por historia.
-
----
-
-## Diagramas del taller 4 de análisis
-
-Los que ya había entregado el equipo para las historias HU-012, HU-015 y HU-033, tal como se escribieron. Los nuevos van debajo.
-
-### Diagrama Componentes - Registrar Plato
-
-![Diagrama de Componentes de Registrar Plato](imagenes/DiagramaComponentes_RegistrarPlato.JPG)
-
-El componente Administrador (DisponibilidadAdminController) consume una interfaz de Lógica de Registro de Plato, que agrupa Plato, Receta, RecetaDetalle y PlatoIngrediente. Esta lógica usa el componente Persistencia (PlatoRepository, PlatoIngredienteRepository, RecetaDAO), que accede a la base de datos.
-
-### Diagrama Componentes - Alerta Invetario
-
-![Diagrama de Componentes de Alerta Invetario](imagenes/DiagramaComponentes_AlertaInventario.JPG)
-
-El componente Inventario (InventarioController, AlertaInventarioController) se conecta por interfaz con Gestión de Alertas (AlertaInventario, AlertaInventarioService). Este componente usa Persistencia (AlertaInventarioRepository, IngredienteRepository, MovimientoInventarioRepository), que accede a la base de datos.
-
-### Diagrama Componentes - Control de cambios de Pedidos
-
-![Diagrama de Componentes de Control de cambios](imagenes/DiagramaComponentes_ControlCambios.JPG)
-
-El componente Mesero (MenuMeseroController) se comunica con Gestión de Pedidos (PedidoService, Pedido, DetallePedido, EstadoPedido). Esta se relaciona con Gestión de Inventario (InventarioService, MovimientoInventario) y con Persistencia (PedidoRepository, DetallePedidoRepository), que accede a la base de datos PostgreSQL.
+Documentan en qué piezas sustituibles está dividido el sistema y cómo dependen unas de otras, con las operaciones que cada componente provee y los archivos que lo forman. Las interfaces no son un diseño sobre el papel: cada una corresponde a las llamadas que de verdad cruzan el límite entre dos componentes. Cuatro de las vistas llevan debajo una versión resumida, con una caja por componente y una flecha por dependencia, para leerlas de un vistazo.
 
 ---
 
@@ -36,6 +12,14 @@ El componente Mesero (MenuMeseroController) se comunica con Gestión de Pedidos 
 
 **Qué muestra.** El sistema se agrupa en interfaz, negocio, datos, conexión y apoyo. Las dependencias van en una sola dirección salvo las que atraviesan hacia datos desde la interfaz. Las interfaces provistas llevan el nombre real de la clase que las implementa: se dedujeron de las llamadas que cruzan el límite entre un grupo y otro, no de un diseño sobre el papel.
 
+### Versión resumida: las cinco capas
+
+![Versión resumida: las cinco capas](Imagenes/DiagramaComponentes_S1_Capas.png)
+
+**Por qué está.** La misma división en cinco grupos, sin interfaces ni nombres de clase, para quedarse solo con la dirección de las dependencias.
+
+**Qué muestra.** Las cinco capas con el número de operaciones distintas que se invocan a través de cada dependencia. El flujo normal baja de interfaz a negocio, de negocio a datos y de datos a la conexión. Las dos flechas que no siguen ese orden son los saltos de capa: la interfaz llamando directamente a datos y el negocio llamando directamente a la conexión.
+
 ---
 
 ## Qué necesita cada pantalla para funcionar
@@ -46,6 +30,14 @@ El componente Mesero (MenuMeseroController) se comunica con Gestión de Pedidos 
 
 **Qué muestra.** Son 20 componentes y 14 interfaces consumidas, con 17 conexiones. Cada componente agrupa su .fxml, su hoja de estilos y su controlador, de modo que se ve qué archivos hay que tocar para cambiar una pantalla. Las hojas de estilo las carga Main y no cada controlador, que es una dependencia fácil de pasar por alto.
 
+### Versión resumida: qué usa cada pantalla
+
+![Versión resumida: qué usa cada pantalla](Imagenes/DiagramaComponentes_S2_UI.png)
+
+**Por qué está.** Lo mismo sin los archivos ni las operaciones: una caja por pantalla y una flecha por dependencia.
+
+**Qué muestra.** Las ocho pantallas con los componentes que llaman, coloreados por capa. La mayoría depende de una o dos piezas, y el mapa de salón y la carta del mesero son las que más acumulan. También se ve qué pantallas llaman directamente a repositorios en lugar de pasar por un servicio.
+
 ---
 
 ## Cómo se apoyan los servicios entre sí
@@ -55,6 +47,14 @@ El componente Mesero (MenuMeseroController) se comunica con Gestión de Pedidos 
 **Por qué está.** La capa de negocio es la que concentra las reglas. Esta vista muestra si están aisladas por componente o si un servicio depende de otro para cumplir su función.
 
 **Qué muestra.** Son 30 componentes y 23 interfaces, con 28 conexiones. Aparece SesionUsuario, que es el Singleton del proyecto y el único estado global del sistema: lo consultan varias pantallas para saber el rol del usuario. PagoService figura marcada como excluida de la compilación, así que la gestión de pagos está incompleta a este nivel.
+
+### Versión resumida: qué repositorio usa cada servicio
+
+![Versión resumida: qué repositorio usa cada servicio](Imagenes/DiagramaComponentes_S3_Negocio.png)
+
+**Por qué está.** La misma capa sin las operaciones de cada interfaz, para seguir de un vistazo el camino de un servicio hasta la base de datos.
+
+**Qué muestra.** Arriba quedan los servicios que se apoyan unos en otros: PedidoFacade coordina a PedidoService, MesaService e InventarioService, y esos tres comparten repositorios. Abajo, los servicios que usan un único repositorio propio y no dependen de nadie más. El aviso marca las clases que el pom.xml excluye de la compilación.
 
 ---
 
@@ -95,6 +95,14 @@ El componente Mesero (MenuMeseroController) se comunica con Gestión de Pedidos 
 **Por qué está.** Hay componentes que no pertenecen a ninguna capa porque los usa todo el mundo. Son los que más cuesta cambiar, y por eso conviene saber exactamente quién los consume.
 
 **Qué muestra.** ConexionBD abre todas las conexiones a PostgreSQL, SesionUsuario guarda quién ha iniciado sesión y TextoBusqueda normaliza las búsquedas. Entre las tres suman 31 consumidores. Cualquier cambio en su interfaz afecta a buena parte del sistema.
+
+### Versión resumida: quién usa cada pieza compartida
+
+![Versión resumida: quién usa cada pieza compartida](Imagenes/DiagramaComponentes_S4_Apoyo.png)
+
+**Por qué está.** Las mismas tres piezas con los consumidores agrupados por capa en lugar de uno a uno, que a ese nivel son 31 flechas cruzando el dibujo.
+
+**Qué muestra.** ConexionBD, SesionUsuario y TextoBusqueda, con el número de componentes de cada capa que las usan. ConexionBD es con diferencia la más usada, porque sin ORM cada repositorio abre su propia conexión.
 
 ---
 

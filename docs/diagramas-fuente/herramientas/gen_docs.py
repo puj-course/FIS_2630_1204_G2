@@ -190,45 +190,40 @@ CLASES = [
 
 COMPONENTES_SIMPLE = [
     ('puml_componentes/09_Simple_Capas.puml', 'DiagramaComponentes_S1_Capas',
-     'Vista de conjunto: las cinco capas',
-     'Es la entrada al resto. Responde en cuántas partes está dividido el '
-     'sistema y en qué dirección depende cada una de las otras, sin entrar en '
-     'nombres de clase.',
-     'Cinco capas y las dependencias reales entre ellas, con el número de '
-     'operaciones distintas que se invocan a través de cada una. El flujo '
-     'normal baja de interfaz a negocio, de negocio a datos y de datos a la '
-     'conexión. Las dos flechas que no siguen ese orden son los saltos de '
-     'capa: la interfaz llamando directamente a datos y el negocio llamando '
-     'directamente a la conexión.'),
+     'Versión resumida: las cinco capas',
+     'La misma división en cinco grupos, sin interfaces ni nombres de clase, '
+     'para quedarse solo con la dirección de las dependencias.',
+     'Las cinco capas con el número de operaciones distintas que se invocan a '
+     'través de cada dependencia. El flujo normal baja de interfaz a negocio, '
+     'de negocio a datos y de datos a la conexión. Las dos flechas que no '
+     'siguen ese orden son los saltos de capa: la interfaz llamando '
+     'directamente a datos y el negocio llamando directamente a la conexión.'),
     ('puml_componentes/10_Simple_UI.puml', 'DiagramaComponentes_S2_UI',
-     'Qué usa cada pantalla',
-     'Antes de tocar una pantalla hay que saber de qué depende. Esta vista lo '
-     'responde de un vistazo, con una caja por pantalla y una flecha por '
-     'dependencia.',
+     'Versión resumida: qué usa cada pantalla',
+     'Lo mismo sin los archivos ni las operaciones: una caja por pantalla y '
+     'una flecha por dependencia.',
      'Las ocho pantallas con los componentes que llaman, coloreados por capa. '
-     'Se ve que la mayoría depende de una o dos piezas, y que el mapa de salón '
-     'y la carta del mesero son las que más acumulan. También se ve qué '
-     'pantallas llaman directamente a repositorios en lugar de pasar por un '
-     'servicio.'),
+     'La mayoría depende de una o dos piezas, y el mapa de salón y la carta '
+     'del mesero son las que más acumulan. También se ve qué pantallas llaman '
+     'directamente a repositorios en lugar de pasar por un servicio.'),
     ('puml_componentes/11_Simple_Negocio.puml',
      'DiagramaComponentes_S3_Negocio',
-     'Qué repositorio usa cada servicio',
-     'Muestra el camino de una operación de negocio hasta la base de datos, '
-     'que es lo que hay que seguir para saber dónde se guarda cada cosa.',
+     'Versión resumida: qué repositorio usa cada servicio',
+     'La misma capa sin las operaciones de cada interfaz, para seguir de un '
+     'vistazo el camino de un servicio hasta la base de datos.',
      'Arriba quedan los servicios que se apoyan unos en otros: PedidoFacade '
      'coordina a PedidoService, MesaService e InventarioService, y esos tres '
      'comparten repositorios. Abajo, los servicios que usan un único '
-     'repositorio propio y no dependen de nadie más. El aviso marca las clases '
-     'que el pom.xml excluye de la compilación.'),
+     'repositorio propio y no dependen de nadie más. El aviso marca las '
+     'clases que el pom.xml excluye de la compilación.'),
     ('puml_componentes/12_Simple_Apoyo.puml',
      'DiagramaComponentes_S4_Apoyo',
-     'Las piezas que usa todo el sistema',
-     'Son los componentes que no pertenecen a ninguna capa y que, por eso, '
-     'cualquier cambio en ellos afecta a muchos sitios a la vez.',
-     'ConexionBD, SesionUsuario y TextoBusqueda, con sus consumidores '
-     'agrupados por capa y el número de componentes de cada una. ConexionBD es '
-     'con diferencia la más usada, porque sin ORM cada repositorio abre su '
-     'propia conexión.'),
+     'Versión resumida: quién usa cada pieza compartida',
+     'Las mismas tres piezas con los consumidores agrupados por capa en lugar '
+     'de uno a uno, que a ese nivel son 31 flechas cruzando el dibujo.',
+     'ConexionBD, SesionUsuario y TextoBusqueda, con el número de componentes '
+     'de cada capa que las usan. ConexionBD es con diferencia la más usada, '
+     'porque sin ORM cada repositorio abre su propia conexión.'),
 ]
 
 COMPONENTES = [
@@ -384,59 +379,22 @@ ESTADOS = [
      'esos cambios no quedan registrados en historial_estado_mesa.'),
 ]
 
-# ================================================ diagramas ya entregados =
-# Los del taller 4 de analisis, que estaban en docs/Diagramas.md. Se copian
-# aqui palabra por palabra, con sus rutas de imagen tal como se escribieron,
-# para que cada archivo empiece por el diagrama antiguo de su tipo y siga
-# con los nuevos. No se corrige ni se reescribe nada de ese texto.
-CABEZA_PREVIOS = (
-    '## Diagramas del taller 4 de análisis\n\n'
-    'Los que ya había entregado el equipo para las historias HU-012, HU-015 '
-    'y HU-033, tal como se escribieron. Los nuevos van debajo.\n')
-
-PREVIOS = {
-    'diagramaClases.md': """### Diagrama de Clases - Registrar Plato
-
-![Diagrama de Clases de Registrar Plato](imagenes/DiagramaClases_RegistrarPlato.JPG)
-
-Plato es la entidad central, con código, nombre, descripción, categoría, precio de aventa, costo, stock actual, mínimo y máximo, y estado, además de sus getters y setters. PlatoRepository la usa mediante guardar(plato) y obtiene la conexión a PostgreSQL desde ConexionBD.obtenerConexion(), ubicada en el paquete conf.
-
-### Diagrama de Clases - Alerta Invetario
-
-![Diagrama de Clases de Alerta Inventario](imagenes/DiagramaClases_AlertaInventario.JPG)
-
-La solución está organizada por capas. AlertaInventarioController (paquete controller) recibe la petición y la delega a AlertaInventarioService (paquete service) mediante evaluarInventario(ingrediente). La entidad AlertaInventario (paquete entity) guarda el ingrediente, el stock actual y mínimo, la cantidad sugerida, si está resuelta y las fechas de creación y resolución. StockInsuficienteException queda en el paquete exception.
-
-### Diagrama de Clases - Control de cambios de Pedidos
-
-
-![Diagrama de Clases de Control de cambios](imagenes/DiagramaClases_ControlCambios.JPG)
-
-El diagrama muestra la entidad DetallePedido, que relaciona un Pedido con un Plato y una cantidad. Es el vínculo entre las líneas del pedido y el catálogo.""",
-
-    'diagramaComponentes.md': """### Diagrama Componentes - Registrar Plato
-
-![Diagrama de Componentes de Registrar Plato](imagenes/DiagramaComponentes_RegistrarPlato.JPG)
-
-El componente Administrador (DisponibilidadAdminController) consume una interfaz de Lógica de Registro de Plato, que agrupa Plato, Receta, RecetaDetalle y PlatoIngrediente. Esta lógica usa el componente Persistencia (PlatoRepository, PlatoIngredienteRepository, RecetaDAO), que accede a la base de datos.
-
-### Diagrama Componentes - Alerta Invetario
-
-![Diagrama de Componentes de Alerta Invetario](imagenes/DiagramaComponentes_AlertaInventario.JPG)
-
-El componente Inventario (InventarioController, AlertaInventarioController) se conecta por interfaz con Gestión de Alertas (AlertaInventario, AlertaInventarioService). Este componente usa Persistencia (AlertaInventarioRepository, IngredienteRepository, MovimientoInventarioRepository), que accede a la base de datos.
-
-### Diagrama Componentes - Control de cambios de Pedidos
-
-![Diagrama de Componentes de Control de cambios](imagenes/DiagramaComponentes_ControlCambios.JPG)
-
-El componente Mesero (MenuMeseroController) se comunica con Gestión de Pedidos (PedidoService, Pedido, DetallePedido, EstadoPedido). Esta se relaciona con Gestión de Inventario (InventarioService, MovimientoInventario) y con Persistencia (PedidoRepository, DetallePedidoRepository), que accede a la base de datos PostgreSQL.""",
-
-    'diagramaDespliegue.md': """### Diagrama de Despliegue - Registro de plato, Alerta inventario y Control de cambios de pñedido
-
-![Diagrama de Despliegue](imagenes/DiagramaDespliegue.JPG)
-El sistema se despliega en tres nodos. En Dispositivos de Usuario, el Dispositivo Administrador ejecuta la UI Administrador y el Dispositivo Mesero ejecuta la UI Mesero. Ambos se comunican por API/TCP con el Servidor de Aplicaciones, que aloja el Módulo de Inventario (atiende al administrador) y el Módulo de Pedidos (atiende al mesero). Los dos módulos envían datos al Servidor de Base de Datos, donde PostgreSQL almacena las tablas. Es una arquitectura de tres capas.""",
+# Las cuatro vistas simples no van en un archivo aparte: cada una se coloca
+# justo debajo del diagrama detallado del que es resumen, como subseccion.
+DEBAJO_DE = {
+    'DiagramaComponentes_General': 'DiagramaComponentes_S1_Capas',
+    'DiagramaComponentes_UI': 'DiagramaComponentes_S2_UI',
+    'DiagramaComponentes_Negocio': 'DiagramaComponentes_S3_Negocio',
+    'DiagramaComponentes_Infraestructura': 'DiagramaComponentes_S4_Apoyo',
 }
+POR_NOMBRE = {d[1]: d for d in COMPONENTES_SIMPLE}
+COMPONENTES_MEZCLA = []
+for d in COMPONENTES:
+    COMPONENTES_MEZCLA.append(d)
+    if d[1] in DEBAJO_DE:
+        # la marca final hace que se escriba con ### en vez de ##
+        COMPONENTES_MEZCLA.append(POR_NOMBRE[DEBAJO_DE[d[1]]] + ('sub',))
+assert len(COMPONENTES_MEZCLA) == len(COMPONENTES) + len(COMPONENTES_SIMPLE)
 
 SECCIONES = [
     ('diagramaClases.md', 'Diagramas de clases', CLASES,
@@ -444,35 +402,23 @@ SECCIONES = [
      'atributos y {n_met} métodos. Están organizados siguiendo la arquitectura '
      'en capas del proyecto: primero las entidades del dominio, después cada '
      'capa con sus miembros, y al final las relaciones, separadas por origen y '
-     'destino para que cada vista responda una sola pregunta. Arriba quedan '
-     'los tres diagramas de clases del taller 4 de análisis, que siguen '
-     'siendo válidos para las historias que cubren.'),
-    ('diagramaComponentesResumen.md', 'Diagramas de componentes (vista simple)',
-     COMPONENTES_SIMPLE,
-     'Cuatro vistas para entender la estructura de un vistazo: una caja por '
-     'componente con su nombre y una flecha por dependencia, sin operaciones '
-     'ni listas de archivos. Salen de las mismas llamadas medidas sobre el '
-     'código que las vistas detalladas, así que no dicen nada distinto: dicen '
-     'lo mismo con menos detalle. El desglose completo está en '
-     'diagramaComponentes.md.'),
-    ('diagramaComponentes.md', 'Diagramas de componentes (vista detallada)',
-     COMPONENTES,
+     'destino para que cada vista responda una sola pregunta.'),
+    ('diagramaComponentes.md', 'Diagramas de componentes',
+     COMPONENTES_MEZCLA,
      'Documentan en qué piezas sustituibles está dividido el sistema y cómo '
      'dependen unas de otras, con las operaciones que cada componente provee '
      'y los archivos que lo forman. Las interfaces no son un diseño sobre el '
      'papel: cada una corresponde a las llamadas que de verdad cruzan el '
-     'límite entre dos componentes. Para una lectura rápida sin este nivel de '
-     'detalle está diagramaComponentesResumen.md. Arriba quedan los tres '
-     'diagramas de componentes del taller 4 de análisis, uno por historia.'),
+     'límite entre dos componentes. Cuatro de las vistas llevan debajo una '
+     'versión resumida, con una caja por componente y una flecha por '
+     'dependencia, para leerlas de un vistazo.'),
     ('diagramaArquitectura.md', 'Diagrama de arquitectura', ARQUITECTURA,
      'Documenta en una sola vista cómo está organizado el código y qué depende '
      'de qué, y contrasta el resultado con la decisión de arquitectura '
      'registrada en architecture.md.'),
     ('diagramaDespliegue.md', 'Diagrama de despliegue', DESPLIEGUE,
      'Documenta cómo se instala y se ejecuta el sistema hoy, y qué hace falta '
-     'para ponerlo en funcionamiento. Arriba queda el diagrama de despliegue '
-     'del taller 4 de análisis, que describe el despliegue previsto para las '
-     'tres historias de ese taller.'),
+     'para ponerlo en funcionamiento.'),
     ('diagramaEstados.md', 'Diagramas de estados', ESTADOS,
      'Documentan los estados por los que pasan un pedido y una mesa, y qué '
      'transiciones son válidas entre ellos. Cada flecha lleva un número y el '
@@ -573,15 +519,18 @@ def escribir():
            'n_met': sum(len(t['metodos']) for t in T)}
     for archivo, titulo, lista, intro in SECCIONES:
         L = [f'# {titulo}', '', intro.format(**tot), '', '---', '']
-        if archivo in PREVIOS:
-            L += (CABEZA_PREVIOS + '\n' + PREVIOS[archivo]).split('\n')
-            L += ['', '---', '']
-        for ruta, nombre, tit, just, expl in lista:
+        for i, item in enumerate(lista):
+            ruta, nombre, tit, just, expl = item[:5]
+            sub = len(item) > 5          # la version resumida del anterior
             c = conteo(ruta)
-            L += [f'## {tit}', '',
+            L += [('###' if sub else '##') + f' {tit}', '',
                   f'![{tit}](Imagenes/{nombre}.png)', '',
                   '**Por qué está.** ' + just.format(**c), '',
-                  '**Qué muestra.** ' + expl.format(**c), '', '---', '']
+                  '**Qué muestra.** ' + expl.format(**c), '']
+            # la linea divisoria no va entre un diagrama y su resumen, que
+            # son una sola cosa leida a dos niveles
+            if not (i + 1 < len(lista) and len(lista[i + 1]) > 5):
+                L += ['---', '']
         while L and L[-1] in ('', '---'):
             L.pop()
         open(f'{OUT}/{archivo}', 'w', encoding='utf-8').write('\n'.join(L) + '\n')

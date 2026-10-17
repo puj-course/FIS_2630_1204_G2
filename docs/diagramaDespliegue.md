@@ -1,17 +1,6 @@
 # Diagrama de despliegue
 
-Documenta cómo se instala y se ejecuta el sistema hoy, y qué hace falta para ponerlo en funcionamiento. Arriba queda el diagrama de despliegue del taller 4 de análisis, que describe el despliegue previsto para las tres historias de ese taller.
-
----
-
-## Diagramas del taller 4 de análisis
-
-Los que ya había entregado el equipo para las historias HU-012, HU-015 y HU-033, tal como se escribieron. Los nuevos van debajo.
-
-### Diagrama de Despliegue - Registro de plato, Alerta inventario y Control de cambios de pñedido
-
-![Diagrama de Despliegue](imagenes/DiagramaDespliegue.JPG)
-El sistema se despliega en tres nodos. En Dispositivos de Usuario, el Dispositivo Administrador ejecuta la UI Administrador y el Dispositivo Mesero ejecuta la UI Mesero. Ambos se comunican por API/TCP con el Servidor de Aplicaciones, que aloja el Módulo de Inventario (atiende al administrador) y el Módulo de Pedidos (atiende al mesero). Los dos módulos envían datos al Servidor de Base de Datos, donde PostgreSQL almacena las tablas. Es una arquitectura de tres capas.
+Documenta cómo se instala y se ejecuta el sistema hoy, y qué hace falta para ponerlo en funcionamiento.
 
 ---
 
