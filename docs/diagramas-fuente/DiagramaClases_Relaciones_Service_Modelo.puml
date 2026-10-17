@@ -1,0 +1,173 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 35
+skinparam ranksep 60
+skinparam padding 3
+skinparam ClassFontSize 13
+skinparam ClassAttributeFontSize 11
+skinparam ClassStereotypeFontSize 10
+skinparam ClassBorderColor #334155
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ClassAttributeIconSize 0
+hide empty members
+
+hide members
+hide circle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 70
+package "service" #DCFCE7 {
+  class "AdicionalService" as service_AdicionalService
+  class "AsignacionMesaService" as service_AsignacionMesaService
+  class "AutenticacionService" as service_AutenticacionService
+  class "DisponibilidadService" as service_DisponibilidadService
+  class "EntradaInventarioService" as service_EntradaInventarioService
+  class "InventarioService" as service_InventarioService
+  class "MesaService" as service_MesaService
+  class "PagoService" as service_PagoService
+  class "PedidoFacade" as service_PedidoFacade
+  class "PedidoService" as service_PedidoService
+  class "ReglaDescuentoService" as service_ReglaDescuentoService
+  class "ReservaService" as service_ReservaService
+  service_AdicionalService -[hidden]right- service_AsignacionMesaService
+  service_AsignacionMesaService -[hidden]right- service_AutenticacionService
+  service_AdicionalService -[hidden]down- service_DisponibilidadService
+  service_DisponibilidadService -[hidden]right- service_EntradaInventarioService
+  service_AsignacionMesaService -[hidden]down- service_EntradaInventarioService
+  service_EntradaInventarioService -[hidden]right- service_InventarioService
+  service_AutenticacionService -[hidden]down- service_InventarioService
+  service_DisponibilidadService -[hidden]down- service_MesaService
+  service_MesaService -[hidden]right- service_PagoService
+  service_EntradaInventarioService -[hidden]down- service_PagoService
+  service_PagoService -[hidden]right- service_PedidoFacade
+  service_InventarioService -[hidden]down- service_PedidoFacade
+  service_MesaService -[hidden]down- service_PedidoService
+  service_PedidoService -[hidden]right- service_ReglaDescuentoService
+  service_PagoService -[hidden]down- service_ReglaDescuentoService
+  service_ReglaDescuentoService -[hidden]right- service_ReservaService
+  service_PedidoFacade -[hidden]down- service_ReservaService
+}
+package "dao" #DCFCE7 {
+  class "DisponibilidadDAO" as dao_DisponibilidadDAO
+  class "PagoDAO" as dao_PagoDAO
+  class "ProductoDAO" as dao_ProductoDAO
+}
+package "entity" #F3E8FF {
+  class "Adicional" as entity_Adicional
+  class "AsignacionMesa" as entity_AsignacionMesa
+  class "DetallePedidoAdicional" as entity_DetallePedidoAdicional
+  class "EntradaInventario" as entity_EntradaInventario
+  class "EstadoMesa" as entity_EstadoMesa
+  class "HistorialEstadoMesa" as entity_HistorialEstadoMesa
+  class "Mesa" as entity_Mesa
+  class "Pago" as entity_Pago
+  class "Pedido" as entity_Pedido
+  class "PlatoInsumo" as entity_PlatoInsumo
+  class "Producto" as entity_Producto
+  class "ReglaDescuento" as entity_ReglaDescuento
+  class "Reserva" as entity_Reserva
+  class "UsuarioAutenticable" as entity_UsuarioAutenticable
+  class "Zona" as entity_Zona
+  entity_Adicional -[hidden]right- entity_AsignacionMesa
+  entity_AsignacionMesa -[hidden]right- entity_DetallePedidoAdicional
+  entity_Adicional -[hidden]down- entity_EntradaInventario
+  entity_EntradaInventario -[hidden]right- entity_EstadoMesa
+  entity_AsignacionMesa -[hidden]down- entity_EstadoMesa
+  entity_EstadoMesa -[hidden]right- entity_HistorialEstadoMesa
+  entity_DetallePedidoAdicional -[hidden]down- entity_HistorialEstadoMesa
+  entity_EntradaInventario -[hidden]down- entity_Mesa
+  entity_Mesa -[hidden]right- entity_Pago
+  entity_EstadoMesa -[hidden]down- entity_Pago
+  entity_Pago -[hidden]right- entity_Pedido
+  entity_HistorialEstadoMesa -[hidden]down- entity_Pedido
+  entity_Mesa -[hidden]down- entity_PlatoInsumo
+  entity_PlatoInsumo -[hidden]right- entity_Producto
+  entity_Pago -[hidden]down- entity_Producto
+  entity_Producto -[hidden]right- entity_ReglaDescuento
+  entity_Pedido -[hidden]down- entity_ReglaDescuento
+  entity_PlatoInsumo -[hidden]down- entity_Reserva
+  entity_Reserva -[hidden]right- entity_UsuarioAutenticable
+  entity_Producto -[hidden]down- entity_UsuarioAutenticable
+  entity_UsuarioAutenticable -[hidden]right- entity_Zona
+  entity_ReglaDescuento -[hidden]down- entity_Zona
+}
+package "dto" #FEF9C3 {
+  class "CuentaPago" as dto_CuentaPago
+  class "ItemPedido" as dto_ItemPedido
+  class "ProductoDisponibilidad" as dto_ProductoDisponibilidad
+}
+package "enums" #FEF9C3 {
+  enum "EstadoMesa" as enums_EstadoMesa
+  enum "EstadoPedido" as enums_EstadoPedido
+  enum "MetodoPago" as enums_MetodoPago
+}
+package "exceptions" #FEF9C3 {
+  class "AdicionalNoDisponibleException" as exceptions_AdicionalNoDisponibleException
+  class "AsignacionActivaException" as exceptions_AsignacionActivaException
+  class "MesaNotFoundException" as exceptions_MesaNotFoundException
+  class "MesaOcupadaException" as exceptions_MesaOcupadaException
+  class "PedidoNoEditableException" as exceptions_PedidoNoEditableException
+  class "ReservaNoCancelableException" as exceptions_ReservaNoCancelableException
+  class "ReservaNotFoundException" as exceptions_ReservaNotFoundException
+  class "StockInsuficienteException" as exceptions_StockInsuficienteException
+  exceptions_AdicionalNoDisponibleException -[hidden]right- exceptions_AsignacionActivaException
+  exceptions_AsignacionActivaException -[hidden]right- exceptions_MesaNotFoundException
+  exceptions_AdicionalNoDisponibleException -[hidden]down- exceptions_MesaOcupadaException
+  exceptions_MesaOcupadaException -[hidden]right- exceptions_PedidoNoEditableException
+  exceptions_AsignacionActivaException -[hidden]down- exceptions_PedidoNoEditableException
+  exceptions_PedidoNoEditableException -[hidden]right- exceptions_ReservaNoCancelableException
+  exceptions_MesaNotFoundException -[hidden]down- exceptions_ReservaNoCancelableException
+  exceptions_MesaOcupadaException -[hidden]down- exceptions_ReservaNotFoundException
+  exceptions_ReservaNotFoundException -[hidden]right- exceptions_StockInsuficienteException
+  exceptions_PedidoNoEditableException -[hidden]down- exceptions_StockInsuficienteException
+}
+package "session" #FEF9C3 {
+  class "SesionUsuario" as session_SesionUsuario
+}
+service_AdicionalService -[hidden]down- dao_DisponibilidadDAO
+dao_DisponibilidadDAO -[hidden]down- entity_Adicional
+entity_Adicional -[hidden]down- dto_CuentaPago
+dto_CuentaPago -[hidden]down- enums_EstadoMesa
+enums_EstadoMesa -[hidden]down- exceptions_AdicionalNoDisponibleException
+exceptions_AdicionalNoDisponibleException -[hidden]down- session_SesionUsuario
+service_PedidoService -[#A16207]-> "* ESTADOS_YA_CERRADOS" enums_EstadoPedido
+dao_DisponibilidadDAO -[#A16207,dashed]-> dto_ProductoDisponibilidad
+dao_PagoDAO -[#A16207,dashed]-> dto_CuentaPago
+dao_ProductoDAO -[#7E22CE,dashed]-> entity_Producto
+service_AdicionalService -[#7E22CE,dashed]-> entity_Adicional
+service_AdicionalService -[#A16207,dashed]-> exceptions_AdicionalNoDisponibleException
+service_AdicionalService -[#7E22CE,dashed]-> entity_DetallePedidoAdicional
+service_AsignacionMesaService -[#A16207,dashed]-> exceptions_AsignacionActivaException
+service_AsignacionMesaService -[#7E22CE,dashed]-> entity_AsignacionMesa
+service_AutenticacionService -[#A16207,dashed]-> session_SesionUsuario
+service_AutenticacionService -[#7E22CE,dashed]-> entity_UsuarioAutenticable
+service_DisponibilidadService -[#7E22CE,dashed]-> entity_PlatoInsumo
+service_EntradaInventarioService -[#7E22CE,dashed]-> entity_EntradaInventario
+service_InventarioService -[#A16207,dashed]-> exceptions_StockInsuficienteException
+service_MesaService -[#A16207,dashed]-> entity_EstadoMesa
+service_MesaService -[#7E22CE,dashed]-> entity_HistorialEstadoMesa
+service_MesaService -[#7E22CE,dashed]-> entity_Mesa
+service_MesaService -[#A16207,dashed]-> exceptions_MesaNotFoundException
+service_MesaService -[#7E22CE,dashed]-> entity_Zona
+service_PagoService -[#A16207,dashed]-> enums_EstadoPedido
+service_PagoService -[#A16207,dashed]-> enums_MetodoPago
+service_PagoService -[#7E22CE,dashed]-> entity_Pago
+service_PagoService -[#7E22CE,dashed]-> entity_Pedido
+service_PedidoFacade -[#A16207,dashed]-> dto_ItemPedido
+service_PedidoFacade -[#7E22CE,dashed]-> entity_Pedido
+service_PedidoService -[#A16207,dashed]-> exceptions_MesaNotFoundException
+service_PedidoService -[#A16207,dashed]-> exceptions_MesaOcupadaException
+service_PedidoService -[#7E22CE,dashed]-> entity_Pedido
+service_PedidoService -[#A16207,dashed]-> exceptions_PedidoNoEditableException
+service_ReglaDescuentoService -[#7E22CE,dashed]-> entity_ReglaDescuento
+service_ReservaService -[#A16207,dashed]-> enums_EstadoPedido
+service_ReservaService -[#7E22CE,dashed]-> entity_Reserva
+service_ReservaService -[#A16207,dashed]-> exceptions_ReservaNoCancelableException
+service_ReservaService -[#A16207,dashed]-> exceptions_ReservaNotFoundException
+@enduml

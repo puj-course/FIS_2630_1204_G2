@@ -1,0 +1,35 @@
+@startuml
+allowmixing
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 30
+skinparam ranksep 60
+skinparam ArrowColor #475569
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentFontSize 12
+skinparam InterfaceBackgroundColor #FFFFFF
+skinparam InterfaceFontSize 11
+skinparam ArtifactBackgroundColor #FFFFFF
+skinparam ArtifactFontSize 11
+skinparam DatabaseBackgroundColor #FFFFFF
+
+component "**Interfaz de usuario · controller + Main**\n<size:10>8 componentes</size>" as ui #DBEAFE
+component "**Logica de negocio · service**\n<size:10>12 componentes</size>" as negocio #DCFCE7
+component "**Acceso a datos · repository + dao**\n<size:10>26 componentes</size>" as datos #FFEDD5
+component "**ConexionBD**\n<size:10>1 componentes</size>" as conexion #F1F5F9
+component "**Apoyo transversal · session + util**\n<size:10>2 componentes</size>" as apoyo #F3E8FF
+database "**gastroflow**\n<size:10>27 tablas</size>" as bd #FFFFFF
+datos ..> conexion : <<use>> 22 operaciones
+negocio ..> apoyo : <<use>> 2 operaciones
+negocio ..> conexion : <<use>> 4 operaciones
+negocio ..> datos : <<use>> 40 operaciones
+ui ..> apoyo : <<use>> 14 operaciones
+ui ..> datos : <<use>> 17 operaciones
+ui ..> negocio : <<use>> 9 operaciones
+infra ..> bd : JDBC
+@enduml

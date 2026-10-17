@@ -1,0 +1,82 @@
+@startuml
+allowmixing
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 30
+skinparam ranksep 60
+skinparam ArrowColor #475569
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentFontSize 12
+skinparam InterfaceBackgroundColor #FFFFFF
+skinparam InterfaceFontSize 11
+skinparam ArtifactBackgroundColor #FFFFFF
+skinparam ArtifactFontSize 11
+skinparam DatabaseBackgroundColor #FFFFFF
+
+left to right direction
+package "repository + dao" #FFEDD5 {
+  component "**DisponibilidadDAO**" as DisponibilidadDAO
+  component "**EntradaInventarioRepository**" as EntradaInventarioRepository
+  component "**EstadoMesaRepository**" as EstadoMesaRepository
+  component "**IngredienteRepository**" as IngredienteRepository
+  component "**InventarioRepository**" as InventarioRepository
+  component "**MesaRepository**" as MesaRepository
+  component "**MovimientoInventarioRepository**" as MovimientoInventarioRepository
+  component "**PagoDAO**" as PagoDAO
+  component "**PedidoRepository**" as PedidoRepository
+  component "**PlatoInsumoRepository**" as PlatoInsumoRepository
+  component "**PlatoRepository**" as PlatoRepository
+  component "**ProductoDAO**" as ProductoDAO
+  component "**ReservaRepository**" as ReservaRepository
+  component "**UsuarioRepository**" as UsuarioRepository
+  component "**ZonaRepository**" as ZonaRepository
+}
+package "tablas que tocan dos o mas repositorios · 11" #DCFCE7 {
+  database "categorias\n<size:9>solo lectura</size>" as T_categorias #FFFFFF
+  database "estados_mesa\n<size:9>solo lectura</size>" as T_estados_mesa #FFFFFF
+  database "ingredientes\n<size:9>escriben 2</size>" as T_ingredientes #FFFFFF
+  database "mesas\n<size:9>escriben 1</size>" as T_mesas #FFFFFF
+  database "movimientos_inventario\n<size:9>escriben 3</size>" as T_movimientos_inventario #FFFFFF
+  database "pedidos\n<size:9>escriben 1</size>" as T_pedidos #FFFFFF
+  database "plato_insumo\n<size:9>escriben 1</size>" as T_plato_insumo #FFFFFF
+  database "productos\n<size:9>escriben 1</size>" as T_productos #FFFFFF
+  database "roles\n<size:9>solo lectura</size>" as T_roles #FFFFFF
+  database "usuarios\n<size:9>escriben 1</size>" as T_usuarios #FFFFFF
+  database "zonas\n<size:9>solo lectura</size>" as T_zonas #FFFFFF
+}
+DisponibilidadDAO ..> T_categorias : lee
+ProductoDAO ..> T_categorias : lee
+EstadoMesaRepository ..> T_estados_mesa : lee
+MesaRepository ..> T_estados_mesa : lee
+ReservaRepository ..> T_estados_mesa : lee
+IngredienteRepository --> T_ingredientes : escribe
+InventarioRepository --> T_ingredientes : escribe
+PagoDAO ..> T_mesas : lee
+MesaRepository --> T_mesas : escribe
+ReservaRepository ..> T_mesas : lee
+EntradaInventarioRepository --> T_movimientos_inventario : escribe
+InventarioRepository --> T_movimientos_inventario : escribe
+MovimientoInventarioRepository --> T_movimientos_inventario : escribe
+PagoDAO ..> T_pedidos : lee
+MesaRepository ..> T_pedidos : lee (en ejecucion)
+PedidoRepository --> T_pedidos : escribe
+InventarioRepository ..> T_plato_insumo : lee
+PlatoInsumoRepository --> T_plato_insumo : escribe
+DisponibilidadDAO ..> T_productos : lee
+ProductoDAO ..> T_productos : lee
+InventarioRepository ..> T_productos : lee
+PlatoRepository --> T_productos : escribe
+PagoDAO ..> T_roles : lee
+UsuarioRepository ..> T_roles : lee
+PagoDAO ..> T_usuarios : lee
+MesaRepository ..> T_usuarios : lee (en ejecucion)
+UsuarioRepository --> T_usuarios : escribe
+MesaRepository ..> T_zonas : lee
+ReservaRepository ..> T_zonas : lee
+ZonaRepository ..> T_zonas : lee
+@enduml
