@@ -1,51 +1,13 @@
 # Diagrama de arquitectura
 
-**Issue:** HU-128 (#273)  
-**Rama:** `develop`  
-**Commit:** `084c099`  
-**Fecha del commit:** 2026-10-15
-
-Documenta la organización en capas del sistema y comprueba que el código de la rama responde a la decisión de arquitectura registrada en architecture.md.
-
-Es un solo diagrama.
+Documenta en una sola vista cómo está organizado el código y qué depende de qué, y contrasta el resultado con la decisión de arquitectura registrada en architecture.md.
 
 ---
 
-## Arquitectura en capas del sistema
+## Organización del código en capas y dependencias entre ellas
 
-![Arquitectura en capas del sistema](Imagenes/DiagramaArquitectura_Capas.png)
+![Organización del código en capas y dependencias entre ellas](Imagenes/DiagramaArquitectura_Capas.png)
 
-**Por qué está.** La decisión de arquitectura registrada en docs/architecture.md es JavaFX con JDBC y sin Spring. Este diagrama es la comprobación de que el código que hay en la rama responde a esa decisión, y es el que resuelve la HU-128.
+**Por qué está.** Responde, en una sola vista, cómo está organizado el código y qué depende de qué, sin tener que recorrer los archivos uno por uno. Comprueba además si el código cumple la decisión registrada en architecture.md: JavaFX con JDBC y sin Spring.
 
-**Qué muestra.** Son 20 elementos y 9 dependencias entre capas. Están los paquetes de src/main/java agrupados en presentación, negocio, datos e infraestructura, los recursos de src/main/resources y PostgreSQL. Los tres DAO están en la capa de datos porque ejecutan SQL, no en la de negocio. El diagrama marca además los saltos de capa que el código comete, con su número real de ocurrencias.
-
----
-
-
-## Cómo se construyeron
-
-Estos diagramas no se dibujaron a mano. Los genera un conjunto de scripts que
-leen el código fuente de la rama y producen el `.puml`, y se comprueban contra
-ese mismo código con verificadores independientes que vuelven a leerlo con otro
-método. Si el código cambia y el diagrama deja de ser cierto, la comprobación
-falla.
-
-| Qué | Dónde |
-|---|---|
-| Rama | `develop` |
-| Commit | `084c099` (084c099423b4bdd827894e4907aca8b943b1a963) |
-| Fecha del commit | 2026-10-15 |
-| Fuente de los diagramas | PlantUML, en `docs/diagramas-fuente/` |
-| Herramienta que los genera | `docs/diagramas-fuente/herramientas/` |
-| Imágenes | PNG a dpi 96, en `docs/Imagenes/` |
-
-Para regenerarlos hace falta el clon de la rama y una sola orden:
-
-```bash
-cd docs/diagramas-fuente/herramientas
-./rehacer.sh /ruta/al/clon/de/FIS_2630_1204_G2
-```
-
-Esa orden vuelve a leer el código, regenera los `.puml`, los renderiza y corre
-todas las comprobaciones. Necesita Python 3, Java y PlantUML. Los archivos
-intermedios los deja dentro de esa misma carpeta.
+**Qué muestra.** Son 20 elementos y 12 dependencias: cuatro entre capas contiguas, dos saltos de capa, tres hacia el modelo y tres desde las pruebas. Los paquetes de src/main/java se agrupan en presentación, negocio, datos e infraestructura, con los recursos y PostgreSQL. Los tres DAO están en la capa de datos y no en la de negocio, porque ejecutan SQL igual que un repositorio. El diagrama no esconde los incumplimientos: marca los saltos de capa que el código comete y cuántas veces ocurre cada uno, sobre todo desde presentación hacia datos.

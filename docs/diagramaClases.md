@@ -1,191 +1,153 @@
 # Diagramas de clases
 
-**Issue:** Documentación de diseño y consolidación del modelo de datos — trabajo previo, no corresponde a ninguna de las tres HU de esta semana  
-**Rama:** `develop`  
-**Commit:** `084c099`  
-**Fecha del commit:** 2026-10-15
-
-Documentan el modelo de clases completo de la rama: 98 tipos, 371 atributos y 663 métodos. Se reparten en quince láminas porque una sola resultaba ilegible: siete de miembros, agrupadas por capa, y ocho de relaciones, separadas por origen y destino para que las líneas no se crucen.
-
-Son 15 diagramas.
+Documentan el modelo de clases del sistema: 98 tipos, 371 atributos y 663 métodos. Están organizados siguiendo la arquitectura en capas del proyecto: primero las entidades del dominio, después cada capa con sus miembros, y al final las relaciones, separadas por origen y destino para que cada vista responda una sola pregunta.
 
 ---
 
-## Entidades A — de Adicional a EstadoMesa
+## Entidades del dominio (A): adicionales, inventario, mesas y clientes
 
-![Entidades A — de Adicional a EstadoMesa](Imagenes/DiagramaClases_Entidades_A.png)
+![Entidades del dominio (A): adicionales, inventario, mesas y clientes](Imagenes/DiagramaClases_Entidades_A.png)
 
-**Por qué está.** El modelo tiene 98 tipos. Dibujarlos juntos produce una lámina que no se puede leer ni imprimir, así que partimos las entidades en tres láminas por orden alfabético. Esta primera cubre el primer tercio y existe para poder consultar los atributos y las operaciones de cada entidad sin ir a buscarlas al código.
+**Por qué está.** Las entidades son el vocabulario del sistema: los servicios, los repositorios y las pantallas se definen todos en términos de ellas, así que el modelo empieza por aquí. Este bloque cubre la parte del negocio que sostiene la carta y el salón.
 
-**Qué muestra.** Contiene 19 clases y 1 interfaz. Están las entidades del dominio de adicionales, inventario, asignación de mesas y clientes, cada una con sus atributos y sus métodos tal como los declara el código. Al lado de cada entidad aparecen los repositorios y servicios que la manejan, para que la lámina se lea sin saltar a otra.
-
----
-
-## Entidades B — de HistorialEstadoMesa a MovimientoInventario
-
-![Entidades B — de HistorialEstadoMesa a MovimientoInventario](Imagenes/DiagramaClases_Entidades_B.png)
-
-**Por qué está.** Segundo tercio del modelo, con el mismo criterio de corte que la lámina anterior: mantener cada una por debajo del tamaño en el que las cajas dejan de ser legibles.
-
-**Qué muestra.** Son 17 tipos: 15 clases, la interfaz MeseroRepository y el enum TipoMovimiento. Aquí está el núcleo de mesas (Mesa, HistorialEstadoMesa, NotaMesa) y el de inventario (Ingrediente, MovimientoInventario), con los controladores de cocina y mapa de salón que los consumen.
+**Qué muestra.** Hay 19 clases y 1 interfaz, con sus atributos y sus métodos. Se ve que un adicional se asocia a un detalle de pedido a través de DetallePedidoAdicional, que la asignación de una mesa es una entidad propia y no un campo de Mesa, y que las alertas de inventario se guardan en lugar de calcularse al vuelo. Junto a cada entidad aparece el repositorio y el servicio que la manejan.
 
 ---
 
-## Entidades C — de Pago a Zona
+## Entidades del dominio (B): mesas, historial e inventario
 
-![Entidades C — de Pago a Zona](Imagenes/DiagramaClases_Entidades_C.png)
+![Entidades del dominio (B): mesas, historial e inventario](Imagenes/DiagramaClases_Entidades_B.png)
 
-**Por qué está.** Último tercio del modelo. Cierra el recorrido por las entidades y recoge las dos enumeraciones que gobiernan el flujo del pedido y el del pago.
+**Por qué está.** Aquí está el núcleo del salón. La mesa es la entidad con más estados y más escrituras concurrentes del sistema, y entenderla es condición para leer el diagrama de estados y el de componentes de datos.
 
-**Qué muestra.** Son 31 tipos. Incluye Pedido y Pago, los enums EstadoPedido y MetodoPago, la interfaz PagoRepository, y las entidades de carta y salón (Plato, Producto, Zona, Reserva). EstadoPedido es la base del diagrama de estados que documentamos aparte.
-
----
-
-## Controladores JavaFX
-
-![Controladores JavaFX](Imagenes/DiagramaClases_Controladores.png)
-
-**Por qué está.** La capa de presentación es la que más cambia entre entregas y la que más preguntas recibe en las revisiones. Separarla en su propia lámina permite ver de un vistazo qué pantalla existe y qué operaciones expone cada una.
-
-**Qué muestra.** Son 29 tipos y 13 relaciones. Están los ocho controladores JavaFX (Login, MapaSalon, MenuMesero, Cocina, CajeroPago, Inventario y DisponibilidadAdmin) con sus métodos @FXML, más las clases auxiliares que declaran dentro (AccionMesa, ResumenMesas) y los enums que solo ellos usan, como EstadoMesaVisual.
+**Qué muestra.** Son 17 tipos. Mesa no guarda su estado como texto sino como clave hacia el catálogo estados_mesa, y cada cambio deja una fila en HistorialEstadoMesa: el historial es parte del modelo, no una tabla de auditoría añadida aparte. NotaMesa cuelga de la mesa con una nota por mesa como máximo. El enum TipoMovimiento clasifica las entradas y salidas de inventario.
 
 ---
 
-## Repositorios
+## Entidades del dominio (C): pedidos, pagos, carta y reservas
 
-![Repositorios](Imagenes/DiagramaClases_Repositorios.png)
+![Entidades del dominio (C): pedidos, pagos, carta y reservas](Imagenes/DiagramaClases_Entidades_C.png)
 
-**Por qué está.** El proyecto no usa ORM: cada repositorio escribe su propio SQL. Esta lámina existe para poder revisar de una vez las clases que tocan la base de datos, que es donde se concentran los errores de consulta.
+**Por qué está.** Cierra el modelo con el flujo que da sentido al resto: un pedido se abre sobre una mesa, se llena con productos de la carta y termina en un pago. Las dos enumeraciones que gobiernan ese flujo se declaran aquí.
 
-**Qué muestra.** Son 64 tipos y 27 relaciones. Además de los repositorios aparecen las tres interfaces que extienden JpaRepository y que el pom.xml excluye de la compilación (DetallePedidoRepository, MeseroRepository y PagoRepository), señaladas como tales, y los enums que las consultas usan como parámetro.
-
----
-
-## Servicios y DAO
-
-![Servicios y DAO](Imagenes/DiagramaClases_Servicios_DAO.png)
-
-**Por qué está.** La lógica de negocio vive repartida entre service y dao. Verlas juntas es lo único que deja comprobar que no haya reglas duplicadas en las dos capas, que fue uno de los riesgos que detectamos al unificar la arquitectura.
-
-**Qué muestra.** Son 64 tipos y 33 relaciones. Están los doce servicios y los tres DAO (DisponibilidadDAO, PagoDAO y ProductoDAO), con PedidoFacade como fachada del flujo de pedido. Los tres DAO ejecutan SQL directamente, igual que un repositorio, y por eso en el diagrama de arquitectura los situamos en la capa de datos y no en la de negocio.
+**Qué muestra.** Son 31 tipos. EstadoPedido define los seis estados por los que pasa una comanda, y MetodoPago las formas de cobro. Pago no cuelga del pedido por composición sino que lo referencia, de modo que un pedido puede existir sin pago; eso sí, la entidad Pago es una de las que el pom.xml excluye de la compilación, así que el cobro no está cerrado. Reserva apunta a la mesa y no al revés, y Zona agrupa las mesas del salón.
 
 ---
 
-## Clases de apoyo: excepciones, enums, DTO y utilidades
+## Capa de presentación: los controladores JavaFX
 
-![Clases de apoyo: excepciones, enums, DTO y utilidades](Imagenes/DiagramaClases_Apoyo.png)
+![Capa de presentación: los controladores JavaFX](Imagenes/DiagramaClases_Controladores.png)
 
-**Por qué está.** Las excepciones y los enums no pertenecen a ninguna capa y ensucian cualquier lámina en la que se metan. Agruparlos aparte mantiene limpias las otras y da un sitio único donde consultar qué excepción lanza el sistema y qué valores admite cada enumeración.
+**Por qué está.** Cada pantalla de la aplicación es un controlador, así que este diagrama es el inventario de lo que el usuario puede hacer. Sirve para saber qué funcionalidad está construida y cuál sigue sin interfaz.
 
-**Qué muestra.** Son 47 tipos. Incluye las nueve excepciones propias, los seis enums del dominio, los DTO (IngredienteStockDTO, ProductoDisponibilidad, CuentaPago e ItemPedido), la clase de conexión y Main.
-
----
-
-## Relaciones: controladores hacia las otras capas
-
-![Relaciones: controladores hacia las otras capas](Imagenes/DiagramaClases_Relaciones_Controller_Capas.png)
-
-**Por qué está.** En las láminas anteriores las relaciones se omiten para que las cajas se lean. Esta serie de siete mapas las recupera, una capa por lámina, que es la única forma de que las líneas no se crucen hasta volverse indistinguibles.
-
-**Qué muestra.** Muestra a qué servicios, DAO y repositorios llama cada controlador. Son 21 tipos y 5 relaciones. Permite ver qué controladores se saltan la capa de servicio y acceden directamente a datos, que es un hallazgo que confirmamos en el código.
+**Qué muestra.** Son 29 tipos y 13 relaciones. Hay ocho pantallas: acceso, mapa de salón, carta del mesero, cocina, caja, inventario y disponibilidad. El mapa de salón es con diferencia el controlador más grande, y declara dentro sus propias clases auxiliares (AccionMesa, ResumenMesas) y el enum EstadoMesaVisual, que traduce los códigos de la base a colores y etiquetas de pantalla.
 
 ---
 
-## Relaciones: controladores hacia el modelo
+## Capa de acceso a datos: los repositorios
 
-![Relaciones: controladores hacia el modelo](Imagenes/DiagramaClases_Relaciones_Controller_Modelo.png)
+![Capa de acceso a datos: los repositorios](Imagenes/DiagramaClases_Repositorios.png)
 
-**Por qué está.** Separada de la anterior porque mezclar las llamadas a otras capas con el uso de entidades volvía la lámina ilegible.
+**Por qué está.** La decisión de arquitectura fue JDBC sin ORM, lo que significa que cada repositorio escribe su propio SQL. Esa decisión concentra aquí el riesgo de inconsistencia, y por eso la capa se documenta completa.
 
-**Qué muestra.** Son 19 tipos y 17 relaciones. Muestra qué entidades y qué enums manipula cada controlador directamente, sin pasar por un servicio.
-
----
-
-## Relaciones: servicios hacia las otras capas
-
-![Relaciones: servicios hacia las otras capas](Imagenes/DiagramaClases_Relaciones_Service_Capas.png)
-
-**Por qué está.** Mismo criterio: una lámina por origen y por destino. Esta es la que muestra el camino normal de una operación de negocio hacia la base de datos.
-
-**Qué muestra.** Son 33 tipos y 9 relaciones: cada servicio con los repositorios y DAO que usa. PedidoFacade aparece aquí como el único punto que agrupa varios servicios, que es el patrón Facade que ya teníamos implementado.
+**Qué muestra.** Son 64 tipos y 27 relaciones. Cada repositorio expone métodos de consulta con nombre propio en lugar de un CRUD genérico, porque las consultas están escritas a mano. Tres interfaces (DetallePedidoRepository, MeseroRepository y PagoRepository) extienden JpaRepository y son el residuo de la etapa con Spring: el pom.xml las excluye de la compilación y no forman parte del sistema que se ejecuta.
 
 ---
 
-## Relaciones: servicios hacia el modelo
+## Capa de negocio: servicios y DAO
 
-![Relaciones: servicios hacia el modelo](Imagenes/DiagramaClases_Relaciones_Service_Modelo.png)
+![Capa de negocio: servicios y DAO](Imagenes/DiagramaClases_Servicios_DAO.png)
 
-**Por qué está.** Completa la vista anterior con las entidades que cada servicio construye o modifica.
+**Por qué está.** Es la capa donde se decide si una operación es válida. Documentarla completa es lo que permite comprobar que las reglas viven en un solo sitio y no repartidas entre dos estilos de clase.
 
-**Qué muestra.** Son 45 tipos. Muestra qué entidades toca cada servicio y con qué enums trabaja, entre ellos EstadoPedido y EstadoMesa.
-
----
-
-## Relaciones: repositorios hacia las otras capas
-
-![Relaciones: repositorios hacia las otras capas](Imagenes/DiagramaClases_Relaciones_Repository_Capas.png)
-
-**Por qué está.** Un repositorio no debería llamar a otra capa. Esta lámina existe precisamente para poder comprobarlo de un vistazo.
-
-**Qué muestra.** Son 21 tipos. La lámina está prácticamente vacía de líneas, y ese es el resultado: los repositorios no llaman hacia arriba. La única relación entre iguales que sí existe, de ProductoDAO hacia DisponibilidadDAO, la recogemos en la lámina de la capa de datos.
+**Qué muestra.** Son 64 tipos y 33 relaciones. Conviven doce servicios y tres DAO (DisponibilidadDAO, PagoDAO y ProductoDAO) que hacen el mismo trabajo con otro nombre: los tres ejecutan SQL directamente, así que pertenecen a la capa de datos aunque estén en el paquete dao. PedidoFacade agrupa el flujo de pedido detrás de una sola interfaz, que es el patrón Facade aplicado en el proyecto.
 
 ---
 
-## Relaciones: repositorios hacia el modelo
+## Excepciones, enumeraciones, DTO y arranque
 
-![Relaciones: repositorios hacia el modelo](Imagenes/DiagramaClases_Relaciones_Repository_Modelo.png)
+![Excepciones, enumeraciones, DTO y arranque](Imagenes/DiagramaClases_Apoyo.png)
 
-**Por qué está.** Es el mapa de qué entidad lee y escribe cada repositorio, que es lo que hace falta para rastrear quién toca cada tabla.
+**Por qué está.** Las excepciones definen el contrato de error del sistema: qué puede fallar y con qué nombre. Junto con las enumeraciones son el vocabulario que atraviesa todas las capas, y por eso se documentan juntas.
 
-**Qué muestra.** Son 48 tipos y 27 relaciones, entre ellas las de herencia hacia JpaRepository. Junto con el diagrama de componentes de datos permite detectar tablas escritas desde más de un repositorio.
-
----
-
-## Relaciones dentro del modelo
-
-![Relaciones dentro del modelo](Imagenes/DiagramaClases_Relaciones_Modelo.png)
-
-**Por qué está.** Las relaciones entre entidades son las que sostienen el modelo de datos, y conviene verlas sin el ruido de las otras capas.
-
-**Qué muestra.** Son 18 tipos y 13 relaciones: composiciones, agregaciones y asociaciones entre entidades, con la multiplicidad deducida del tipo declarado de cada campo. Solo las composiciones llevan multiplicidad en el extremo de origen, porque es la única que el código justifica.
+**Qué muestra.** Son 47 tipos. Las nueve excepciones propias nombran reglas de negocio concretas (MesaOcupadaException, PedidoNoEditableException, StockInsuficienteException), de modo que una regla rota se distingue de un fallo técnico. Los DTO transportan datos agregados que no corresponden a una sola entidad, como CuentaPago o ProductoDisponibilidad. Main es el punto de entrada JavaFX.
 
 ---
 
-## Clases de prueba
+## Qué llama la presentación hacia abajo
 
-![Clases de prueba](Imagenes/DiagramaClases_Pruebas.png)
+![Qué llama la presentación hacia abajo](Imagenes/DiagramaClases_Relaciones_Controller_Capas.png)
 
-**Por qué está.** Las pruebas son parte de la entrega y tienen sus propias dependencias. Documentarlas aparte evita mezclarlas con el código de producción en las otras láminas.
+**Por qué está.** Una arquitectura en capas solo se sostiene si las llamadas respetan el orden. Este diagrama responde si la presentación pasa siempre por la capa de negocio o si atajaba hacia los datos.
 
-**Qué muestra.** Son 29 tipos y 24 relaciones: 10 clases de prueba repartidas en 7 archivos, con las clases de producción que cada una ejercita. Incluye las clases anidadas que JUnit usa para agrupar casos.
+**Qué muestra.** Son 21 tipos y 5 relaciones. La respuesta es que no siempre pasa: hay controladores que llaman directamente a repositorios y a DAO, saltándose los servicios. El mapa de salón es el caso más claro, y es el mismo salto que reaparece en el diagrama de estados de la mesa como escritura sin auditoría.
 
 ---
 
+## Qué entidades manipula la presentación
 
-## Cómo se construyeron
+![Qué entidades manipula la presentación](Imagenes/DiagramaClases_Relaciones_Controller_Modelo.png)
 
-Estos diagramas no se dibujaron a mano. Los genera un conjunto de scripts que
-leen el código fuente de la rama y producen el `.puml`, y se comprueban contra
-ese mismo código con verificadores independientes que vuelven a leerlo con otro
-método. Si el código cambia y el diagrama deja de ser cierto, la comprobación
-falla.
+**Por qué está.** Complementa al anterior con la otra pregunta: además de a quién llama, qué datos del dominio toca cada pantalla directamente.
 
-| Qué | Dónde |
-|---|---|
-| Rama | `develop` |
-| Commit | `084c099` (084c099423b4bdd827894e4907aca8b943b1a963) |
-| Fecha del commit | 2026-10-15 |
-| Fuente de los diagramas | PlantUML, en `docs/diagramas-fuente/` |
-| Herramienta que los genera | `docs/diagramas-fuente/herramientas/` |
-| Imágenes | PNG a dpi 96, en `docs/Imagenes/` |
+**Qué muestra.** Son 19 tipos y 17 relaciones. Los controladores construyen y modifican entidades por su cuenta, no solo DTO, y usan los enums del dominio para decidir qué pintar. Es lo que explica que la lógica de estado del pedido esté repartida entre el servicio y la pantalla de cocina.
 
-Para regenerarlos hace falta el clon de la rama y una sola orden:
+---
 
-```bash
-cd docs/diagramas-fuente/herramientas
-./rehacer.sh /ruta/al/clon/de/FIS_2630_1204_G2
-```
+## Qué usa la capa de negocio para llegar a los datos
 
-Esa orden vuelve a leer el código, regenera los `.puml`, los renderiza y corre
-todas las comprobaciones. Necesita Python 3, Java y PlantUML. Los archivos
-intermedios los deja dentro de esa misma carpeta.
+![Qué usa la capa de negocio para llegar a los datos](Imagenes/DiagramaClases_Relaciones_Service_Capas.png)
+
+**Por qué está.** Es el camino normal de una operación: una pantalla pide algo a un servicio y el servicio lo resuelve contra la base. Este diagrama lo traza entero.
+
+**Qué muestra.** Son 33 tipos y 9 relaciones. Cada servicio depende de varios repositorios, señal de que las operaciones de negocio cruzan varias tablas. PedidoFacade es el único que depende de otros servicios en lugar de repositorios, que es justo lo que hace de él una fachada.
+
+---
+
+## Qué entidades construye y modifica cada servicio
+
+![Qué entidades construye y modifica cada servicio](Imagenes/DiagramaClases_Relaciones_Service_Modelo.png)
+
+**Por qué está.** Permite saber quién es responsable de cada entidad: si dos servicios escriben la misma, hay una regla de negocio repartida en dos sitios.
+
+**Qué muestra.** Son 45 tipos. Muestra con qué entidades y con qué enumeraciones trabaja cada servicio. EstadoPedido y EstadoMesa aparecen en varios, que es la razón por la que las transiciones de estado se documentan en su propio diagrama.
+
+---
+
+## Comprobación: los repositorios no llaman hacia arriba
+
+![Comprobación: los repositorios no llaman hacia arriba](Imagenes/DiagramaClases_Relaciones_Repository_Capas.png)
+
+**Por qué está.** En una arquitectura en capas la de datos debe ser la última: puede ser llamada, pero no debe llamar a negocio ni a presentación. Este diagrama existe para verificarlo.
+
+**Qué muestra.** Son 21 tipos y el resultado es que la comprobación se cumple: no hay flechas saliendo de la capa de datos hacia arriba. La única relación entre iguales es ProductoDAO hacia DisponibilidadDAO, dentro de la misma capa, y queda recogida en el diagrama de componentes de datos.
+
+---
+
+## Qué entidad lee y escribe cada repositorio
+
+![Qué entidad lee y escribe cada repositorio](Imagenes/DiagramaClases_Relaciones_Repository_Modelo.png)
+
+**Por qué está.** Sin ORM, la correspondencia entre clase y tabla no está declarada en ninguna anotación: hay que deducirla del SQL. Este diagrama la deja escrita, y es lo que permite rastrear quién toca cada dato.
+
+**Qué muestra.** Son 48 tipos y 27 relaciones. La mayoría de repositorios mapean una entidad cada uno, pero algunos leen varias para componer un resultado. Las tres relaciones de herencia que aparecen son las de las interfaces de Spring que no compilan.
+
+---
+
+## Cómo se relacionan las entidades entre sí
+
+![Cómo se relacionan las entidades entre sí](Imagenes/DiagramaClases_Relaciones_Modelo.png)
+
+**Por qué está.** Es el modelo conceptual del negocio, sin capas ni tecnología: qué pertenece a qué y con qué cardinalidad. Es la vista que hay que contrastar con el modelo de base de datos.
+
+**Qué muestra.** Son 18 tipos y 13 relaciones, con la multiplicidad deducida del tipo declarado de cada campo. Se distingue composición de agregación: un pedido se compone de sus ítems y no tienen vida propia, mientras que un pago referencia al pedido sin ser parte de él. Solo las composiciones llevan multiplicidad en el extremo de origen, porque es la única que el código permite afirmar.
+
+---
+
+## Qué cubren las pruebas automáticas
+
+![Qué cubren las pruebas automáticas](Imagenes/DiagramaClases_Pruebas.png)
+
+**Por qué está.** Las pruebas son parte de la entrega y delimitan qué partes del sistema están verificadas. Este diagrama responde qué se prueba y qué no.
+
+**Qué muestra.** Son 29 tipos y 24 relaciones: 10 clases de prueba en 7 archivos, con las clases de producción que ejercita cada una. La cobertura funcional se concentra en mesas y pedidos: son los dos únicos módulos con pruebas contra la base de datos. El resto son pruebas unitarias de clases sueltas (CuentaPago, ItemPedido, TextoBusqueda y disponibilidad), sin inventario ni carta completos. Las clases anidadas son los grupos de casos de JUnit.

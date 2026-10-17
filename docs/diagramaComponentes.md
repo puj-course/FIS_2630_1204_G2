@@ -1,121 +1,83 @@
 # Diagramas de componentes
 
-**Issue:** Documentación de diseño y consolidación del modelo de datos — trabajo previo, no corresponde a ninguna de las tres HU de esta semana  
-**Rama:** `develop`  
-**Commit:** `084c099`  
-**Fecha del commit:** 2026-10-15
-
-Documentan los 49 componentes del sistema y las dependencias entre ellos. Las interfaces provistas no son nombres inventados: cada una se dedujo de las llamadas que de verdad cruzan el límite entre dos componentes, medidas sobre el código.
-
-Son 8 diagramas.
+Documentan en qué piezas sustituibles está dividido el sistema y cómo dependen unas de otras. Las interfaces que aparecen no son un diseño sobre el papel: cada una corresponde a las llamadas que de verdad cruzan el límite entre dos componentes.
 
 ---
 
-## Vista general
+## Los cinco grupos y su dependencia
 
-![Vista general](Imagenes/DiagramaComponentes_General.png)
+![Los cinco grupos y su dependencia](Imagenes/DiagramaComponentes_General.png)
 
-**Por qué está.** Es el punto de entrada al resto de la serie. Un solo diagrama con los 49 componentes resultaba ilegible, así que esta lámina da la vista de conjunto y las siete siguientes la desarrollan por capas.
+**Por qué está.** Un componente es una pieza que se puede sustituir si se respeta su interfaz. Esta vista responde en cuántas piezas está dividido GastroFlow y en qué orden dependen unas de otras.
 
-**Qué muestra.** Muestra los cinco grupos de componentes (interfaz, negocio, datos, conexión y apoyo) y las dependencias entre grupos. Las interfaces provistas no llevan nombres inventados: cada una se dedujo de las llamadas que de verdad cruzan el límite entre un grupo y otro, medidas sobre el código.
-
----
-
-## Capa de interfaz de usuario
-
-![Capa de interfaz de usuario](Imagenes/DiagramaComponentes_UI.png)
-
-**Por qué está.** La capa de presentación es la que consume más interfaces y la que hay que revisar cuando se agrega una pantalla.
-
-**Qué muestra.** Son 20 componentes de interfaz y 14 interfaces consumidas, con 17 conexiones. Cada componente agrupa su .fxml, su hoja de estilos y su controlador. Las hojas CSS aparecen cargadas por Main, que es donde el código las carga de verdad.
+**Qué muestra.** El sistema se agrupa en interfaz, negocio, datos, conexión y apoyo. Las dependencias van en una sola dirección salvo las que atraviesan hacia datos desde la interfaz. Las interfaces provistas llevan el nombre real de la clase que las implementa: se dedujeron de las llamadas que cruzan el límite entre un grupo y otro, no de un diseño sobre el papel.
 
 ---
 
-## Capa de lógica de negocio
+## Qué necesita cada pantalla para funcionar
 
-![Capa de lógica de negocio](Imagenes/DiagramaComponentes_Negocio.png)
+![Qué necesita cada pantalla para funcionar](Imagenes/DiagramaComponentes_UI.png)
 
-**Por qué está.** Es la capa donde se decide si una operación es válida, y por tanto donde más interesa ver con precisión qué depende de qué.
+**Por qué está.** Antes de tocar una pantalla conviene saber de qué depende. Esta vista lo resuelve pantalla por pantalla, incluidos los recursos que no son código.
 
-**Qué muestra.** Son 30 componentes de negocio y 23 interfaces, con 28 conexiones. Incluye SesionUsuario, que es el Singleton del proyecto, y marca PagoService como excluida de la compilación en el pom.xml.
-
----
-
-## Capa de datos y tablas propias
-
-![Capa de datos y tablas propias](Imagenes/DiagramaComponentes_Datos.png)
-
-**Por qué está.** Sin ORM, la relación entre repositorio y tabla solo existe dentro de las cadenas de SQL. Este diagrama la hace explícita.
-
-**Qué muestra.** Son 27 componentes de datos y 16 tablas, con 34 conexiones. Cada flecha sale de una consulta real leída del código. Aquí aparecen también los tres DAO, que ejecutan SQL igual que los repositorios.
+**Qué muestra.** Son 20 componentes y 14 interfaces consumidas, con 17 conexiones. Cada componente agrupa su .fxml, su hoja de estilos y su controlador, de modo que se ve qué archivos hay que tocar para cambiar una pantalla. Las hojas de estilo las carga Main y no cada controlador, que es una dependencia fácil de pasar por alto.
 
 ---
 
-## Tablas compartidas
+## Cómo se apoyan los servicios entre sí
 
-![Tablas compartidas](Imagenes/DiagramaComponentes_Datos_Compartidos.png)
+![Cómo se apoyan los servicios entre sí](Imagenes/DiagramaComponentes_Negocio.png)
 
-**Por qué está.** Una tabla escrita desde varios sitios es un riesgo de consistencia. Separarlas en su propia lámina es lo que permite verlas.
+**Por qué está.** La capa de negocio es la que concentra las reglas. Esta vista muestra si están aisladas por componente o si un servicio depende de otro para cumplir su función.
 
-**Qué muestra.** Son 11 tablas que más de un componente consulta o modifica, con 30 conexiones. Entre ellas movimientos_inventario, escrita desde tres repositorios distintos.
-
----
-
-## Artefactos: qué archivo contiene qué
-
-![Artefactos: qué archivo contiene qué](Imagenes/DiagramaComponentes_Artefactos.png)
-
-**Por qué está.** Las láminas anteriores hablan de componentes lógicos. Esta baja al archivo concreto, que es lo que hace falta para localizar el código.
-
-**Qué muestra.** Son 24 artefactos y 18 relaciones: los paquetes de código fuente, los .fxml, las hojas de estilo y los recursos, con el componente lógico al que pertenece cada uno.
+**Qué muestra.** Son 30 componentes y 23 interfaces, con 28 conexiones. Aparece SesionUsuario, que es el Singleton del proyecto y el único estado global del sistema: lo consultan varias pantallas para saber el rol del usuario. PagoService figura marcada como excluida de la compilación, así que la gestión de pagos está incompleta a este nivel.
 
 ---
 
-## Infraestructura transversal
+## Qué tabla toca cada componente de datos
 
-![Infraestructura transversal](Imagenes/DiagramaComponentes_Infraestructura.png)
+![Qué tabla toca cada componente de datos](Imagenes/DiagramaComponentes_Datos.png)
 
-**Por qué está.** Hay tres piezas que usa medio sistema y que, dibujadas en las otras láminas, generaban líneas cruzando el diagrama entero.
+**Por qué está.** Sin ORM esta correspondencia solo existe dentro de las cadenas de SQL. Hacerla explícita es lo que permite saber el impacto de cambiar una tabla antes de cambiarla.
 
-**Qué muestra.** ConexionBD, SesionUsuario y TextoBusqueda con sus 31 consumidores. Sacarlas aquí es lo que permitió que las láminas por capa quedaran legibles.
-
----
-
-## Código Spring que no compila
-
-![Código Spring que no compila](Imagenes/DiagramaComponentes_Spring_Sin_Compilar.png)
-
-**Por qué está.** El repositorio conserva seis clases que importan Spring o Jakarta sin que el pom.xml declare esas dependencias. No forman parte del sistema que se ejecuta, pero están en el código, y documentarlas evita que alguien las dé por funcionales.
-
-**Qué muestra.** Son 12 artefactos. Muestra exactamente las clases que el maven-compiler-plugin excluye y por qué, junto con los archivos de configuración y los scripts que tampoco participan en la compilación.
+**Qué muestra.** Son 27 componentes y 16 tablas, con 34 conexiones, y cada flecha sale de una consulta real. Los tres DAO aparecen aquí junto a los repositorios porque hacen lo mismo: ejecutar SQL. Las tablas que solo toca un componente son las de bajo riesgo; las compartidas van en el diagrama siguiente.
 
 ---
 
+## Las tablas que escriben varios componentes
 
-## Cómo se construyeron
+![Las tablas que escriben varios componentes](Imagenes/DiagramaComponentes_Datos_Compartidos.png)
 
-Estos diagramas no se dibujaron a mano. Los genera un conjunto de scripts que
-leen el código fuente de la rama y producen el `.puml`, y se comprueban contra
-ese mismo código con verificadores independientes que vuelven a leerlo con otro
-método. Si el código cambia y el diagrama deja de ser cierto, la comprobación
-falla.
+**Por qué está.** Una tabla escrita desde varios sitios es donde aparecen las inconsistencias, porque ningún componente ve lo que hacen los otros. Esta vista las aísla para poder vigilarlas.
 
-| Qué | Dónde |
-|---|---|
-| Rama | `develop` |
-| Commit | `084c099` (084c099423b4bdd827894e4907aca8b943b1a963) |
-| Fecha del commit | 2026-10-15 |
-| Fuente de los diagramas | PlantUML, en `docs/diagramas-fuente/` |
-| Herramienta que los genera | `docs/diagramas-fuente/herramientas/` |
-| Imágenes | PNG a dpi 96, en `docs/Imagenes/` |
+**Qué muestra.** Son 11 tablas compartidas con 30 conexiones. El caso más expuesto es movimientos_inventario, escrita desde tres repositorios distintos. También lo están pedidos y mesas, que son justamente las dos entidades cuyos estados documentamos aparte.
 
-Para regenerarlos hace falta el clon de la rama y una sola orden:
+---
 
-```bash
-cd docs/diagramas-fuente/herramientas
-./rehacer.sh /ruta/al/clon/de/FIS_2630_1204_G2
-```
+## En qué archivo vive cada componente
 
-Esa orden vuelve a leer el código, regenera los `.puml`, los renderiza y corre
-todas las comprobaciones. Necesita Python 3, Java y PlantUML. Los archivos
-intermedios los deja dentro de esa misma carpeta.
+![En qué archivo vive cada componente](Imagenes/DiagramaComponentes_Artefactos.png)
+
+**Por qué está.** Las vistas anteriores hablan de componentes lógicos. Para trabajar hace falta la correspondencia con los archivos reales del repositorio, y esta es la vista que la da.
+
+**Qué muestra.** Son 24 artefactos y 18 relaciones. Relaciona los paquetes de código, los .fxml, las hojas de estilo y los recursos con el componente al que pertenecen. Sirve de índice para localizar dónde se implementa cada pieza.
+
+---
+
+## Las tres piezas de las que depende medio sistema
+
+![Las tres piezas de las que depende medio sistema](Imagenes/DiagramaComponentes_Infraestructura.png)
+
+**Por qué está.** Hay componentes que no pertenecen a ninguna capa porque los usa todo el mundo. Son los que más cuesta cambiar, y por eso conviene saber exactamente quién los consume.
+
+**Qué muestra.** ConexionBD abre todas las conexiones a PostgreSQL, SesionUsuario guarda quién ha iniciado sesión y TextoBusqueda normaliza las búsquedas. Entre las tres suman 31 consumidores. Cualquier cambio en su interfaz afecta a buena parte del sistema.
+
+---
+
+## El código de la etapa con Spring que ya no compila
+
+![El código de la etapa con Spring que ya no compila](Imagenes/DiagramaComponentes_Spring_Sin_Compilar.png)
+
+**Por qué está.** El proyecto empezó con Spring y se unificó después en JavaFX con JDBC, según architecture.md. Parte de aquel código sigue en el repositorio. Documentarlo evita que alguien lo dé por funcional o intente usarlo.
+
+**Qué muestra.** Son 12 artefactos. Seis clases importan Spring o Jakarta sin que el pom.xml declare esas dependencias, y el maven-compiler-plugin las excluye una por una de la compilación. Con ellas quedan fuera entidades y repositorios de pagos y meseros, que es la funcionalidad que falta completar.

@@ -27,336 +27,352 @@ RAMA = 'develop'
 # (archivo .puml, nombre de la imagen, titulo, justificacion, explicacion)
 CLASES = [
     ('puml_clases/01_entity_A.puml', 'DiagramaClases_Entidades_A',
-     'Entidades A — de Adicional a EstadoMesa',
-     'El modelo tiene 98 tipos. Dibujarlos juntos produce una lámina que no se '
-     'puede leer ni imprimir, así que partimos las entidades en tres láminas '
-     'por orden alfabético. Esta primera cubre el primer tercio y existe para '
-     'poder consultar los atributos y las operaciones de cada entidad sin ir a '
-     'buscarlas al código.',
-     'Contiene {clases} clases y {interfaces} interfaz. Están las entidades del dominio de '
-     'adicionales, inventario, asignación de mesas y clientes, cada una con sus '
-     'atributos y sus métodos tal como los declara el código. Al lado de cada '
-     'entidad aparecen los repositorios y servicios que la manejan, para que la '
-     'lámina se lea sin saltar a otra.'),
+     'Entidades del dominio (A): adicionales, inventario, mesas y clientes',
+     'Las entidades son el vocabulario del sistema: los servicios, los '
+     'repositorios y las pantallas se definen todos en términos de ellas, así '
+     'que el modelo empieza por aquí. Este bloque cubre la parte del negocio '
+     'que sostiene la carta y el salón.',
+     'Hay {clases} clases y {interfaces} interfaz, con sus atributos y sus '
+     'métodos. Se ve que un adicional se asocia a un detalle de pedido a '
+     'través de DetallePedidoAdicional, que la asignación de una mesa es una '
+     'entidad propia y no un campo de Mesa, y que las alertas de inventario se '
+     'guardan en lugar de calcularse al vuelo. Junto a cada entidad aparece el '
+     'repositorio y el servicio que la manejan.'),
     ('puml_clases/02_entity_B.puml', 'DiagramaClases_Entidades_B',
-     'Entidades B — de HistorialEstadoMesa a MovimientoInventario',
-     'Segundo tercio del modelo, con el mismo criterio de corte que la lámina '
-     'anterior: mantener cada una por debajo del tamaño en el que las cajas '
-     'dejan de ser legibles.',
-     'Son {tipos} tipos: {clases} clases, la interfaz MeseroRepository y el enum '
-     'TipoMovimiento. Aquí está el núcleo de mesas (Mesa, HistorialEstadoMesa, '
-     'NotaMesa) y el de inventario (Ingrediente, MovimientoInventario), con los '
-     'controladores de cocina y mapa de salón que los consumen.'),
+     'Entidades del dominio (B): mesas, historial e inventario',
+     'Aquí está el núcleo del salón. La mesa es la entidad con más estados y '
+     'más escrituras concurrentes del sistema, y entenderla es condición para '
+     'leer el diagrama de estados y el de componentes de datos.',
+     'Son {tipos} tipos. Mesa no guarda su estado como texto sino como clave '
+     'hacia el catálogo estados_mesa, y cada cambio deja una fila en '
+     'HistorialEstadoMesa: el historial es parte del modelo, no una tabla de '
+     'auditoría añadida aparte. NotaMesa cuelga de la mesa con una nota por '
+     'mesa como máximo. El enum TipoMovimiento clasifica las entradas y '
+     'salidas de inventario.'),
     ('puml_clases/03_entity_C.puml', 'DiagramaClases_Entidades_C',
-     'Entidades C — de Pago a Zona',
-     'Último tercio del modelo. Cierra el recorrido por las entidades y recoge '
-     'las dos enumeraciones que gobiernan el flujo del pedido y el del pago.',
-     'Son {tipos} tipos. Incluye Pedido y Pago, los enums EstadoPedido y MetodoPago, '
-     'la interfaz PagoRepository, y las entidades de carta y salón (Plato, '
-     'Producto, Zona, Reserva). EstadoPedido es la base del diagrama de estados '
-     'que documentamos aparte.'),
+     'Entidades del dominio (C): pedidos, pagos, carta y reservas',
+     'Cierra el modelo con el flujo que da sentido al resto: un pedido se '
+     'abre sobre una mesa, se llena con productos de la carta y termina en un '
+     'pago. Las dos enumeraciones que gobiernan ese flujo se declaran aquí.',
+     'Son {tipos} tipos. EstadoPedido define los seis estados por los que pasa '
+     'una comanda, y MetodoPago las formas de cobro. Pago no cuelga del pedido '
+     'por composición sino que lo referencia, de modo que un pedido puede '
+     'existir sin pago; eso sí, la entidad Pago es una de las que el pom.xml '
+     'excluye de la compilación, así que el cobro no está cerrado. Reserva '
+     'apunta a la mesa y no al revés, y Zona agrupa las mesas del salón.'),
     ('puml_clases/04_controller.puml', 'DiagramaClases_Controladores',
-     'Controladores JavaFX',
-     'La capa de presentación es la que más cambia entre entregas y la que más '
-     'preguntas recibe en las revisiones. Separarla en su propia lámina permite '
-     'ver de un vistazo qué pantalla existe y qué operaciones expone cada una.',
-     'Son {tipos} tipos y {flechas} relaciones. Están los ocho controladores JavaFX '
-     '(Login, MapaSalon, MenuMesero, Cocina, CajeroPago, Inventario y '
-     'DisponibilidadAdmin) con sus métodos @FXML, más las clases auxiliares que '
-     'declaran dentro (AccionMesa, ResumenMesas) y los enums que solo ellos '
-     'usan, como EstadoMesaVisual.'),
+     'Capa de presentación: los controladores JavaFX',
+     'Cada pantalla de la aplicación es un controlador, así que este diagrama '
+     'es el inventario de lo que el usuario puede hacer. Sirve para saber qué '
+     'funcionalidad está construida y cuál sigue sin interfaz.',
+     'Son {tipos} tipos y {flechas} relaciones. Hay ocho pantallas: acceso, '
+     'mapa de salón, carta del mesero, cocina, caja, inventario y '
+     'disponibilidad. El mapa de salón es con diferencia el controlador más '
+     'grande, y declara dentro sus propias clases auxiliares (AccionMesa, '
+     'ResumenMesas) y el enum EstadoMesaVisual, que traduce los códigos de la '
+     'base a colores y etiquetas de pantalla.'),
     ('puml_clases/05_repository.puml', 'DiagramaClases_Repositorios',
-     'Repositorios',
-     'El proyecto no usa ORM: cada repositorio escribe su propio SQL. Esta '
-     'lámina existe para poder revisar de una vez las clases que tocan la base '
-     'de datos, que es donde se concentran los errores de consulta.',
-     'Son {tipos} tipos y {flechas} relaciones. Además de los repositorios aparecen las '
-     'tres interfaces que extienden JpaRepository y que el pom.xml excluye de '
-     'la compilación (DetallePedidoRepository, MeseroRepository y '
-     'PagoRepository), señaladas como tales, y los enums que las consultas usan '
-     'como parámetro.'),
+     'Capa de acceso a datos: los repositorios',
+     'La decisión de arquitectura fue JDBC sin ORM, lo que significa que cada '
+     'repositorio escribe su propio SQL. Esa decisión concentra aquí el riesgo '
+     'de inconsistencia, y por eso la capa se documenta completa.',
+     'Son {tipos} tipos y {flechas} relaciones. Cada repositorio expone '
+     'métodos de consulta con nombre propio en lugar de un CRUD genérico, '
+     'porque las consultas están escritas a mano. Tres interfaces '
+     '(DetallePedidoRepository, MeseroRepository y PagoRepository) extienden '
+     'JpaRepository y son el residuo de la etapa con Spring: el pom.xml las '
+     'excluye de la compilación y no forman parte del sistema que se ejecuta.'),
     ('puml_clases/06_service_dao.puml', 'DiagramaClases_Servicios_DAO',
-     'Servicios y DAO',
-     'La lógica de negocio vive repartida entre service y dao. Verlas juntas es '
-     'lo único que deja comprobar que no haya reglas duplicadas en las dos '
-     'capas, que fue uno de los riesgos que detectamos al unificar la '
-     'arquitectura.',
-     'Son {tipos} tipos y {flechas} relaciones. Están los doce servicios y los tres DAO '
-     '(DisponibilidadDAO, PagoDAO y ProductoDAO), con PedidoFacade como fachada '
-     'del flujo de pedido. Los tres DAO ejecutan SQL directamente, igual que un '
-     'repositorio, y por eso en el diagrama de arquitectura los situamos en la '
-     'capa de datos y no en la de negocio.'),
+     'Capa de negocio: servicios y DAO',
+     'Es la capa donde se decide si una operación es válida. Documentarla '
+     'completa es lo que permite comprobar que las reglas viven en un solo '
+     'sitio y no repartidas entre dos estilos de clase.',
+     'Son {tipos} tipos y {flechas} relaciones. Conviven doce servicios y tres '
+     'DAO (DisponibilidadDAO, PagoDAO y ProductoDAO) que hacen el mismo '
+     'trabajo con otro nombre: los tres ejecutan SQL directamente, así que '
+     'pertenecen a la capa de datos aunque estén en el paquete dao. '
+     'PedidoFacade agrupa el flujo de pedido detrás de una sola interfaz, que '
+     'es el patrón Facade aplicado en el proyecto.'),
     ('puml_clases/07_apoyo.puml', 'DiagramaClases_Apoyo',
-     'Clases de apoyo: excepciones, enums, DTO y utilidades',
-     'Las excepciones y los enums no pertenecen a ninguna capa y ensucian '
-     'cualquier lámina en la que se metan. Agruparlos aparte mantiene limpias '
-     'las otras y da un sitio único donde consultar qué excepción lanza el '
-     'sistema y qué valores admite cada enumeración.',
-     'Son {tipos} tipos. Incluye las nueve excepciones propias, los seis enums del '
-     'dominio, los DTO (IngredienteStockDTO, ProductoDisponibilidad, CuentaPago '
-     'e ItemPedido), la clase de conexión y Main.'),
+     'Excepciones, enumeraciones, DTO y arranque',
+     'Las excepciones definen el contrato de error del sistema: qué puede '
+     'fallar y con qué nombre. Junto con las enumeraciones son el vocabulario '
+     'que atraviesa todas las capas, y por eso se documentan juntas.',
+     'Son {tipos} tipos. Las nueve excepciones propias nombran reglas de '
+     'negocio concretas (MesaOcupadaException, PedidoNoEditableException, '
+     'StockInsuficienteException), de modo que una regla rota se distingue de '
+     'un fallo técnico. Los DTO transportan datos agregados que no '
+     'corresponden a una sola entidad, como CuentaPago o '
+     'ProductoDisponibilidad. Main es el punto de entrada JavaFX.'),
     ('puml_clases/08_rel_controller_capas.puml',
      'DiagramaClases_Relaciones_Controller_Capas',
-     'Relaciones: controladores hacia las otras capas',
-     'En las láminas anteriores las relaciones se omiten para que las cajas se '
-     'lean. Esta serie de siete mapas las recupera, una capa por lámina, que es '
-     'la única forma de que las líneas no se crucen hasta volverse '
-     'indistinguibles.',
-     'Muestra a qué servicios, DAO y repositorios llama cada controlador. Son '
-     '{tipos} tipos y {flechas} relaciones. Permite ver qué controladores se '
-     'saltan la capa '
-     'de servicio y acceden directamente a datos, que es un hallazgo que '
-     'confirmamos en el código.'),
+     'Qué llama la presentación hacia abajo',
+     'Una arquitectura en capas solo se sostiene si las llamadas respetan el '
+     'orden. Este diagrama responde si la presentación pasa siempre por la '
+     'capa de negocio o si atajaba hacia los datos.',
+     'Son {tipos} tipos y {flechas} relaciones. La respuesta es que no siempre '
+     'pasa: hay controladores que llaman directamente a repositorios y a DAO, '
+     'saltándose los servicios. El mapa de salón es el caso más claro, y es el '
+     'mismo salto que reaparece en el diagrama de estados de la mesa como '
+     'escritura sin auditoría.'),
     ('puml_clases/09_rel_controller_modelo.puml',
      'DiagramaClases_Relaciones_Controller_Modelo',
-     'Relaciones: controladores hacia el modelo',
-     'Separada de la anterior porque mezclar las llamadas a otras capas con el '
-     'uso de entidades volvía la lámina ilegible.',
-     'Son {tipos} tipos y {flechas} relaciones. Muestra qué entidades y qué enums manipula '
-     'cada controlador directamente, sin pasar por un servicio.'),
+     'Qué entidades manipula la presentación',
+     'Complementa al anterior con la otra pregunta: además de a quién llama, '
+     'qué datos del dominio toca cada pantalla directamente.',
+     'Son {tipos} tipos y {flechas} relaciones. Los controladores construyen y '
+     'modifican entidades por su cuenta, no solo DTO, y usan los enums del '
+     'dominio para decidir qué pintar. Es lo que explica que la lógica de '
+     'estado del pedido esté repartida entre el servicio y la pantalla de '
+     'cocina.'),
     ('puml_clases/10_rel_service_capas.puml',
      'DiagramaClases_Relaciones_Service_Capas',
-     'Relaciones: servicios hacia las otras capas',
-     'Mismo criterio: una lámina por origen y por destino. Esta es la que '
-     'muestra el camino normal de una operación de negocio hacia la base de '
-     'datos.',
-     'Son {tipos} tipos y {flechas} relaciones: cada servicio con los repositorios y DAO '
-     'que usa. PedidoFacade aparece aquí como el único punto que agrupa varios '
-     'servicios, que es el patrón Facade que ya teníamos implementado.'),
+     'Qué usa la capa de negocio para llegar a los datos',
+     'Es el camino normal de una operación: una pantalla pide algo a un '
+     'servicio y el servicio lo resuelve contra la base. Este diagrama lo '
+     'traza entero.',
+     'Son {tipos} tipos y {flechas} relaciones. Cada servicio depende de '
+     'varios repositorios, señal de que las operaciones de negocio cruzan '
+     'varias tablas. PedidoFacade es el único que depende de otros servicios '
+     'en lugar de repositorios, que es justo lo que hace de él una fachada.'),
     ('puml_clases/11_rel_service_modelo.puml',
      'DiagramaClases_Relaciones_Service_Modelo',
-     'Relaciones: servicios hacia el modelo',
-     'Completa la vista anterior con las entidades que cada servicio construye '
-     'o modifica.',
-     'Son {tipos} tipos. Muestra qué entidades toca cada servicio y con qué enums '
-     'trabaja, entre ellos EstadoPedido y EstadoMesa.'),
+     'Qué entidades construye y modifica cada servicio',
+     'Permite saber quién es responsable de cada entidad: si dos servicios '
+     'escriben la misma, hay una regla de negocio repartida en dos sitios.',
+     'Son {tipos} tipos. Muestra con qué entidades y con qué enumeraciones '
+     'trabaja cada servicio. EstadoPedido y EstadoMesa aparecen en varios, que '
+     'es la razón por la que las transiciones de estado se documentan en su '
+     'propio diagrama.'),
     ('puml_clases/12_rel_repository_capas.puml',
      'DiagramaClases_Relaciones_Repository_Capas',
-     'Relaciones: repositorios hacia las otras capas',
-     'Un repositorio no debería llamar a otra capa. Esta lámina existe '
-     'precisamente para poder comprobarlo de un vistazo.',
-     'Son {tipos} tipos. La lámina está prácticamente vacía de líneas, y ese es el '
-     'resultado: los repositorios no llaman hacia arriba. La única relación '
-     'entre iguales que sí existe, de ProductoDAO hacia DisponibilidadDAO, la '
-     'recogemos en la lámina de la capa de datos.'),
+     'Comprobación: los repositorios no llaman hacia arriba',
+     'En una arquitectura en capas la de datos debe ser la última: puede ser '
+     'llamada, pero no debe llamar a negocio ni a presentación. Este diagrama '
+     'existe para verificarlo.',
+     'Son {tipos} tipos y el resultado es que la comprobación se cumple: no '
+     'hay flechas saliendo de la capa de datos hacia arriba. La única relación '
+     'entre iguales es ProductoDAO hacia DisponibilidadDAO, dentro de la misma '
+     'capa, y queda recogida en el diagrama de componentes de datos.'),
     ('puml_clases/13_rel_repository_modelo.puml',
      'DiagramaClases_Relaciones_Repository_Modelo',
-     'Relaciones: repositorios hacia el modelo',
-     'Es el mapa de qué entidad lee y escribe cada repositorio, que es lo que '
-     'hace falta para rastrear quién toca cada tabla.',
-     'Son {tipos} tipos y {flechas} relaciones, entre ellas las de herencia hacia JpaRepository. Junto con el '
-     'diagrama de componentes de datos permite detectar tablas escritas desde '
-     'más de un repositorio.'),
+     'Qué entidad lee y escribe cada repositorio',
+     'Sin ORM, la correspondencia entre clase y tabla no está declarada en '
+     'ninguna anotación: hay que deducirla del SQL. Este diagrama la deja '
+     'escrita, y es lo que permite rastrear quién toca cada dato.',
+     'Son {tipos} tipos y {flechas} relaciones. La mayoría de repositorios '
+     'mapean una entidad cada uno, pero algunos leen varias para componer un '
+     'resultado. Las tres relaciones de herencia que aparecen son las de las '
+     'interfaces de Spring que no compilan.'),
     ('puml_clases/14_rel_modelo.puml', 'DiagramaClases_Relaciones_Modelo',
-     'Relaciones dentro del modelo',
-     'Las relaciones entre entidades son las que sostienen el modelo de datos, '
-     'y conviene verlas sin el ruido de las otras capas.',
-     'Son {tipos} tipos y {flechas} relaciones: composiciones, agregaciones y asociaciones '
-     'entre entidades, con la multiplicidad deducida del tipo declarado de cada '
-     'campo. Solo las composiciones llevan multiplicidad en el extremo de '
-     'origen, porque es la única que el código justifica.'),
+     'Cómo se relacionan las entidades entre sí',
+     'Es el modelo conceptual del negocio, sin capas ni tecnología: qué '
+     'pertenece a qué y con qué cardinalidad. Es la vista que hay que '
+     'contrastar con el modelo de base de datos.',
+     'Son {tipos} tipos y {flechas} relaciones, con la multiplicidad deducida '
+     'del tipo declarado de cada campo. Se distingue composición de '
+     'agregación: un pedido se compone de sus ítems y no tienen vida propia, '
+     'mientras que un pago referencia al pedido sin ser parte de él. Solo las '
+     'composiciones llevan multiplicidad en el extremo de origen, porque es la '
+     'única que el código permite afirmar.'),
     ('puml_clases/15_pruebas.puml', 'DiagramaClases_Pruebas',
-     'Clases de prueba',
-     'Las pruebas son parte de la entrega y tienen sus propias dependencias. '
-     'Documentarlas aparte evita mezclarlas con el código de producción en las '
-     'otras láminas.',
-     'Son {tipos} tipos y {flechas} relaciones: 10 clases de prueba repartidas en 7 '
-     'archivos, con las clases de producción que cada una ejercita. Incluye las '
-     'clases anidadas que JUnit usa para agrupar casos.'),
+     'Qué cubren las pruebas automáticas',
+     'Las pruebas son parte de la entrega y delimitan qué partes del sistema '
+     'están verificadas. Este diagrama responde qué se prueba y qué no.',
+     'Son {tipos} tipos y {flechas} relaciones: 10 clases de prueba en 7 '
+     'archivos, con las clases de producción que ejercita cada una. La '
+     'cobertura funcional se concentra en mesas y pedidos: son los dos únicos '
+     'módulos con pruebas contra la base de datos. El resto son pruebas '
+     'unitarias de clases sueltas (CuentaPago, ItemPedido, TextoBusqueda y '
+     'disponibilidad), sin inventario ni carta completos. Las clases anidadas '
+     'son los grupos de casos de JUnit.'),
 ]
 
 COMPONENTES = [
     ('puml_componentes/01_Componentes_general.puml',
-     'DiagramaComponentes_General', 'Vista general',
-     'Es el punto de entrada al resto de la serie. Un solo diagrama con los 49 '
-     'componentes resultaba ilegible, así que esta lámina da la vista de '
-     'conjunto y las siete siguientes la desarrollan por capas.',
-     'Muestra los cinco grupos de componentes (interfaz, negocio, datos, '
-     'conexión y apoyo) y las dependencias entre grupos. Las interfaces '
-     'provistas no llevan nombres inventados: cada una se dedujo de las '
-     'llamadas que de verdad cruzan el límite entre un grupo y otro, medidas '
-     'sobre el código.'),
+     'DiagramaComponentes_General', 'Los cinco grupos y su dependencia',
+     'Un componente es una pieza que se puede sustituir si se respeta su '
+     'interfaz. Esta vista responde en cuántas piezas está dividido GastroFlow '
+     'y en qué orden dependen unas de otras.',
+     'El sistema se agrupa en interfaz, negocio, datos, conexión y apoyo. Las '
+     'dependencias van en una sola dirección salvo las que atraviesan hacia '
+     'datos desde la interfaz. Las interfaces provistas llevan el nombre real '
+     'de la clase que las implementa: se dedujeron de las llamadas que cruzan '
+     'el límite entre un grupo y otro, no de un diseño sobre el papel.'),
     ('puml_componentes/02_Componentes_ui.puml', 'DiagramaComponentes_UI',
-     'Capa de interfaz de usuario',
-     'La capa de presentación es la que consume más interfaces y la que hay que '
-     'revisar cuando se agrega una pantalla.',
-     'Son {componentes} componentes de interfaz y {interfaces} interfaces '
-     'consumidas, con {flechas} conexiones. Cada componente agrupa su .fxml, su hoja de estilos y su '
-     'controlador. Las hojas CSS aparecen cargadas por Main, que es donde el '
-     'código las carga de verdad.'),
+     'Qué necesita cada pantalla para funcionar',
+     'Antes de tocar una pantalla conviene saber de qué depende. Esta vista lo '
+     'resuelve pantalla por pantalla, incluidos los recursos que no son '
+     'código.',
+     'Son {componentes} componentes y {interfaces} interfaces consumidas, con '
+     '{flechas} conexiones. Cada componente agrupa su .fxml, su hoja de '
+     'estilos y su controlador, de modo que se ve qué archivos hay que tocar '
+     'para cambiar una pantalla. Las hojas de estilo las carga Main y no cada '
+     'controlador, que es una dependencia fácil de pasar por alto.'),
     ('puml_componentes/03_Componentes_negocio.puml',
-     'DiagramaComponentes_Negocio', 'Capa de lógica de negocio',
-     'Es la capa donde se decide si una operación es válida, y por tanto donde '
-     'más interesa ver con precisión qué depende de qué.',
-     'Son {componentes} componentes de negocio y {interfaces} interfaces, con {flechas} conexiones. '
-     'Incluye SesionUsuario, que es el Singleton del proyecto, y marca '
-     'PagoService como excluida de la compilación en el pom.xml.'),
+     'DiagramaComponentes_Negocio', 'Cómo se apoyan los servicios entre sí',
+     'La capa de negocio es la que concentra las reglas. Esta vista muestra si '
+     'están aisladas por componente o si un servicio depende de otro para '
+     'cumplir su función.',
+     'Son {componentes} componentes y {interfaces} interfaces, con {flechas} '
+     'conexiones. Aparece SesionUsuario, que es el Singleton del proyecto y el '
+     'único estado global del sistema: lo consultan varias pantallas para '
+     'saber el rol del usuario. PagoService figura marcada como excluida de la '
+     'compilación, así que la gestión de pagos está incompleta a este nivel.'),
     ('puml_componentes/04_Componentes_datos.puml', 'DiagramaComponentes_Datos',
-     'Capa de datos y tablas propias',
-     'Sin ORM, la relación entre repositorio y tabla solo existe dentro de las '
-     'cadenas de SQL. Este diagrama la hace explícita.',
-     'Son {componentes} componentes de datos y {tablas} tablas, con {flechas} conexiones. Cada flecha '
-     'sale de una consulta real leída del código. Aquí aparecen también los '
-     'tres DAO, que ejecutan SQL igual que los repositorios.'),
+     'Qué tabla toca cada componente de datos',
+     'Sin ORM esta correspondencia solo existe dentro de las cadenas de SQL. '
+     'Hacerla explícita es lo que permite saber el impacto de cambiar una '
+     'tabla antes de cambiarla.',
+     'Son {componentes} componentes y {tablas} tablas, con {flechas} '
+     'conexiones, y cada flecha sale de una consulta real. Los tres DAO '
+     'aparecen aquí junto a los repositorios porque hacen lo mismo: ejecutar '
+     'SQL. Las tablas que solo toca un componente son las de bajo riesgo; las '
+     'compartidas van en el diagrama siguiente.'),
     ('puml_componentes/05_Componentes_datos_compartidos.puml',
-     'DiagramaComponentes_Datos_Compartidos', 'Tablas compartidas',
-     'Una tabla escrita desde varios sitios es un riesgo de consistencia. '
-     'Separarlas en su propia lámina es lo que permite verlas.',
-     'Son {tablas} tablas que más de un componente consulta o modifica, con {flechas} '
-     'conexiones. Entre ellas movimientos_inventario, escrita desde tres '
-     'repositorios distintos.'),
+     'DiagramaComponentes_Datos_Compartidos',
+     'Las tablas que escriben varios componentes',
+     'Una tabla escrita desde varios sitios es donde aparecen las '
+     'inconsistencias, porque ningún componente ve lo que hacen los otros. '
+     'Esta vista las aísla para poder vigilarlas.',
+     'Son {tablas} tablas compartidas con {flechas} conexiones. El caso más '
+     'expuesto es movimientos_inventario, escrita desde tres repositorios '
+     'distintos. También lo están pedidos y mesas, que son justamente las dos '
+     'entidades cuyos estados documentamos aparte.'),
     ('puml_componentes/06_Componentes_artefactos.puml',
-     'DiagramaComponentes_Artefactos', 'Artefactos: qué archivo contiene qué',
-     'Las láminas anteriores hablan de componentes lógicos. Esta baja al '
-     'archivo concreto, que es lo que hace falta para localizar el código.',
-     'Son {artefactos} artefactos y {flechas} relaciones: los paquetes de código fuente, los '
-     '.fxml, las hojas de estilo y los recursos, con el componente lógico al '
-     'que pertenece cada uno.'),
+     'DiagramaComponentes_Artefactos',
+     'En qué archivo vive cada componente',
+     'Las vistas anteriores hablan de componentes lógicos. Para trabajar hace '
+     'falta la correspondencia con los archivos reales del repositorio, y esta '
+     'es la vista que la da.',
+     'Son {artefactos} artefactos y {flechas} relaciones. Relaciona los '
+     'paquetes de código, los .fxml, las hojas de estilo y los recursos con el '
+     'componente al que pertenecen. Sirve de índice para localizar dónde se '
+     'implementa cada pieza.'),
     ('puml_componentes/07_Componentes_infraestructura.puml',
-     'DiagramaComponentes_Infraestructura', 'Infraestructura transversal',
-     'Hay tres piezas que usa medio sistema y que, dibujadas en las otras '
-     'láminas, generaban líneas cruzando el diagrama entero.',
-     'ConexionBD, SesionUsuario y TextoBusqueda con sus {flechas} consumidores. '
-     'Sacarlas aquí es lo que permitió que las láminas por capa quedaran '
-     'legibles.'),
+     'DiagramaComponentes_Infraestructura',
+     'Las tres piezas de las que depende medio sistema',
+     'Hay componentes que no pertenecen a ninguna capa porque los usa todo el '
+     'mundo. Son los que más cuesta cambiar, y por eso conviene saber '
+     'exactamente quién los consume.',
+     'ConexionBD abre todas las conexiones a PostgreSQL, SesionUsuario guarda '
+     'quién ha iniciado sesión y TextoBusqueda normaliza las búsquedas. Entre '
+     'las tres suman {flechas} consumidores. Cualquier cambio en su interfaz '
+     'afecta a buena parte del sistema.'),
     ('puml_componentes/08_Componentes_spring_sin_compilar.puml',
      'DiagramaComponentes_Spring_Sin_Compilar',
-     'Código Spring que no compila',
-     'El repositorio conserva seis clases que importan Spring o Jakarta sin que '
-     'el pom.xml declare esas dependencias. No forman parte del sistema que se '
-     'ejecuta, pero están en el código, y documentarlas evita que alguien las '
-     'dé por funcionales.',
-     'Son {artefactos} artefactos. Muestra exactamente las clases que el '
-     'maven-compiler-plugin excluye y por qué, junto con los archivos de '
-     'configuración y los scripts que tampoco participan en la compilación.'),
+     'El código de la etapa con Spring que ya no compila',
+     'El proyecto empezó con Spring y se unificó después en JavaFX con JDBC, '
+     'según architecture.md. Parte de aquel código sigue en el repositorio. '
+     'Documentarlo evita que alguien lo dé por funcional o intente usarlo.',
+     'Son {artefactos} artefactos. Seis clases importan Spring o Jakarta sin '
+     'que el pom.xml declare esas dependencias, y el maven-compiler-plugin las '
+     'excluye una por una de la compilación. Con ellas quedan fuera entidades '
+     'y repositorios de pagos y meseros, que es la funcionalidad que falta '
+     'completar.'),
 ]
 
 ARQUITECTURA = [
     ('puml/01_Arquitectura.puml', 'DiagramaArquitectura_Capas',
-     'Arquitectura en capas del sistema',
-     'La decisión de arquitectura registrada en docs/architecture.md es JavaFX '
-     'con JDBC y sin Spring. Este diagrama es la comprobación de que el código '
-     'que hay en la rama responde a esa decisión, y es el que resuelve la '
-     'HU-128.',
-     'Son {elementos} elementos y {flechas} dependencias entre capas. Están los paquetes de '
-     'src/main/java agrupados en presentación, negocio, datos e '
-     'infraestructura, los recursos de src/main/resources y PostgreSQL. Los '
-     'tres DAO están en la capa de datos porque ejecutan SQL, no en la de '
-     'negocio. El diagrama marca además los saltos de capa que el código '
-     'comete, con su número real de ocurrencias.'),
+     'Organización del código en capas y dependencias entre ellas',
+     'Responde, en una sola vista, cómo está organizado el código y qué '
+     'depende de qué, sin tener que recorrer los archivos uno por uno. '
+     'Comprueba además si el código cumple la decisión registrada en '
+     'architecture.md: JavaFX con JDBC y sin Spring.',
+     'Son {elementos} elementos y {flechas} dependencias: cuatro entre capas '
+     'contiguas, dos saltos de capa, tres hacia el modelo y tres desde las '
+     'pruebas. Los paquetes de '
+     'src/main/java se agrupan en presentación, negocio, datos e '
+     'infraestructura, con los recursos y PostgreSQL. Los tres DAO están en la '
+     'capa de datos y no en la de negocio, porque ejecutan SQL igual que un '
+     'repositorio. El diagrama no esconde los incumplimientos: marca los '
+     'saltos de capa que el código comete y cuántas veces ocurre cada uno, '
+     'sobre todo desde presentación hacia datos.'),
 ]
 
 DESPLIEGUE = [
     ('puml/06_Despliegue.puml', 'DiagramaDespliegue_Entorno',
-     'Despliegue: entorno de desarrollo e integración continua',
-     'GastroFlow no tiene empaquetado de distribución: el pom.xml no declara '
-     'ningún plugin que produzca un instalable. Dibujar servidores de '
-     'aplicaciones sería inventar una topología que no existe. El diagrama '
-     'documenta el despliegue que sí ocurre, que es el del entorno de '
-     'desarrollo y el del runner de integración continua.',
-     'Son {nodos} nodos y {artefactos} artefactos: el equipo de desarrollo con su JDK, el árbol '
-     'del proyecto, la base PostgreSQL, y el repositorio en GitHub con el '
-     'runner que ejecuta los pasos declarados en .github/workflows/ci.yml. Las '
-     'versiones de las dependencias se leen del pom.xml.'),
+     'Cómo se instala y se ejecuta el sistema hoy',
+     'Responde qué hace falta para poner GastroFlow en funcionamiento. No '
+     'dibuja servidores de aplicaciones porque no existen: el pom.xml no '
+     'declara ningún plugin de empaquetado, así que el sistema no produce un '
+     'instalable. Lo que sí existe, y es lo que documenta, son el entorno de '
+     'desarrollo y el de integración continua.',
+     'Son {nodos} nodos y {artefactos} artefactos. Para ejecutarlo hacen falta '
+     'JDK 21, Maven 3.9 o superior y PostgreSQL 16, con las dependencias que '
+     'declara el pom (JavaFX 21.0.5, el driver postgresql 42.7.5 y jbcrypt '
+     '0.4). La base se prepara con los scripts de db/ y el arranque es mvn '
+     'clean compile seguido de mvn javafx:run, contra la base en '
+     'localhost:5432. El nodo de integración continua ejecuta los pasos '
+     'declarados en .github/workflows/ci.yml.'),
 ]
 
 ESTADOS = [
     ('puml/08_Estados_Pedido.puml', 'DiagramaEstados_Pedido',
-     'Estados del pedido',
-     'La HU-129 pide saber qué transiciones son válidas para un pedido. El '
-     'estado vive en el enum EstadoPedido y se cambia desde varios sitios, así '
-     'que sin un diagrama no hay forma de responder esa pregunta sin leerse '
-     'todo el código.',
-     '{estados} estados y {transiciones} transiciones numeradas. Los cuatro estados no '
-     'cerrados van dentro del bloque «activo», y de ese bloque salen las dos '
-     'transiciones de cierre: cerrarPedido y cancelarPedido no miran en qué '
-     'estado está el pedido, solo que no sea uno de los dos finales. La tabla '
-     'da, por cada transición, el origen, el destino, el método que la ejecuta '
-     'y la condición que debe cumplirse. ASIGNADO_MESA va en gris porque ningún '
-     'código lo asigna, y las tres flechas azules escriben con '
-     'pedidoRepository.save() sin pasar por PedidoService, saltándose la guarda '
-     'ESTADOS_YA_CERRADOS.'),
+     'Estados por los que pasa un pedido y transiciones válidas',
+     'El estado de una comanda decide qué se puede hacer con ella: si se puede '
+     'editar, cobrar o cancelar. Ese estado se cambia desde varios puntos del '
+     'código, así que sin esta vista no hay forma de saber qué transiciones '
+     'son válidas salvo leyéndolo entero.',
+     '{estados} estados y {transiciones} transiciones. Un pedido nace '
+     'PENDIENTE al abrirse sobre una mesa, avanza por cocina hasta COMPLETADO, '
+     'y termina en ENTREGADO o CANCELADO, que son los dos estados cerrados. '
+     'Cerrar y cancelar se pueden hacer desde cualquier estado activo: el '
+     'código no mira en cuál está, solo que no sea uno de los dos finales. La '
+     'tabla da por cada transición el origen, el destino, la operación que la '
+     'ejecuta y la condición que debe cumplirse. ASIGNADO_MESA está en gris '
+     'porque ningún código lo asigna, y las flechas azules señalan los cambios '
+     'que se escriben sin pasar por PedidoService y por tanto sin la '
+     'comprobación de estado cerrado.'),
     ('puml/09_Estados_Mesa.puml', 'DiagramaEstados_Mesa',
-     'Estados de la mesa',
-     'La otra mitad de la HU-129. El estado de la mesa no es un enum de Java '
-     'sino una fila de la tabla estados_mesa, y se cambia desde cinco sitios '
-     'distintos, dos de ellos saltándose la capa de servicio.',
-     '{estados} estados y {transiciones} transiciones numeradas. Ninguna '
-     'transición consulta el estado actual de la mesa salvo asignarComensales, '
-     'que lo exige en su propio SQL, y por eso es la única flecha que sale de '
-     'un estado concreto; las demás salen del bloque «cualquier estado del '
-     'catálogo». MANTENIMIENTO va en gris porque está en el catálogo y ningún '
-     'código lo asigna. LIBRE va en rojo porque el código lo pide y el catálogo '
-     'no lo tiene. Las flechas azules escriben sin pasar por MesaService y por '
-     'tanto no dejan fila en historial_estado_mesa.'),
+     'Estados por los que pasa una mesa y transiciones válidas',
+     'La mesa es el recurso que el salón reparte, y su estado determina si se '
+     'puede sentar a alguien. A diferencia del pedido, su estado no es un enum '
+     'de Java sino una fila de la tabla estados_mesa, y se cambia desde cinco '
+     'puntos distintos.',
+     '{estados_catalogo} estados de catálogo y {transiciones} transiciones. La '
+     'conclusión principal es que el sistema casi no restringe los cambios: '
+     'salvo la asignación de comensales, que exige en su propio SQL que la '
+     'mesa esté libre, ninguna transición consulta el estado actual, por eso '
+     'las demás salen del bloque que agrupa todo el catálogo. MANTENIMIENTO '
+     'está en el catálogo y ningún código lo asigna. LIBRE aparece en rojo '
+     'porque el código lo pide y el catálogo no lo tiene. Las flechas azules '
+     'escriben directamente en la tabla sin pasar por MesaService, de modo que '
+     'esos cambios no quedan registrados en historial_estado_mesa.'),
 ]
 
 SECCIONES = [
     ('diagramaClases.md', 'Diagramas de clases', CLASES,
-     'Documentación de diseño y consolidación del modelo de datos — trabajo previo, no corresponde a ninguna de las tres HU de esta semana',
-     'Documentan el modelo de clases completo de la rama: 98 tipos, 371 '
-     'atributos y 663 métodos. Se reparten en quince láminas porque una sola '
-     'resultaba ilegible: siete de miembros, agrupadas por capa, y ocho de '
-     'relaciones, separadas por origen y destino para que las líneas no se '
-     'crucen.'),
-    ('diagramaComponentes.md', 'Diagramas de componentes', COMPONENTES,
-     'Documentación de diseño y consolidación del modelo de datos — trabajo previo, no corresponde a ninguna de las tres HU de esta semana',
-     'Documentan los 49 componentes del sistema y las dependencias entre ellos. '
-     'Las interfaces provistas no son nombres inventados: cada una se dedujo de '
-     'las llamadas que de verdad cruzan el límite entre dos componentes, '
-     'medidas sobre el código.'),
+     'Documentan el modelo de clases del sistema: {n_tipos} tipos, {n_attr} '
+     'atributos y {n_met} métodos. Están organizados siguiendo la arquitectura '
+     'en capas del proyecto: primero las entidades del dominio, después cada '
+     'capa con sus miembros, y al final las relaciones, separadas por origen y '
+     'destino para que cada vista responda una sola pregunta.'),
+    ('diagramaComponentes.md', 'Diagramas de componentes',
+     COMPONENTES,
+     'Documentan en qué piezas sustituibles está dividido el sistema y cómo '
+     'dependen unas de otras. Las interfaces que aparecen no son un diseño '
+     'sobre el papel: cada una corresponde a las llamadas que de verdad cruzan '
+     'el límite entre dos componentes.'),
     ('diagramaArquitectura.md', 'Diagrama de arquitectura', ARQUITECTURA,
-     'HU-128 (#273)',
-     'Documenta la organización en capas del sistema y comprueba que el código '
-     'de la rama responde a la decisión de arquitectura registrada en '
-     'architecture.md.'),
+     'Documenta en una sola vista cómo está organizado el código y qué depende '
+     'de qué, y contrasta el resultado con la decisión de arquitectura '
+     'registrada en architecture.md.'),
     ('diagramaDespliegue.md', 'Diagrama de despliegue', DESPLIEGUE,
-     'HU-130 (#275)',
-     'Documenta dónde se ejecuta cada pieza. El proyecto no produce un '
-     'instalable, así que el diagrama recoge el entorno de desarrollo y el de '
-     'integración continua, que son los dos despliegues que existen.'),
+     'Documenta cómo se instala y se ejecuta el sistema hoy, y qué hace falta '
+     'para ponerlo en funcionamiento.'),
     ('diagramaEstados.md', 'Diagramas de estados', ESTADOS,
-     'HU-129 (#274)',
-     'Documentan los estados por los que pasa un pedido y una mesa, y qué '
+     'Documentan los estados por los que pasan un pedido y una mesa, y qué '
      'transiciones son válidas entre ellos. Cada flecha lleva un número y el '
-     'detalle está en una tabla, para que ninguna etiqueta quede flotando entre '
-     'dos líneas.'),
+     'detalle de cada transición está en la tabla que acompaña al diagrama.'),
 ]
 
-NOTA_METODO = """
-## Cómo se construyeron
-
-Estos diagramas no se dibujaron a mano. Los genera un conjunto de scripts que
-leen el código fuente de la rama y producen el `.puml`, y se comprueban contra
-ese mismo código con verificadores independientes que vuelven a leerlo con otro
-método. Si el código cambia y el diagrama deja de ser cierto, la comprobación
-falla.
-
-| Qué | Dónde |
-|---|---|
-| Rama | `{rama}` |
-| Commit | `{commit}` ({commit_largo}) |
-| Fecha del commit | {fecha} |
-| Fuente de los diagramas | PlantUML, en `docs/diagramas-fuente/` |
-| Herramienta que los genera | `docs/diagramas-fuente/herramientas/` |
-| Imágenes | PNG a dpi 96, en `docs/Imagenes/` |
-
-Para regenerarlos hace falta el clon de la rama y una sola orden:
-
-```bash
-cd docs/diagramas-fuente/herramientas
-./rehacer.sh /ruta/al/clon/de/FIS_2630_1204_G2
-```
-
-Esa orden vuelve a leer el código, regenera los `.puml`, los renderiza y corre
-todas las comprobaciones. Necesita Python 3, Java y PlantUML. Los archivos
-intermedios los deja dentro de esa misma carpeta.
-"""
-
-
+# la direccion y el color pueden ir en cualquier orden: -up[#X]..> y
+# -[#X]down-> son los dos validos
 FLECHA = re.compile(
-    r'^\s*[\w"\[\]\*\.]+\s+[-.]+(?:\[[^\]]*\])?[|o\*]?[-.]*'
-    r'(?:up|down|left|right)?[-.]*[|o\*>]+\s', re.M)
+    r'^\s*[\w"\[\]\*\.]+\s+[-.]{1,2}'
+    r'(?:\[[^\]]*\])?(?:up|down|left|right)?(?:\[[^\]]*\])?'
+    r'[-.]{0,2}[|o\*]?>', re.M)
 
 
 def conteo(ruta):
@@ -373,6 +389,10 @@ def conteo(ruta):
         estados=len(re.findall(r'^\s*state\s+"[^"]*"\s+as\s+\w+\s*(?:#\w+)?\s*$',
                                s, re.M)),
         transiciones=len(re.findall(r'^\|\s*<b>T\d+</b>', s, re.M)),
+        # los de dentro del bloque compuesto: para la mesa son los del
+        # catalogo, sin los huerfanos ni los que solo existen en la interfaz
+        estados_catalogo=len(re.findall(
+            r'^    state\s+"[^"]*"\s+as\s+\w+', s, re.M)),
         flechas=len([x for x in FLECHA.findall(s) if 'hidden' not in x]),
     )
     c['tipos'] = c['clases'] + c['interfaces'] + c['enums']
@@ -432,26 +452,23 @@ def render():
 
 
 def escribir():
-    for archivo, titulo, lista, issue, intro in SECCIONES:
-        L = [f'# {titulo}', '',
-             f'**Issue:** {issue}  ',
-             f'**Rama:** `{RAMA}`  ',
-             f'**Commit:** `{COMMIT}`  ',
-             f'**Fecha del commit:** {FECHA}', '',
-             intro, '',
-             (f'Son {len(lista)} diagramas.' if len(lista) > 1
-              else 'Es un solo diagrama.'),
-             '', '---', '']
+    # los totales del intro tambien salen del codigo, no se escriben a mano
+    import json
+    T = json.load(open(BASE + '/clases.json', encoding='utf-8'))
+    tot = {'n_tipos': len(T),
+           'n_attr': sum(len(t['campos']) for t in T),
+           'n_met': sum(len(t['metodos']) for t in T)}
+    for archivo, titulo, lista, intro in SECCIONES:
+        L = [f'# {titulo}', '', intro.format(**tot), '', '---', '']
         for ruta, nombre, tit, just, expl in lista:
             c = conteo(ruta)
-            just, expl = just.format(**c), expl.format(**c)
             L += [f'## {tit}', '',
                   f'![{tit}](Imagenes/{nombre}.png)', '',
-                  '**Por qué está.** ' + just, '',
-                  '**Qué muestra.** ' + expl, '', '---', '']
-        L.append(NOTA_METODO.format(rama=RAMA, commit=COMMIT,
-                                    commit_largo=COMMIT_LARGO, fecha=FECHA))
-        open(f'{OUT}/{archivo}', 'w', encoding='utf-8').write('\n'.join(L))
+                  '**Por qué está.** ' + just.format(**c), '',
+                  '**Qué muestra.** ' + expl.format(**c), '', '---', '']
+        while L and L[-1] in ('', '---'):
+            L.pop()
+        open(f'{OUT}/{archivo}', 'w', encoding='utf-8').write('\n'.join(L) + '\n')
         print(f'  {archivo}  ({len(lista)} diagramas)')
 
 
