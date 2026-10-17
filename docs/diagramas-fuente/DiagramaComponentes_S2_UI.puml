@@ -45,7 +45,9 @@ c_CocinaController --> c_PedidoRepository
 c_DisponibilidadAdminController --> c_DisponibilidadDAO
 c_InventarioController --> c_IngredienteRepository
 c_LoginController --> c_AutenticacionService
+c_Main --> c_LoginController
 c_Main --> c_SesionUsuario
+c_MapaSalonController --> c_MenuMeseroController
 c_MapaSalonController --> c_MesaRepository
 c_MapaSalonController --> c_MesaService
 c_MapaSalonController --> c_SesionUsuario
@@ -55,7 +57,7 @@ c_MenuMeseroController --> c_ProductoDAO
 c_MenuMeseroController --> c_TextoBusqueda
 legend bottom
 Que usa cada pantalla.
-<back:#DBEAFE>     </back> interfaz    <back:#DCFCE7>     </back> negocio    <back:#FFEDD5>     </back> datos    <back:#F3E8FF>     </back> apoyo    <back:#F1F5F9>     </back> conexion
-
+Incluye las dependencias de una pantalla a otra.
+<back:#DBEAFE>     </back> interfaz    <back:#DCFCE7>     </back> negocio    <back:#FFEDD5>     </back> datos    <back:#F3E8FF>     </back> apoyo
 endlegend
 @enduml

@@ -33,7 +33,9 @@ skinparam legendFontSize 11
   component "AdicionalRepository" as c_AdicionalRepository #FFEDD5
   component "DetallePedidoAdicionalRepository" as c_DetallePedidoAdicionalRepository #FFEDD5
   component "AsignacionMesaRepository" as c_AsignacionMesaRepository #FFEDD5
+  component "SesionUsuario" as c_SesionUsuario #F3E8FF
   component "UsuarioRepository" as c_UsuarioRepository #FFEDD5
+  component "ConexionBD" as c_ConexionBD #F1F5F9
   component "PlatoInsumoRepository" as c_PlatoInsumoRepository #FFEDD5
   component "EntradaInventarioRepository" as c_EntradaInventarioRepository #FFEDD5
   component "InventarioRepository" as c_InventarioRepository #FFEDD5
@@ -49,10 +51,15 @@ skinparam legendFontSize 11
 c_AdicionalService -[#475569]-> c_AdicionalRepository
 c_AdicionalService -[#475569]-> c_DetallePedidoAdicionalRepository
 c_AsignacionMesaService -[#475569]-> c_AsignacionMesaRepository
+c_AutenticacionService -[#475569]-> c_SesionUsuario
 c_AutenticacionService -[#475569]-> c_UsuarioRepository
+c_DisponibilidadService -[#475569]-> c_ConexionBD
 c_DisponibilidadService -[#475569]-> c_PlatoInsumoRepository
+c_EntradaInventarioService -[#475569]-> c_ConexionBD
 c_EntradaInventarioService -[#475569]-> c_EntradaInventarioRepository
+c_InventarioService -[#475569]-> c_ConexionBD
 c_InventarioService -[#475569]-> c_InventarioRepository
+c_MesaService -[#475569]-> c_ConexionBD
 c_MesaService -[#475569]-> c_EstadoMesaRepository
 c_MesaService -[#475569]-> c_HistorialEstadoMesaRepository
 c_MesaService -[#475569]-> c_MesaRepository
@@ -70,7 +77,9 @@ c_ReservaService -[#475569]-> c_MesaService
 c_ReservaService -[#475569]-> c_PedidoRepository
 c_ReservaService -[#475569]-> c_ReservaRepository
 legend bottom
-Que repositorio o DAO usa cada servicio.
-<back:#DCFCE7>     </back> logica de negocio    <back:#FFEDD5>     </back> acceso a datos    El aviso marca las clases que el pom.xml excluye de la compilacion.
+Que usa cada servicio. Incluye lo que llama fuera de la capa de datos.
+<back:#DCFCE7>     </back> negocio    <back:#FFEDD5>     </back> datos    <back:#F1F5F9>     </back> conexion    <back:#F3E8FF>     </back> apoyo
+Las cajas con triangulo son clases que el pom.xml excluye de la compilacion;
+sus flechas van en rojo porque ese codigo no llega a ejecutarse.
 endlegend
 @enduml

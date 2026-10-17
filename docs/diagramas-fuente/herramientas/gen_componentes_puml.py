@@ -166,11 +166,13 @@ NOMBRE_SUB = {'ui': 'Interfaz de usuario · controller + Main',
               'apoyo': 'Apoyo transversal · session + util'}
 for s in ('ui', 'negocio', 'datos', 'conexion', 'apoyo'):
     L.append(f'component "**{NOMBRE_SUB[s]}**\\n'
-             f'<size:10>{cuantos[s]} componentes</size>" as {s} {COLOR[s]}')
+             f'<size:10>{cuantos[s]} '
+             f'componente{"s" if cuantos[s] != 1 else ""}</size>" '
+             f'as {s} {COLOR[s]}')
 L.append(f'database "**gastroflow**\\n<size:10>{len(E)} tablas</size>" as bd #FFFFFF')
 for (a, b), n in sorted(entre.items()):
     L.append(f'{a} ..> {b} : <<use>> {n} operaciones')
-L.append(f'infra ..> bd : JDBC')
+L.append('conexion ..> bd : JDBC')   # el alias es conexion, no infra
 L.append('@enduml')
 open(f'{DIR}/01_Componentes_general.puml', 'w', encoding='utf-8').write(
     '\n'.join(L) + '\n')

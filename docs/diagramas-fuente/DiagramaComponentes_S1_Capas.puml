@@ -23,15 +23,16 @@ component "**Logica de negocio**\n<size:10>12 componentes</size>" as k_negocio #
 component "**Acceso a datos**\n<size:10>26 componentes</size>" as k_datos #FFEDD5
 component "**Conexion**\n<size:10>1 componente</size>" as k_conexion #F1F5F9
 component "**Apoyo transversal**\n<size:10>2 componentes</size>" as k_apoyo #F3E8FF
-k_negocio --> k_datos : 40 llamadas
-k_datos --> k_conexion : 22 llamadas
-k_ui --> k_datos : 17 llamadas
-k_ui --> k_apoyo : 14 llamadas
-k_ui --> k_negocio : 9 llamadas
-k_negocio --> k_conexion : 4 llamadas
-k_negocio --> k_apoyo : 2 llamadas
+k_negocio --> k_datos : 40 operaciones
+k_datos --> k_conexion : 22 operaciones
+k_ui --> k_datos : 17 operaciones
+k_ui --> k_apoyo : 14 operaciones
+k_ui --> k_negocio : 9 operaciones
+k_negocio --> k_conexion : 4 operaciones
+k_negocio --> k_apoyo : 2 operaciones
 legend bottom
 Cada caja es una capa y cada flecha una dependencia real entre capas.
-El numero son las operaciones distintas que se invocan a traves de ella.
+El numero suma, por cada pareja de componentes, cuantas operaciones
+distintas le llama uno al otro.
 endlegend
 @enduml

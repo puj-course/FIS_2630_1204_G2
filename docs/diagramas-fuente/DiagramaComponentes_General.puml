@@ -21,7 +21,7 @@ skinparam DatabaseBackgroundColor #FFFFFF
 component "**Interfaz de usuario · controller + Main**\n<size:10>8 componentes</size>" as ui #DBEAFE
 component "**Logica de negocio · service**\n<size:10>12 componentes</size>" as negocio #DCFCE7
 component "**Acceso a datos · repository + dao**\n<size:10>26 componentes</size>" as datos #FFEDD5
-component "**ConexionBD**\n<size:10>1 componentes</size>" as conexion #F1F5F9
+component "**ConexionBD**\n<size:10>1 componente</size>" as conexion #F1F5F9
 component "**Apoyo transversal · session + util**\n<size:10>2 componentes</size>" as apoyo #F3E8FF
 database "**gastroflow**\n<size:10>27 tablas</size>" as bd #FFFFFF
 datos ..> conexion : <<use>> 22 operaciones
@@ -31,5 +31,5 @@ negocio ..> datos : <<use>> 40 operaciones
 ui ..> apoyo : <<use>> 14 operaciones
 ui ..> datos : <<use>> 17 operaciones
 ui ..> negocio : <<use>> 9 operaciones
-infra ..> bd : JDBC
+conexion ..> bd : JDBC
 @enduml

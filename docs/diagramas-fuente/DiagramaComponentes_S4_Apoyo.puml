@@ -18,10 +18,10 @@ skinparam ComponentBorderColor #334155
 skinparam legendBackgroundColor #FFFFFF
 skinparam legendBorderColor #94A3B8
 skinparam legendFontSize 11
-package "Apoyo transversal" as p4 #F3E8FF {
-  component "ConexionBD" as c_ConexionBD #FFFFFF
-  component "SesionUsuario" as c_SesionUsuario #FFFFFF
-  component "TextoBusqueda" as c_TextoBusqueda #FFFFFF
+package "Piezas compartidas · apoyo y conexion" as p4 #FFFFFF {
+  component "ConexionBD" as c_ConexionBD #F1F5F9
+  component "SesionUsuario" as c_SesionUsuario #F3E8FF
+  component "TextoBusqueda" as c_TextoBusqueda #F3E8FF
 }
 component "**Interfaz de usuario**\n<size:10>8 componentes</size>" as q_ui #DBEAFE
 component "**Logica de negocio**\n<size:10>12 componentes</size>" as q_negocio #DCFCE7
@@ -32,7 +32,8 @@ q_ui --> c_SesionUsuario : 3
 q_negocio --> c_SesionUsuario : 1
 q_ui --> c_TextoBusqueda : 1
 legend bottom
-Las tres piezas que usa todo el sistema. Para que se lea, los
-consumidores van agrupados por capa y el numero dice cuantos son.
+Las piezas que no pertenecen a ninguna capa. El numero de cada flecha
+dice cuantos componentes de esa capa las usan. ConexionBD la usa casi
+todo el sistema; SesionUsuario y TextoBusqueda solo unos pocos.
 endlegend
 @enduml

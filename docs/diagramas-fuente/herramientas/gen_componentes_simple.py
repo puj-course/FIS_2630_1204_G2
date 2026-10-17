@@ -92,10 +92,11 @@ for c in ORDEN:
     L.append(f'component "**{NOMBRE[c]}**\\n<size:10>{n} '
              f'componente{"s" if n != 1 else ""}</size>" as k_{c} {COLOR[c]}')
 for (a, b), n in sorted(entre.items(), key=lambda x: -x[1]):
-    L.append(f'k_{a} --> k_{b} : {n} llamadas')
+    L.append(f'k_{a} --> k_{b} : {n} operaciones')
 L += ['legend bottom',
       'Cada caja es una capa y cada flecha una dependencia real entre capas.',
-      'El numero son las operaciones distintas que se invocan a traves de ella.',
+      'El numero suma, por cada pareja de componentes, cuantas operaciones',
+      'distintas le llama uno al otro.',
       'endlegend']
 escribe('09_Simple_Capas.puml', L)
 
@@ -103,27 +104,31 @@ escribe('09_Simple_Capas.puml', L)
 L = cab('ui', 'left to right direction')
 # sin cajas de paquete, por lo mismo que en el de negocio: el color dice la
 # capa y las flechas salen mucho mas cortas
-uis = sorted(n for n, c in COMP.items() if c == 'ui'
-             and any(o == n and COMP[d] != 'ui' for (o, d) in dep))
+par_ui = [(o, d) for (o, d) in dep if COMP[o] == 'ui']
+uis = sorted({o for (o, d) in par_ui} | {d for (o, d) in par_ui if COMP[d] == 'ui'})
 for nom in uis:
     L.append(caja(nom).replace('#FFFFFF', COLOR['ui']))
-destinos = sorted({d for (o, d) in dep if COMP[o] == 'ui' and COMP[d] != 'ui'},
+destinos = sorted({d for (o, d) in par_ui if COMP[d] != 'ui'},
                   key=lambda x: (ORDEN.index(COMP[x]), x))
 for d in destinos:
     L.append(caja(d).replace('#FFFFFF', COLOR[COMP[d]]))
-for (o, d) in sorted(dep):
-    if COMP[o] == 'ui' and COMP[d] != 'ui':
-        L.append(f'{al(o)} --> {al(d)}')
+for (o, d) in sorted(par_ui):
+    L.append(f'{al(o)} --> {al(d)}')
 sin_salida = sorted(n for n, c in COMP.items() if c == 'ui' and n not in uis)
 L += ['legend bottom',
       'Que usa cada pantalla.',
+      'Incluye las dependencias de una pantalla a otra.',
       '<back:#DBEAFE>     </back> interfaz    '
       '<back:#DCFCE7>     </back> negocio    '
       '<back:#FFEDD5>     </back> datos    '
-      '<back:#F3E8FF>     </back> apoyo    '
-      '<back:#F1F5F9>     </back> conexion',
-      ('No aparecen ' + ', '.join(sin_salida) + ': no llaman a ninguna otra capa.'
-       if sin_salida else ''),
+      '<back:#F3E8FF>     </back> apoyo',
+      'endlegend'] if not sin_salida else ['legend bottom',
+      'Que usa cada pantalla. Incluye las dependencias de una pantalla a otra.',
+      '<back:#DBEAFE>     </back> interfaz    '
+      '<back:#DCFCE7>     </back> negocio    '
+      '<back:#FFEDD5>     </back> datos    '
+      '<back:#F3E8FF>     </back> apoyo',
+      'No aparecen ' + ', '.join(sin_salida) + ': no llaman a nadie.',
       'endlegend']
 escribe('10_Simple_UI.puml', L)
 
@@ -131,15 +136,17 @@ escribe('10_Simple_UI.puml', L)
 L = cab('negocio', 'left to right direction')
 # solo los que participan en una dependencia negocio -> algo: un
 # repositorio que solo usa la interfaz no pinta nada en esta vista
-par_neg = [(o, d) for (o, d) in dep
-           if COMP[o] == 'negocio' and COMP[d] in ('negocio', 'datos')]
+# todo lo que llama el negocio, no solo datos: cuatro servicios abren su
+# propia conexion JDBC saltandose la capa de datos, y eso es lo que mas
+# interesa ver de esta capa
+par_neg = [(o, d) for (o, d) in dep if COMP[o] == 'negocio']
 vivos = {x for par in par_neg for x in par}
 # se declaran emparejados: cada servicio y, justo despues, el repositorio
 # que usa. Asi graphviz los coloca enfrentados y las flechas salen cortas
 servicios = sorted(n for n, c in COMP.items() if c == 'negocio' and n in vivos)
 orden_datos, puestos = [], set()
 for sv in servicios:
-    for d in sorted(d for (o, d) in par_neg if o == sv and COMP[d] == 'datos'):
+    for d in sorted(d for (o, d) in par_neg if o == sv and COMP[d] != 'negocio'):
         if d not in puestos:
             puestos.add(d)
             orden_datos.append(d)
@@ -148,15 +155,19 @@ for sv in servicios:
 for nom in servicios:
     L.append(caja(nom).replace('#FFFFFF', COLOR['negocio']))
 for nom in orden_datos:
-    L.append(caja(nom).replace('#FFFFFF', COLOR['datos']))
+    L.append(caja(nom).replace('#FFFFFF', COLOR[COMP[nom]]))
 for (o, d) in sorted(par_neg):
-    est = '#B91C1C' if o in EXCL or d in EXCL else '#475569'
-    L.append(f'{al(o)} -[{est}]-> {al(d)}')
+    muerta = o in EXCL          # si el origen no compila, la flecha no corre
+    L.append(f'{al(o)} -[{"#B91C1C" if muerta else "#475569"}]-> {al(d)}')
 L += ['legend bottom',
-      'Que repositorio o DAO usa cada servicio.',
-      '<back:#DCFCE7>     </back> logica de negocio    '
-      '<back:#FFEDD5>     </back> acceso a datos    '
-      'El aviso marca las clases que el pom.xml excluye de la compilacion.',
+      'Que usa cada servicio. Incluye lo que llama fuera de la capa de datos.',
+      '<back:#DCFCE7>     </back> negocio    '
+      '<back:#FFEDD5>     </back> datos    '
+      '<back:#F1F5F9>     </back> conexion    '
+      '<back:#F3E8FF>     </back> apoyo',
+      'Las cajas con triangulo son clases que el pom.xml excluye de la '
+      'compilacion;',
+      'sus flechas van en rojo porque ese codigo no llega a ejecutarse.',
       'endlegend']
 escribe('11_Simple_Negocio.puml', L)
 
@@ -164,9 +175,9 @@ escribe('11_Simple_Negocio.puml', L)
 # aqui las flechas una a una serian 31: se agrupan por capa de origen
 L = cab('apoyo')
 apoyos = sorted(n for n, c in COMP.items() if c in ('apoyo', 'conexion'))
-L.append('package "Apoyo transversal" as p4 #F3E8FF {')
+L.append('package "Piezas compartidas · apoyo y conexion" as p4 #FFFFFF {')
 for n in apoyos:
-    L.append(caja(n))
+    L.append(caja(n).replace('#FFFFFF', COLOR[COMP[n]]))
 L.append('}')
 por_capa = collections.defaultdict(lambda: collections.defaultdict(set))
 for (o, d), ms in dep.items():
@@ -182,8 +193,9 @@ for d in apoyos:
     for c, quienes in sorted(por_capa[d].items(), key=lambda x: ORDEN.index(x[0])):
         L.append(f'q_{c} --> {al(d)} : {len(quienes)}')
 L += ['legend bottom',
-      'Las tres piezas que usa todo el sistema. Para que se lea, los',
-      'consumidores van agrupados por capa y el numero dice cuantos son.',
+      'Las piezas que no pertenecen a ninguna capa. El numero de cada flecha',
+      'dice cuantos componentes de esa capa las usan. ConexionBD la usa casi',
+      'todo el sistema; SesionUsuario y TextoBusqueda solo unos pocos.',
       'endlegend']
 escribe('12_Simple_Apoyo.puml', L)
 

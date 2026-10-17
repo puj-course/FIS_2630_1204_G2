@@ -41,9 +41,10 @@ dib = set(re.findall(r'component "\*\*(\w+)\*\*', TODO))
 ok(set(COMPONENTES) <= dib,
    f'los {len(COMPONENTES)} componentes aparecen '
    f'(faltan {sorted(set(COMPONENTES) - dib) or "ninguno"})')
-# en 01 los cuatro subsistemas se dibujan como un componente agregado
-SUBS = set(re.findall(r'component "\*\*([^*]+)\*\*\\n<size:10>\d+ componentes',
-                      D['01_Componentes_general.puml']))
+# las cajas agregadas de capa (en 01 y en los simples 09 y 12) no son
+# clases: llevan "N componente(s)" debajo del nombre
+SUBS = set(re.findall(r'component "\*\*([^*]+)\*\*\\n<size:10>\d+ '
+                      r'componentes?</size>', TODO))
 # el diagrama 08 dibuja como componente las clases que importan Spring o
 # Jakarta, aunque sean de entity: son tipos reales del codigo
 SPRING = {t['nombre'] for t in T}
@@ -177,7 +178,9 @@ PERM = set('''startuml enduml allowmixing skinparam backgroundcolor shadowing
  capa cada caja flecha dependencia real entre numero distintas
  invocan traves ella detalle esta diagrama aviso marca clases
  excluye piezas usa todo sistema para lea consumidores agrupados
- dice cuantos son pantalla aparecen llaman otra
+ dice cuantos son pantalla aparecen llaman otra compartidas
+ pertenecen ninguna casi todo pocos triangulo rojo ejecutarse
+ incluye fuera llega codigo ese sus
  fuera subsistema archivos raiz modulos nombre true false'''.split())
 # la leyenda es explicacion en castellano y los alias "as X" son nombres
 # internos que yo elijo: lo que tiene que salir del repositorio es el texto
