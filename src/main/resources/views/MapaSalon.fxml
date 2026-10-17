@@ -22,6 +22,16 @@
             <Label fx:id="detalleCodigo" text="Codigo: -" wrapText="true" />
          </children>
       </VBox>
+
+      <HBox spacing="16">
+         <Label fx:id="contadorTotal" text="Total: 0" />
+         <Label fx:id="contadorDisponibles" text="Disponibles: 0" />
+         <Label fx:id="contadorOcupadas" text="Ocupadas: 0" />
+         <Label fx:id="contadorReservadas" text="Reservadas: 0" />
+         <Label fx:id="contadorPendientePago" text="Pendiente de pago: 0" />
+         <Label fx:id="contadorInhabilitadas" text="Fuera de servicio: 0" />
+      </HBox>
+
       <HBox layoutX="24.0" layoutY="150.0" spacing="8.0">
          <children>
             <ToggleButton fx:id="filtroTodas" mnemonicParsing="false" prefWidth="84.0" text="Todas" />

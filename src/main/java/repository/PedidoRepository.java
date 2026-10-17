@@ -215,8 +215,9 @@ public class PedidoRepository {
     public java.util.List<Pedido> findPedidosParaCocina() throws SQLException {
         java.util.List<Pedido> pedidos = new java.util.ArrayList<>();
 
-        String sql = "SELECT pedido_id, numero_pedido, mesa_id, usuario_id, productos, estado, fecha_pedido " +
-                "FROM pedidos WHERE estado IN (?, ?, ?, ?) ORDER BY fecha_pedido";
+        String sql = "SELECT pedido_id, numero_pedido, mesa_id, usuario_id, productos, estado, fecha_pedido, " +
+        "subtotal, total, inventario_descontado " +
+        "FROM pedidos WHERE estado IN (?, ?, ?, ?) ORDER BY fecha_pedido";
 
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
