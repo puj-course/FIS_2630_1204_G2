@@ -1,5 +1,7 @@
 package entity;
 
+import enums.TipoMovimiento;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import enums.TipoMovimiento;
