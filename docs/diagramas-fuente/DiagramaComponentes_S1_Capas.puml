@@ -30,9 +30,4 @@ k_ui --> k_apoyo : 14 operaciones
 k_ui --> k_negocio : 9 operaciones
 k_negocio --> k_conexion : 4 operaciones
 k_negocio --> k_apoyo : 2 operaciones
-legend bottom
-Cada caja es una capa y cada flecha una dependencia real entre capas.
-El numero suma, por cada pareja de componentes, cuantas operaciones
-distintas le llama uno al otro.
-endlegend
 @enduml

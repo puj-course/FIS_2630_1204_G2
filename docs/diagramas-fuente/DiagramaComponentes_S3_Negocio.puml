@@ -77,9 +77,7 @@ c_ReservaService -[#475569]-> c_MesaService
 c_ReservaService -[#475569]-> c_PedidoRepository
 c_ReservaService -[#475569]-> c_ReservaRepository
 legend bottom
-Que usa cada servicio. Incluye lo que llama fuera de la capa de datos.
-<back:#DCFCE7>     </back> negocio    <back:#FFEDD5>     </back> datos    <back:#F1F5F9>     </back> conexion    <back:#F3E8FF>     </back> apoyo
-Las cajas con triangulo son clases que el pom.xml excluye de la compilacion;
-sus flechas van en rojo porque ese codigo no llega a ejecutarse.
+<b>Colores</b>  <back:#DCFCE7>     </back> negocio    <back:#FFEDD5>     </back> datos    <back:#F1F5F9>     </back> conexion    <back:#F3E8FF>     </back> apoyo
+<b>Simbolos</b>  <&warning> excluida de la compilacion en pom.xml   <back:#B91C1C>     </back> flecha roja: sale de una clase excluida
 endlegend
 @enduml

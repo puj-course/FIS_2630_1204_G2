@@ -93,11 +93,6 @@ for c in ORDEN:
              f'componente{"s" if n != 1 else ""}</size>" as k_{c} {COLOR[c]}')
 for (a, b), n in sorted(entre.items(), key=lambda x: -x[1]):
     L.append(f'k_{a} --> k_{b} : {n} operaciones')
-L += ['legend bottom',
-      'Cada caja es una capa y cada flecha una dependencia real entre capas.',
-      'El numero suma, por cada pareja de componentes, cuantas operaciones',
-      'distintas le llama uno al otro.',
-      'endlegend']
 escribe('09_Simple_Capas.puml', L)
 
 # ============================================ S2. pantallas y servicios ===
@@ -114,22 +109,18 @@ for d in destinos:
     L.append(caja(d).replace('#FFFFFF', COLOR[COMP[d]]))
 for (o, d) in sorted(par_ui):
     L.append(f'{al(o)} --> {al(d)}')
+# sin texto explicativo: solo la clave de colores, que es lo unico que el
+# dibujo no dice por si mismo
 sin_salida = sorted(n for n, c in COMP.items() if c == 'ui' and n not in uis)
 L += ['legend bottom',
-      'Que usa cada pantalla.',
-      'Incluye las dependencias de una pantalla a otra.',
+      '<b>Colores</b>  '
       '<back:#DBEAFE>     </back> interfaz    '
       '<back:#DCFCE7>     </back> negocio    '
       '<back:#FFEDD5>     </back> datos    '
-      '<back:#F3E8FF>     </back> apoyo',
-      'endlegend'] if not sin_salida else ['legend bottom',
-      'Que usa cada pantalla. Incluye las dependencias de una pantalla a otra.',
-      '<back:#DBEAFE>     </back> interfaz    '
-      '<back:#DCFCE7>     </back> negocio    '
-      '<back:#FFEDD5>     </back> datos    '
-      '<back:#F3E8FF>     </back> apoyo',
-      'No aparecen ' + ', '.join(sin_salida) + ': no llaman a nadie.',
-      'endlegend']
+      '<back:#F3E8FF>     </back> apoyo']
+if sin_salida:
+    L.append('<b>Sin dependencias</b>  ' + ', '.join(sin_salida))
+L.append('endlegend')
 escribe('10_Simple_UI.puml', L)
 
 # ============================================== S3. negocio hacia datos ===
@@ -160,14 +151,13 @@ for (o, d) in sorted(par_neg):
     muerta = o in EXCL          # si el origen no compila, la flecha no corre
     L.append(f'{al(o)} -[{"#B91C1C" if muerta else "#475569"}]-> {al(d)}')
 L += ['legend bottom',
-      'Que usa cada servicio. Incluye lo que llama fuera de la capa de datos.',
+      '<b>Colores</b>  '
       '<back:#DCFCE7>     </back> negocio    '
       '<back:#FFEDD5>     </back> datos    '
       '<back:#F1F5F9>     </back> conexion    '
       '<back:#F3E8FF>     </back> apoyo',
-      'Las cajas con triangulo son clases que el pom.xml excluye de la '
-      'compilacion;',
-      'sus flechas van en rojo porque ese codigo no llega a ejecutarse.',
+      '<b>Simbolos</b>  <&warning> excluida de la compilacion en pom.xml   '
+      '<back:#B91C1C>     </back> flecha roja: sale de una clase excluida',
       'endlegend']
 escribe('11_Simple_Negocio.puml', L)
 
@@ -191,12 +181,10 @@ for c in usadas:
              f'componente{"s" if n != 1 else ""}</size>" as q_{c} {COLOR[c]}')
 for d in apoyos:
     for c, quienes in sorted(por_capa[d].items(), key=lambda x: ORDEN.index(x[0])):
-        L.append(f'q_{c} --> {al(d)} : {len(quienes)}')
-L += ['legend bottom',
-      'Las piezas que no pertenecen a ninguna capa. El numero de cada flecha',
-      'dice cuantos componentes de esa capa las usan. ConexionBD la usa casi',
-      'todo el sistema; SesionUsuario y TextoBusqueda solo unos pocos.',
-      'endlegend']
+        # la etiqueta lleva la unidad para que el numero se entienda solo,
+        # sin necesidad de un texto que lo explique debajo
+        n = len(quienes)
+        L.append(f'q_{c} --> {al(d)} : {n} componente{"s" if n != 1 else ""}')
 escribe('12_Simple_Apoyo.puml', L)
 
 # ================================================================ informe =
