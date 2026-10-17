@@ -1,0 +1,76 @@
+@startuml
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 6
+skinparam nodesep 28
+skinparam ranksep 70
+skinparam ArrowColor #475569
+skinparam ArrowFontSize 11
+skinparam ArrowThickness 1.1
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam PackageFontSize 13
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentFontSize 12
+skinparam ComponentBorderColor #334155
+skinparam legendBackgroundColor #FFFFFF
+skinparam legendBorderColor #94A3B8
+skinparam legendFontSize 11
+  component "AdicionalService" as c_AdicionalService #DCFCE7
+  component "AsignacionMesaService" as c_AsignacionMesaService #DCFCE7
+  component "AutenticacionService" as c_AutenticacionService #DCFCE7
+  component "DisponibilidadService" as c_DisponibilidadService #DCFCE7
+  component "EntradaInventarioService" as c_EntradaInventarioService #DCFCE7
+  component "InventarioService" as c_InventarioService #DCFCE7
+  component "MesaService" as c_MesaService #DCFCE7
+  component "PagoService  <&warning>" as c_PagoService #DCFCE7
+  component "PedidoFacade" as c_PedidoFacade #DCFCE7
+  component "PedidoService" as c_PedidoService #DCFCE7
+  component "ReglaDescuentoService" as c_ReglaDescuentoService #DCFCE7
+  component "ReservaService" as c_ReservaService #DCFCE7
+  component "AdicionalRepository" as c_AdicionalRepository #FFEDD5
+  component "DetallePedidoAdicionalRepository" as c_DetallePedidoAdicionalRepository #FFEDD5
+  component "AsignacionMesaRepository" as c_AsignacionMesaRepository #FFEDD5
+  component "UsuarioRepository" as c_UsuarioRepository #FFEDD5
+  component "PlatoInsumoRepository" as c_PlatoInsumoRepository #FFEDD5
+  component "EntradaInventarioRepository" as c_EntradaInventarioRepository #FFEDD5
+  component "InventarioRepository" as c_InventarioRepository #FFEDD5
+  component "EstadoMesaRepository" as c_EstadoMesaRepository #FFEDD5
+  component "HistorialEstadoMesaRepository" as c_HistorialEstadoMesaRepository #FFEDD5
+  component "MesaRepository" as c_MesaRepository #FFEDD5
+  component "ZonaRepository" as c_ZonaRepository #FFEDD5
+  component "PagoRepository  <&warning>" as c_PagoRepository #FFEDD5
+  component "PedidoRepository" as c_PedidoRepository #FFEDD5
+  component "DisponibilidadDAO" as c_DisponibilidadDAO #FFEDD5
+  component "ReglaDescuentoRepository" as c_ReglaDescuentoRepository #FFEDD5
+  component "ReservaRepository" as c_ReservaRepository #FFEDD5
+c_AdicionalService -[#475569]-> c_AdicionalRepository
+c_AdicionalService -[#475569]-> c_DetallePedidoAdicionalRepository
+c_AsignacionMesaService -[#475569]-> c_AsignacionMesaRepository
+c_AutenticacionService -[#475569]-> c_UsuarioRepository
+c_DisponibilidadService -[#475569]-> c_PlatoInsumoRepository
+c_EntradaInventarioService -[#475569]-> c_EntradaInventarioRepository
+c_InventarioService -[#475569]-> c_InventarioRepository
+c_MesaService -[#475569]-> c_EstadoMesaRepository
+c_MesaService -[#475569]-> c_HistorialEstadoMesaRepository
+c_MesaService -[#475569]-> c_MesaRepository
+c_MesaService -[#475569]-> c_ZonaRepository
+c_PagoService -[#B91C1C]-> c_PagoRepository
+c_PagoService -[#B91C1C]-> c_PedidoRepository
+c_PedidoFacade -[#475569]-> c_DisponibilidadDAO
+c_PedidoFacade -[#475569]-> c_InventarioService
+c_PedidoFacade -[#475569]-> c_PedidoService
+c_PedidoService -[#475569]-> c_InventarioService
+c_PedidoService -[#475569]-> c_MesaService
+c_PedidoService -[#475569]-> c_PedidoRepository
+c_ReglaDescuentoService -[#475569]-> c_ReglaDescuentoRepository
+c_ReservaService -[#475569]-> c_MesaService
+c_ReservaService -[#475569]-> c_PedidoRepository
+c_ReservaService -[#475569]-> c_ReservaRepository
+legend bottom
+Que repositorio o DAO usa cada servicio.
+<back:#DCFCE7>     </back> logica de negocio    <back:#FFEDD5>     </back> acceso a datos    El aviso marca las clases que el pom.xml excluye de la compilacion.
+endlegend
+@enduml

@@ -188,6 +188,49 @@ CLASES = [
      'son los grupos de casos de JUnit.'),
 ]
 
+COMPONENTES_SIMPLE = [
+    ('puml_componentes/09_Simple_Capas.puml', 'DiagramaComponentes_S1_Capas',
+     'Vista de conjunto: las cinco capas',
+     'Es la entrada al resto. Responde en cuántas partes está dividido el '
+     'sistema y en qué dirección depende cada una de las otras, sin entrar en '
+     'nombres de clase.',
+     'Cinco capas y las dependencias reales entre ellas, con el número de '
+     'operaciones distintas que se invocan a través de cada una. El flujo '
+     'normal baja de interfaz a negocio, de negocio a datos y de datos a la '
+     'conexión. Las dos flechas que no siguen ese orden son los saltos de '
+     'capa: la interfaz llamando directamente a datos y el negocio llamando '
+     'directamente a la conexión.'),
+    ('puml_componentes/10_Simple_UI.puml', 'DiagramaComponentes_S2_UI',
+     'Qué usa cada pantalla',
+     'Antes de tocar una pantalla hay que saber de qué depende. Esta vista lo '
+     'responde de un vistazo, con una caja por pantalla y una flecha por '
+     'dependencia.',
+     'Las ocho pantallas con los componentes que llaman, coloreados por capa. '
+     'Se ve que la mayoría depende de una o dos piezas, y que el mapa de salón '
+     'y la carta del mesero son las que más acumulan. También se ve qué '
+     'pantallas llaman directamente a repositorios en lugar de pasar por un '
+     'servicio.'),
+    ('puml_componentes/11_Simple_Negocio.puml',
+     'DiagramaComponentes_S3_Negocio',
+     'Qué repositorio usa cada servicio',
+     'Muestra el camino de una operación de negocio hasta la base de datos, '
+     'que es lo que hay que seguir para saber dónde se guarda cada cosa.',
+     'Arriba quedan los servicios que se apoyan unos en otros: PedidoFacade '
+     'coordina a PedidoService, MesaService e InventarioService, y esos tres '
+     'comparten repositorios. Abajo, los servicios que usan un único '
+     'repositorio propio y no dependen de nadie más. El aviso marca las clases '
+     'que el pom.xml excluye de la compilación.'),
+    ('puml_componentes/12_Simple_Apoyo.puml',
+     'DiagramaComponentes_S4_Apoyo',
+     'Las piezas que usa todo el sistema',
+     'Son los componentes que no pertenecen a ninguna capa y que, por eso, '
+     'cualquier cambio en ellos afecta a muchos sitios a la vez.',
+     'ConexionBD, SesionUsuario y TextoBusqueda, con sus consumidores '
+     'agrupados por capa y el número de componentes de cada una. ConexionBD es '
+     'con diferencia la más usada, porque sin ORM cada repositorio abre su '
+     'propia conexión.'),
+]
+
 COMPONENTES = [
     ('puml_componentes/01_Componentes_general.puml',
      'DiagramaComponentes_General', 'Los cinco grupos y su dependencia',
@@ -348,12 +391,22 @@ SECCIONES = [
      'en capas del proyecto: primero las entidades del dominio, después cada '
      'capa con sus miembros, y al final las relaciones, separadas por origen y '
      'destino para que cada vista responda una sola pregunta.'),
-    ('diagramaComponentes.md', 'Diagramas de componentes',
+    ('diagramaComponentesResumen.md', 'Diagramas de componentes (vista simple)',
+     COMPONENTES_SIMPLE,
+     'Cuatro vistas para entender la estructura de un vistazo: una caja por '
+     'componente con su nombre y una flecha por dependencia, sin operaciones '
+     'ni listas de archivos. Salen de las mismas llamadas medidas sobre el '
+     'código que las vistas detalladas, así que no dicen nada distinto: dicen '
+     'lo mismo con menos detalle. El desglose completo está en '
+     'diagramaComponentes.md.'),
+    ('diagramaComponentes.md', 'Diagramas de componentes (vista detallada)',
      COMPONENTES,
      'Documentan en qué piezas sustituibles está dividido el sistema y cómo '
-     'dependen unas de otras. Las interfaces que aparecen no son un diseño '
-     'sobre el papel: cada una corresponde a las llamadas que de verdad cruzan '
-     'el límite entre dos componentes.'),
+     'dependen unas de otras, con las operaciones que cada componente provee '
+     'y los archivos que lo forman. Las interfaces no son un diseño sobre el '
+     'papel: cada una corresponde a las llamadas que de verdad cruzan el '
+     'límite entre dos componentes. Para una lectura rápida sin este nivel de '
+     'detalle está diagramaComponentesResumen.md.'),
     ('diagramaArquitectura.md', 'Diagrama de arquitectura', ARQUITECTURA,
      'Documenta en una sola vista cómo está organizado el código y qué depende '
      'de qué, y contrasta el resultado con la decisión de arquitectura '
@@ -405,7 +458,8 @@ def render():
     os.makedirs(IMG, exist_ok=True)
     tmp = OUT + '/.tmp'
     os.makedirs(tmp, exist_ok=True)
-    todos = CLASES + COMPONENTES + ARQUITECTURA + DESPLIEGUE + ESTADOS
+    todos = (CLASES + COMPONENTES_SIMPLE + COMPONENTES + ARQUITECTURA
+             + DESPLIEGUE + ESTADOS)
     for ruta, nombre, *_ in todos:
         src = f'{BASE}/{ruta}'
         txt = open(src, encoding='utf-8').read()

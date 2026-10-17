@@ -1,0 +1,38 @@
+@startuml
+top to bottom direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 6
+skinparam nodesep 28
+skinparam ranksep 70
+skinparam ArrowColor #475569
+skinparam ArrowFontSize 11
+skinparam ArrowThickness 1.1
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam PackageFontSize 13
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentFontSize 12
+skinparam ComponentBorderColor #334155
+skinparam legendBackgroundColor #FFFFFF
+skinparam legendBorderColor #94A3B8
+skinparam legendFontSize 11
+package "Apoyo transversal" as p4 #F3E8FF {
+  component "ConexionBD" as c_ConexionBD #FFFFFF
+  component "SesionUsuario" as c_SesionUsuario #FFFFFF
+  component "TextoBusqueda" as c_TextoBusqueda #FFFFFF
+}
+component "**Interfaz de usuario**\n<size:10>8 componentes</size>" as q_ui #DBEAFE
+component "**Logica de negocio**\n<size:10>12 componentes</size>" as q_negocio #DCFCE7
+component "**Acceso a datos**\n<size:10>26 componentes</size>" as q_datos #FFEDD5
+q_negocio --> c_ConexionBD : 4
+q_datos --> c_ConexionBD : 22
+q_ui --> c_SesionUsuario : 3
+q_negocio --> c_SesionUsuario : 1
+q_ui --> c_TextoBusqueda : 1
+legend bottom
+Las tres piezas que usa todo el sistema. Para que se lea, los
+consumidores van agrupados por capa y el numero dice cuantos son.
+endlegend
+@enduml

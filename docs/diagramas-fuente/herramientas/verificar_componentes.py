@@ -172,9 +172,22 @@ PERM = set('''startuml enduml allowmixing skinparam backgroundcolor shadowing
  infra escriben lectura solo ejecucion elige consumen
  configuracion recursos otros aplicacion importan vacios archivo exclude apoyo transversal
  ninguna compilar salto linea bytes byte solo
+ arrowthickness componentbordercolor packagefontsize legendfontsize
+ legendbackgroundcolor legendbordercolor back conexion llamadas
+ capa cada caja flecha dependencia real entre numero distintas
+ invocan traves ella detalle esta diagrama aviso marca clases
+ excluye piezas usa todo sistema para lea consumidores agrupados
+ dice cuantos son pantalla aparecen llaman otra
  fuera subsistema archivos raiz modulos nombre true false'''.split())
+# la leyenda es explicacion en castellano y los alias "as X" son nombres
+# internos que yo elijo: lo que tiene que salir del repositorio es el texto
+# visible de la caja
+TEXTO = re.sub(r'^legend\b.*?^endlegend$', '', TODO, flags=re.S | re.M)
+ALIAS_MIOS = set(re.findall(r'\bas\s+([A-Za-z_]\w*)', TEXTO))
 inventadas = set()
-for pal in re.findall(r'\b[A-Za-z_][A-Za-z0-9_]{3,}\b', TODO):
+for pal in re.findall(r'\b[A-Za-z_][A-Za-z0-9_]{3,}\b', TEXTO):
+    if pal in ALIAS_MIOS:
+        continue
     if pal.lower() in fuente or pal.lower() in PERM:
         continue
     if pal in dib or pal.startswith(('A_', 'J_', 'T_', 'S_', 'I_', 'F_')):

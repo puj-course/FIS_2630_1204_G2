@@ -38,6 +38,7 @@ python3 -I "$AQUI/gen_clases_completo.py" | tail -3
 python3 -I "$AQUI/gen_pruebas.py" | head -1
 python3 -I "$AQUI/gen_componentes_puml.py" | head -6
 python3 -I "$AQUI/gen_componentes_spring.py" | tail -4
+python3 -I "$AQUI/gen_componentes_simple.py" | head -7
 python3 -I "$AQUI/gen_estados_puml.py" | grep -E 'HUERFANOS|FANTASMA|nunca asignados'
 echo
 

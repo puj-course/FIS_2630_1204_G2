@@ -1,6 +1,6 @@
-# Diagramas de componentes
+# Diagramas de componentes (vista detallada)
 
-Documentan en qué piezas sustituibles está dividido el sistema y cómo dependen unas de otras. Las interfaces que aparecen no son un diseño sobre el papel: cada una corresponde a las llamadas que de verdad cruzan el límite entre dos componentes.
+Documentan en qué piezas sustituibles está dividido el sistema y cómo dependen unas de otras, con las operaciones que cada componente provee y los archivos que lo forman. Las interfaces no son un diseño sobre el papel: cada una corresponde a las llamadas que de verdad cruzan el límite entre dos componentes. Para una lectura rápida sin este nivel de detalle está diagramaComponentesResumen.md.
 
 ---
 
