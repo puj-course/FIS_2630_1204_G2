@@ -1,15 +1,18 @@
 package service;
 
+import entity.PedidoHistorial;
 import enums.EstadoPedido;
 import entity.Pedido;
 import entity.DetallePedido;
 import exceptions.MesaNotFoundException;
 import exceptions.MesaOcupadaException;
 import exceptions.PedidoNoEditableException;
+import repository.PedidoHistorialRepository;
 import repository.PedidoRepository;
 import repository.DetallePedidoRepository;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class PedidoService {
@@ -22,6 +25,7 @@ public class PedidoService {
 
     private final PedidoRepository pedidoRepository = new PedidoRepository();
     private final DetallePedidoRepository detallePedidoRepository = new DetallePedidoRepository();
+    private final PedidoHistorialRepository eventoRepository = new PedidoHistorialRepository();
     private final MesaService mesaService = new MesaService();
     private final InventarioService inventarioService = new InventarioService();
 
@@ -36,7 +40,9 @@ public class PedidoService {
         pedido.setNumeroPedido("PED-" + System.currentTimeMillis());
         pedido.setEstado(EstadoPedido.PENDIENTE);
         Pedido guardado = pedidoRepository.save(pedido);
+
         mesaService.cambiarEstado(mesaId, "OCUPADA", "APERTURA_PEDIDO");
+        registrarEvento(guardado.getId(), "APERTURA_PEDIDO", "Se creó el pedido con número " + guardado.getNumeroPedido(), usuarioId);
         return guardado;
     }
 
@@ -88,8 +94,8 @@ public class PedidoService {
 
             pedidoActualizado.setInventarioDescontado(true);
             pedidoRepository.save(pedidoActualizado);
+            registrarEvento(pedidoActualizado.getId(), "ACTUALIZACION_DETALLES", "Se agregaron ítems y se descontó inventario al pedido.", pedidoActualizado.getUsuarioId());
         }
-
         return pedidoActualizado;
     }
 
@@ -105,6 +111,7 @@ public class PedidoService {
         Pedido cerrado = pedidoRepository.save(pedido);
         String destino = codigoEstadoDestinoMesa != null ? codigoEstadoDestinoMesa : "LIBRE";
         mesaService.cambiarEstado(pedido.getMesaId(), destino, "CIERRE_PEDIDO");
+        registrarEvento(cerrado.getId(), "CIERRE_PEDIDO", "El pedido fue completado y cerrado formalmente.", cerrado.getUsuarioId());
         return cerrado;
     }
     /**
@@ -141,6 +148,24 @@ public class PedidoService {
 
         String destino = codigoEstadoDestinoMesa != null ? codigoEstadoDestinoMesa : "DISPONIBLE";
         mesaService.cambiarEstado(pedido.getMesaId(), destino, "CANCELACION_PEDIDO");
+        registrarEvento(cancelado.getId(), "CANCELACION_PEDIDO", "El pedido fue anulado y se devolvió el stock al inventario.", cancelado.getUsuarioId());
         return cancelado;
+    }
+
+    // Método auxiliar privado para encapsular el guardado de eventos
+    private void registrarEvento(long pedidoId, String tipoEvento, String descripcion, Long usuarioId) {
+        try {
+            PedidoHistorial evento = new PedidoHistorial();
+            evento.setPedidoId(pedidoId);
+            evento.setTipoEvento(tipoEvento);
+            evento.setDescripcion(descripcion);
+            evento.setUsuarioId(usuarioId);
+            evento.setFechaEvento(LocalDateTime.now());
+
+            eventoRepository.registrarEvento(evento);
+        } catch (SQLException e) {
+            // Imprime o maneja el error sin interrumpir el flujo principal de negocio si así se prefiere
+            e.printStackTrace();
+        }
     }
 }
