@@ -41,6 +41,7 @@ public class CajeroPagoController {
     @FXML private Button cerrarPagoButton;
 
     private final PagoDAO pagoDAO = new PagoDAO();
+    private final CalculadoraDescuento calculadoraDescuento = new CalculadoraDescuento();
     private final NumberFormat moneda = NumberFormat.getCurrencyInstance(Locale.of("es", "CO"));
 
     private CuentaPago cuentaActual;
