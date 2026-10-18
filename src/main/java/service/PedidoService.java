@@ -2,14 +2,15 @@ package service;
 
 import enums.EstadoPedido;
 import entity.Pedido;
+import entity.DetallePedido;
 import exceptions.MesaNotFoundException;
 import exceptions.MesaOcupadaException;
 import exceptions.PedidoNoEditableException;
 import repository.PedidoRepository;
+import repository.DetallePedidoRepository;
 
 import java.sql.SQLException;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class PedidoService {
 
@@ -20,8 +21,10 @@ public class PedidoService {
     );
 
     private final PedidoRepository pedidoRepository = new PedidoRepository();
+    private final DetallePedidoRepository detallePedidoRepository = new DetallePedidoRepository();
     private final MesaService mesaService = new MesaService();
     private final InventarioService inventarioService = new InventarioService();
+
     public Pedido crearPedido(long mesaId, long usuarioId) throws SQLException {
         boolean tieneComandaActiva = pedidoRepository.existsByMesaIdAndEstadoNot(mesaId, EstadoPedido.CANCELADO);
         if (tieneComandaActiva) {
@@ -36,9 +39,11 @@ public class PedidoService {
         mesaService.cambiarEstado(mesaId, "OCUPADA", "APERTURA_PEDIDO");
         return guardado;
     }
+
     public Optional<Pedido> obtenerPedidoActivo(long mesaId) throws SQLException {
         return pedidoRepository.findActivoByMesaId(mesaId);
     }
+
     public Pedido obtenerOCrearPedido(long mesaId, long usuarioId) throws SQLException {
         Optional<Pedido> existente = obtenerPedidoActivo(mesaId);
         if (existente.isPresent()) {
@@ -46,9 +51,48 @@ public class PedidoService {
         }
         return crearPedido(mesaId, usuarioId);
     }
+
     public Pedido actualizarPedido(Pedido pedido) throws SQLException {
+        if (ESTADOS_YA_CERRADOS.contains(pedido.getEstado())) {
+            throw new PedidoNoEditableException("El pedido " + pedido.getNumeroPedido() + " ya no es editable.");
+        }
         return pedidoRepository.save(pedido);
     }
+
+    /**
+     * Guarda el pedido, registra sus ítems en la tabla detalle_pedido
+     * y ejecuta el descuento de ingredientes en el inventario.
+     */
+    public Pedido actualizarPedidoConDetalles(Pedido pedido, List<DetallePedido> detalles) throws SQLException {
+        if (ESTADOS_YA_CERRADOS.contains(pedido.getEstado())) {
+            throw new PedidoNoEditableException("El pedido " + pedido.getNumeroPedido() + " ya no es editable.");
+        }
+
+        Pedido pedidoActualizado = pedidoRepository.save(pedido);
+        if (detalles != null && !detalles.isEmpty()) {
+            for (DetallePedido detalle : detalles) {
+                detalle.setPedidoId(pedidoActualizado.getId());
+            }
+            detallePedidoRepository.guardarDetalles(detalles);
+
+            Map<Long, Integer> mapaProductos = new HashMap<>();
+            for (DetallePedido detalle : detalles) {
+                mapaProductos.put(detalle.getProductoId(), detalle.getCantidad());
+            }
+
+            inventarioService.descontarIngredientes(
+                    pedidoActualizado.getId(),
+                    mapaProductos,
+                    pedidoActualizado.getUsuarioId()
+            );
+
+            pedidoActualizado.setInventarioDescontado(true);
+            pedidoRepository.save(pedidoActualizado);
+        }
+
+        return pedidoActualizado;
+    }
+
     public Pedido cerrarPedido(long pedidoId, String codigoEstadoDestinoMesa) throws SQLException {
         Pedido pedido = pedidoRepository.findById(pedidoId).orElseThrow(() -> new MesaNotFoundException("Pedido no encontrado con id " + pedidoId));
         if (ESTADOS_YA_CERRADOS.contains(pedido.getEstado())) {
@@ -65,7 +109,6 @@ public class PedidoService {
     }
     /**
      * Anula una comanda.
-     *
      * Si el inventario ya había sido descontado,
      * se devuelve el stock de los ingredientes y
      * se registra el movimiento correspondiente
@@ -87,21 +130,15 @@ public class PedidoService {
         /*
          * Si ya se descontó inventario, primero
          * devolvemos los ingredientes al stock.
-         *
          * InventarioService se encarga de verificar
          * que la reversión no se haga dos veces.
          */
         if (pedido.isInventarioDescontado()) {
             inventarioService.revertirDescuento(pedidoId, pedido.getUsuarioId());
         }
-        /*
-         * Finalmente cambiamos el estado de la comanda.
-         */
         pedido.setEstado(EstadoPedido.CANCELADO);
         Pedido cancelado = pedidoRepository.save(pedido);
-        /*
-         * Liberamos la mesa.
-         */
+
         String destino = codigoEstadoDestinoMesa != null ? codigoEstadoDestinoMesa : "DISPONIBLE";
         mesaService.cambiarEstado(pedido.getMesaId(), destino, "CANCELACION_PEDIDO");
         return cancelado;
