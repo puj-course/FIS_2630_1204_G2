@@ -2,7 +2,10 @@ package controller;
 
 import dao.PagoDAO;
 import dto.CuentaPago;
-import enums.TipoDescuento;
+import service.descuento.CalculadoraDescuento;
+import service.descuento.DescuentoMontoFijo;
+import service.descuento.DescuentoPorcentaje;
+import service.descuento.DescuentoStrategy;
 import session.SesionUsuario;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -24,7 +27,7 @@ public class CajeroPagoController {
     @FXML private Label subtotalLabel;
     @FXML private Label impuestosLabel;
     @FXML private Label subtotalResumenLabel;
-    @FXML private ComboBox<TipoDescuento> tipoDescuentoCombo;
+    @FXML private ComboBox<DescuentoStrategy> tipoDescuentoCombo;
     @FXML private Label impuestosResumenLabel;
     @FXML private TextField descuentoField;
     @FXML private TextField motivoDescuentoField;
@@ -46,9 +49,12 @@ public class CajeroPagoController {
     public void initialize() {
         // se implementa el patrón Strategy para calcular las formas en que se calcula y el cajero pueda elegir
 
-        tipoDescuentoCombo.getItems().addAll(TipoDescuento.values());
+        tipoDescuentoCombo.getItems().addAll(new DescuentoMontoFijo(), new DescuentoPorcentaje());
         tipoDescuentoCombo.getSelectionModel().selectFirst();
-        tipoDescuentoCombo.valueProperty().addListener((obs, anterior, nuevo) -> recalcular());
+        tipoDescuentoCombo.valueProperty().addListener((obs, anterior, nuevo) -> {
+            calculadoraDescuento.setEstrategia(nuevo);
+            recalcular();
+        });
         limpiarCuenta();
 
         descuentoField.textProperty().addListener((obs, anterior, nuevo) -> recalcular());
