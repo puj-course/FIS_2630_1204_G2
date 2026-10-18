@@ -43,6 +43,13 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- BCrypt para almacenamiento seguro de contraseñas -->
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>0.4</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -61,22 +68,13 @@
                         y se van sacando de esta lista a medida que se migren a JDBC.
                     -->
                     <excludes>
-                        <exclude>controller/InventarioController.java</exclude>
-                        <exclude>controller/PagoController.java</exclude>
-                        <exclude>dao/RecetaDAO.java</exclude>
-                        <exclude>entity/Mesero.java</exclude>
-                        <exclude>entity/Pago.java</exclude>
-                        <exclude>modelo/Receta.java</exclude>
-                        <exclude>modelo/RecetaDetalle.java</exclude>
-                        <exclude>repository/DetallePedidoRepository.java</exclude>
-                        <exclude>repository/MeseroRepository.java</exclude>
-                        <exclude>repository/PagoRepository.java</exclude>
-                        <exclude>service/PagoService.java</exclude>
-                        <!-- Inventario migrado a JDBC: salieron de excludes
-                             Ingrediente, MovimientoInventario, AlertaInventario,
-                             sus repositories e InventarioService.
-                             PlatoIngrediente + repository eliminados del proyecto
-                             (cubiertos por PlatoInsumo / productos.ingredientes). -->
+                            <exclude>controller/PagoController.java</exclude>
+                            <exclude>entity/Mesero.java</exclude>
+                            <exclude>entity/Pago.java</exclude>
+                            <exclude>repository/DetallePedidoRepository.java</exclude>
+                            <exclude>repository/MeseroRepository.java</exclude>
+                            <exclude>repository/PagoRepository.java</exclude>
+                            <exclude>service/PagoService.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>

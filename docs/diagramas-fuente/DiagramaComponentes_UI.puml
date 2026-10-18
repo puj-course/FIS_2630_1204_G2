@@ -1,0 +1,136 @@
+@startuml
+allowmixing
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 30
+skinparam ranksep 60
+skinparam ArrowColor #475569
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentFontSize 12
+skinparam InterfaceBackgroundColor #FFFFFF
+skinparam InterfaceFontSize 11
+skinparam ArtifactBackgroundColor #FFFFFF
+skinparam ArtifactFontSize 11
+skinparam DatabaseBackgroundColor #FFFFFF
+
+package "Interfaz de usuario · controller + Main" #DBEAFE {
+  component "**CajeroPagoController**\n<size:9>cajero-pago-view.fxml · 20 fx:id · 4 onAction</size>\n<size:9>cajero-pago.css</size>" as CajeroPagoController
+  component "**CocinaController**\n<size:9>cocina-view.fxml · 6 fx:id · 0 onAction</size>\n<size:9>cocina.css</size>" as CocinaController
+  component "**DisponibilidadAdminController**\n<size:9>admin-disponibilidad.fxml · 8 fx:id · 1 onAction</size>\n<size:9>disponibilidad-menu.css</size>" as DisponibilidadAdminController
+  component "**InventarioController**\n<size:9>inventario.fxml · 14 fx:id · 3 onAction</size>" as InventarioController
+  component "**LoginController**\n<size:9>login.fxml · 10 fx:id · 1 onAction</size>\n<size:9>login.css</size>" as LoginController
+  component "**Main**\n<size:9>5 modulos en MODULOS</size>\n<size:9>navegacion.css</size>" as Main
+  component "**MapaSalonController**\n<size:9>MapaSalon.fxml · 21 fx:id · 6 onAction</size>" as MapaSalonController
+  component "**MenuMeseroController**\n<size:9>menu-mesero.fxml · 7 fx:id · 5 onAction</size>\n<size:9>disponibilidad-menu.css</size>" as MenuMeseroController
+  CajeroPagoController -[hidden]right- CocinaController
+  CocinaController -[hidden]right- DisponibilidadAdminController
+  DisponibilidadAdminController -[hidden]right- InventarioController
+  CajeroPagoController -[hidden]down- LoginController
+  LoginController -[hidden]right- Main
+  CocinaController -[hidden]down- Main
+  Main -[hidden]right- MapaSalonController
+  DisponibilidadAdminController -[hidden]down- MapaSalonController
+  MapaSalonController -[hidden]right- MenuMeseroController
+  InventarioController -[hidden]down- MenuMeseroController
+}
+interface "AutenticacionService\n<size:9>iniciarSesion(String, String)</size>\n<size:9>mensajeDe(Resultado)</size>" as I_AutenticacionService
+interface "DisponibilidadDAO\n<size:9>estaDisponible(long)</size>\n<size:9>estaDisponible(long, int)</size>\n<size:9>faltantesDelPedido(Map)</size>\n<size:9>listarProductos()</size>\n<size:9>recalcularTodos()</size>" as I_DisponibilidadDAO
+interface "IngredienteRepository\n<size:9>findActivos()</size>\n<size:9>findActivosPorNombre(String)</size>" as I_IngredienteRepository
+interface "LoginController\n<size:9>setAlEntrar(Runnable)</size>" as I_LoginController
+interface "MenuMeseroController\n<size:9>configurarMesa(long, long)</size>" as I_MenuMeseroController
+interface "MesaRepository\n<size:9>agregarMesa(int)</size>\n<size:9>asignarComensales(int, int)</size>\n<size:9>cambiarEstadoMesa(Connection, int, String)</size>\n<size:9>findById(int)</size>\n<size:9>findById(Connection, int)</size>\n<size:9>liberarMesa(int)</size>\n<size:9>obtenerTodas()</size>\n<size:9>quitarMesa(int)</size>" as I_MesaRepository
+interface "MesaService\n<size:9>cambiarEstado(long, String, String)</size>" as I_MesaService
+interface "PagoDAO\n<size:9>buscarCuenta(String)</size>\n<size:9>cerrarPago(CuentaPago, int, String)</size>" as I_PagoDAO
+interface "PedidoFacade\n<size:9>calcularSubtotal(Collection)</size>\n<size:9>confirmarPedido(long, long, Collection)</size>\n<size:9>validarDisponibilidad(Collection)</size>" as I_PedidoFacade
+interface "PedidoRepository\n<size:9>existsByMesaIdAndEstadoNot(long, EstadoPedido)</size>\n<size:9>findActivoByMesaId(long)</size>\n<size:9>findById(long)</size>\n<size:9>findPedidosParaCocina()</size>\n<size:9>save(Pedido)</size>" as I_PedidoRepository
+interface "PedidoService\n<size:9>actualizarPedido(Pedido)</size>\n<size:9>cancelarPedido(long, String)</size>\n<size:9>cerrarPedido(long, String)</size>\n<size:9>obtenerOCrearPedido(long, long)</size>\n<size:9>obtenerPedidoActivo(long)</size>" as I_PedidoService
+interface "ProductoDAO\n<size:9>estaDisponible(long)</size>\n<size:9>estaDisponible(long, int)</size>\n<size:9>obtenerMenuPorCategorias()</size>" as I_ProductoDAO
+interface "SesionUsuario\n<size:9>cerrarSesion()</size>\n<size:9>esCajero()</size>\n<size:9>estaAutenticado()</size>\n<size:9>getInstance()</size>\n<size:9>getNombre()</size>\n<size:9>getRol()</size>\n<size:9>getUsuarioId()</size>\n<size:9>iniciarSesion(int, String, String)</size>" as I_SesionUsuario
+interface "TextoBusqueda\n<size:9>coincide(String, String, String)</size>" as I_TextoBusqueda
+package "fuera del subsistema" #FAFAFA {
+  component "**AutenticacionService**\n<size:9>service</size>" as AutenticacionService #DCFCE7
+  component "**DisponibilidadDAO**\n<size:9>dao</size>" as DisponibilidadDAO #FFEDD5
+  component "**IngredienteRepository**\n<size:9>repository</size>" as IngredienteRepository #FFEDD5
+  component "**MesaRepository**\n<size:9>repository</size>" as MesaRepository #FFEDD5
+  component "**MesaService**\n<size:9>service</size>" as MesaService #DCFCE7
+  component "**PagoDAO**\n<size:9>dao</size>" as PagoDAO #FFEDD5
+  component "**PedidoFacade**\n<size:9>service</size>" as PedidoFacade #DCFCE7
+  component "**PedidoRepository**\n<size:9>repository</size>" as PedidoRepository #FFEDD5
+  component "**PedidoService**\n<size:9>service</size>" as PedidoService #DCFCE7
+  component "**ProductoDAO**\n<size:9>dao</size>" as ProductoDAO #FFEDD5
+  component "**SesionUsuario**\n<size:9>session</size>" as SesionUsuario #F3E8FF
+  component "**TextoBusqueda**\n<size:9>util</size>" as TextoBusqueda #F3E8FF
+  AutenticacionService -[hidden]right- DisponibilidadDAO
+  DisponibilidadDAO -[hidden]right- IngredienteRepository
+  IngredienteRepository -[hidden]right- MesaRepository
+  MesaRepository -[hidden]right- MesaService
+  AutenticacionService -[hidden]down- PagoDAO
+  PagoDAO -[hidden]right- PedidoFacade
+  DisponibilidadDAO -[hidden]down- PedidoFacade
+  PedidoFacade -[hidden]right- PedidoRepository
+  IngredienteRepository -[hidden]down- PedidoRepository
+  PedidoRepository -[hidden]right- PedidoService
+  MesaRepository -[hidden]down- PedidoService
+  PedidoService -[hidden]right- ProductoDAO
+  MesaService -[hidden]down- ProductoDAO
+  PagoDAO -[hidden]down- SesionUsuario
+  SesionUsuario -[hidden]right- TextoBusqueda
+  PedidoFacade -[hidden]down- TextoBusqueda
+}
+I_AutenticacionService -[hidden]right- I_DisponibilidadDAO
+I_DisponibilidadDAO -[hidden]right- I_IngredienteRepository
+I_IngredienteRepository -[hidden]right- I_LoginController
+I_LoginController -[hidden]right- I_MenuMeseroController
+I_AutenticacionService -[hidden]down- I_MesaRepository
+I_MesaRepository -[hidden]right- I_MesaService
+I_DisponibilidadDAO -[hidden]down- I_MesaService
+I_MesaService -[hidden]right- I_PagoDAO
+I_IngredienteRepository -[hidden]down- I_PagoDAO
+I_PagoDAO -[hidden]right- I_PedidoFacade
+I_LoginController -[hidden]down- I_PedidoFacade
+I_PedidoFacade -[hidden]right- I_PedidoRepository
+I_MenuMeseroController -[hidden]down- I_PedidoRepository
+I_MesaRepository -[hidden]down- I_PedidoService
+I_PedidoService -[hidden]right- I_ProductoDAO
+I_MesaService -[hidden]down- I_ProductoDAO
+I_ProductoDAO -[hidden]right- I_SesionUsuario
+I_PagoDAO -[hidden]down- I_SesionUsuario
+I_SesionUsuario -[hidden]right- I_TextoBusqueda
+I_PedidoFacade -[hidden]down- I_TextoBusqueda
+AutenticacionService -up- I_AutenticacionService
+DisponibilidadDAO -up- I_DisponibilidadDAO
+IngredienteRepository -up- I_IngredienteRepository
+LoginController -up- I_LoginController
+MenuMeseroController -up- I_MenuMeseroController
+MesaRepository -up- I_MesaRepository
+MesaService -up- I_MesaService
+PagoDAO -up- I_PagoDAO
+PedidoFacade -up- I_PedidoFacade
+PedidoRepository -up- I_PedidoRepository
+PedidoService -up- I_PedidoService
+ProductoDAO -up- I_ProductoDAO
+SesionUsuario -up- I_SesionUsuario
+TextoBusqueda -up- I_TextoBusqueda
+CajeroPagoController ..> I_PagoDAO : <<use>> 2
+CajeroPagoController ..> I_SesionUsuario : <<use>> 5
+CocinaController ..> I_MesaRepository : <<use>> 1
+CocinaController ..> I_PedidoRepository : <<use>> 2
+DisponibilidadAdminController ..> I_DisponibilidadDAO : <<use>> 2
+InventarioController ..> I_IngredienteRepository : <<use>> 2
+LoginController ..> I_AutenticacionService : <<use>> 2
+Main ..> I_LoginController : <<use>> 1
+Main ..> I_SesionUsuario : <<use>> 5
+MapaSalonController ..> I_MenuMeseroController : <<use>> 1
+MapaSalonController ..> I_MesaRepository : <<use>> 6
+MapaSalonController ..> I_MesaService : <<use>> 1
+MapaSalonController ..> I_SesionUsuario : <<use>> 3
+MenuMeseroController ..> I_PedidoFacade : <<use>> 3
+MenuMeseroController ..> I_PedidoService : <<use>> 3
+MenuMeseroController ..> I_ProductoDAO : <<use>> 2
+MenuMeseroController ..> I_TextoBusqueda : <<use>> 1
+@enduml

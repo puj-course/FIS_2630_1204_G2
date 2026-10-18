@@ -1,0 +1,58 @@
+@startuml
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 6
+skinparam nodesep 28
+skinparam ranksep 70
+skinparam ArrowColor #475569
+skinparam ArrowFontSize 11
+skinparam ArrowThickness 1.1
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam PackageFontSize 13
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentFontSize 12
+skinparam ComponentBorderColor #334155
+skinparam legendBackgroundColor #FFFFFF
+skinparam legendBorderColor #94A3B8
+skinparam legendFontSize 11
+  component "CajeroPagoController" as c_CajeroPagoController #DBEAFE
+  component "CocinaController" as c_CocinaController #DBEAFE
+  component "DisponibilidadAdminController" as c_DisponibilidadAdminController #DBEAFE
+  component "InventarioController" as c_InventarioController #DBEAFE
+  component "LoginController" as c_LoginController #DBEAFE
+  component "Main" as c_Main #DBEAFE
+  component "MapaSalonController" as c_MapaSalonController #DBEAFE
+  component "MenuMeseroController" as c_MenuMeseroController #DBEAFE
+  component "AutenticacionService" as c_AutenticacionService #DCFCE7
+  component "MesaService" as c_MesaService #DCFCE7
+  component "PedidoFacade" as c_PedidoFacade #DCFCE7
+  component "PedidoService" as c_PedidoService #DCFCE7
+  component "DisponibilidadDAO" as c_DisponibilidadDAO #FFEDD5
+  component "IngredienteRepository" as c_IngredienteRepository #FFEDD5
+  component "MesaRepository" as c_MesaRepository #FFEDD5
+  component "PagoDAO" as c_PagoDAO #FFEDD5
+  component "PedidoRepository" as c_PedidoRepository #FFEDD5
+  component "ProductoDAO" as c_ProductoDAO #FFEDD5
+  component "SesionUsuario" as c_SesionUsuario #F3E8FF
+  component "TextoBusqueda" as c_TextoBusqueda #F3E8FF
+c_CajeroPagoController --> c_PagoDAO
+c_CajeroPagoController --> c_SesionUsuario
+c_CocinaController --> c_MesaRepository
+c_CocinaController --> c_PedidoRepository
+c_DisponibilidadAdminController --> c_DisponibilidadDAO
+c_InventarioController --> c_IngredienteRepository
+c_LoginController --> c_AutenticacionService
+c_Main --> c_LoginController
+c_Main --> c_SesionUsuario
+c_MapaSalonController --> c_MenuMeseroController
+c_MapaSalonController --> c_MesaRepository
+c_MapaSalonController --> c_MesaService
+c_MapaSalonController --> c_SesionUsuario
+c_MenuMeseroController --> c_PedidoFacade
+c_MenuMeseroController --> c_PedidoService
+c_MenuMeseroController --> c_ProductoDAO
+c_MenuMeseroController --> c_TextoBusqueda
+@enduml

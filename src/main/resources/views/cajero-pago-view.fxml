@@ -56,6 +56,7 @@
                 <VBox spacing="12" styleClass="tarjeta">
                     <Label text="Descuento autorizado" styleClass="seccion"/>
                     <HBox spacing="10">
+                        <ComboBox fx:id="tipoDescuentoCombo" prefWidth="170"/>
                         <TextField fx:id="descuentoField" promptText="0.00" HBox.hgrow="ALWAYS"/>
                         <Button fx:id="eliminarDescuentoButton" text="Eliminar descuento" onAction="#eliminarDescuento"/>
                     </HBox>

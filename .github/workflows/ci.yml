@@ -1,0 +1,65 @@
+  name: CI
+
+  on:
+    push:
+      branches:
+        - develop
+        - 'features-*'
+    pull_request:
+      branches:
+        - develop
+
+  jobs:
+    build-and-test:
+      name: Compilar y ejecutar pruebas
+      runs-on: ubuntu-latest
+
+      services:
+        postgres:
+          image: postgres:16
+          env:
+            POSTGRES_DB: postgres
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+          ports:
+            - 5432:5432
+          options: >-
+            --health-cmd "pg_isready -U postgres -d postgres"
+            --health-interval 10s
+            --health-timeout 5s
+            --health-retries 5
+
+      env:
+        PGHOST: localhost
+        PGPORT: 5432
+        PGUSER: postgres
+        PGPASSWORD: postgres
+
+      steps:
+        - name: Descargar código
+          uses: actions/checkout@v4
+
+        - name: Configurar Java 21 y caché Maven
+          uses: actions/setup-java@v4
+          with:
+            java-version: '21'
+            distribution: temurin
+            cache: maven
+
+        - name: Instalar cliente PostgreSQL
+          run: |
+            sudo apt-get update
+            sudo apt-get install -y postgresql-client
+
+        - name: Preparar permisos del script
+          run: chmod +x scripts/setup.sh
+
+        - name: Crear esquema y datos de prueba
+          run: ./scripts/setup.sh --con-datos-prueba
+
+        - name: Compilar el proyecto
+          run: mvn --batch-mode clean compile
+
+        - name: Ejecutar pruebas automatizadas
+          run: mvn --batch-mode test
+

@@ -1,0 +1,33 @@
+@startuml
+top to bottom direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 6
+skinparam nodesep 28
+skinparam ranksep 70
+skinparam ArrowColor #475569
+skinparam ArrowFontSize 11
+skinparam ArrowThickness 1.1
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam PackageFontSize 13
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentFontSize 12
+skinparam ComponentBorderColor #334155
+skinparam legendBackgroundColor #FFFFFF
+skinparam legendBorderColor #94A3B8
+skinparam legendFontSize 11
+component "**Interfaz de usuario**\n<size:10>8 componentes</size>" as k_ui #DBEAFE
+component "**Logica de negocio**\n<size:10>12 componentes</size>" as k_negocio #DCFCE7
+component "**Acceso a datos**\n<size:10>26 componentes</size>" as k_datos #FFEDD5
+component "**Conexion**\n<size:10>1 componente</size>" as k_conexion #F1F5F9
+component "**Apoyo transversal**\n<size:10>2 componentes</size>" as k_apoyo #F3E8FF
+k_negocio --> k_datos : 40 operaciones
+k_datos --> k_conexion : 22 operaciones
+k_ui --> k_datos : 17 operaciones
+k_ui --> k_apoyo : 14 operaciones
+k_ui --> k_negocio : 9 operaciones
+k_negocio --> k_conexion : 4 operaciones
+k_negocio --> k_apoyo : 2 operaciones
+@enduml

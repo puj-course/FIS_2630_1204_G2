@@ -1,0 +1,62 @@
+@startuml
+allowmixing
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 30
+skinparam ranksep 55
+skinparam ArrowColor #475569
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ArtifactBackgroundColor #FFFFFF
+skinparam DatabaseBackgroundColor #FFFFFF
+package "clases que importan Spring o Jakarta · 6" #FEF2F2 {
+  component "**Mesero**\n<size:9>persistence.*</size>\n<size:9>@Entity</size>\n<size:9>@Table</size>" as Mesero
+  component "**Pago**\n<size:9>persistence.*</size>\n<size:9>@Entity</size>\n<size:9>@Table</size>" as Pago
+  component "**DetallePedidoRepository**\n<size:9>data.jpa.repository.JpaRepository</size>\n<size:9>extends JpaRepository<DetallePedido, Long></size>" as DetallePedidoRepository
+  component "**MeseroRepository**\n<size:9>data.jpa.repository.JpaRepository</size>\n<size:9>extends JpaRepository<Mesero, Long></size>" as MeseroRepository
+  component "**PagoRepository**\n<size:9>data.jpa.repository.JpaRepository</size>\n<size:9>extends JpaRepository<Pago, Long></size>" as PagoRepository
+  component "**PagoService**\n<size:9>stereotype.Service</size>\n<size:9>transaction.annotation.Transactional</size>\n<size:9>@Service</size>\n<size:9>@Transactional</size>" as PagoService
+  Mesero -[hidden]right- Pago
+  Pago -[hidden]right- DetallePedidoRepository
+  Mesero -[hidden]down- MeseroRepository
+  MeseroRepository -[hidden]right- PagoRepository
+  PagoRepository -[hidden]right- PagoService
+}
+package "configuracion y recursos que la aplicacion JavaFX no usa" #FEF9C3 {
+  artifact "src/main/resources/application.properties\n<size:9>spring.datasource.url=${DB_URL:jdbc:postgresql://localhost:5432/restaurante}</size>\n<size:9>spring.datasource.username=${DB_USERNAME:postgres}</size>\n<size:9>spring.datasource.password=${DB_PASSWORD:</size>\n<size:9>server.port=8081</size>\n<size:9>spring.jpa.hibernate.ddl-auto=update</size>\n<size:9>spring.jpa.show-sql=true</size>\n<size:9>spring.jpa.properties.hibernate.format_sql=true</size>" as A_props
+  artifact "src/main/resources/static/login.html\n<size:9>48 lineas</size>" as A_html
+  A_props -[hidden]right- A_html
+}
+package "archivos .java de 0 bytes · 4" #F1F5F9 {
+  artifact "src/main/java/controller/PagoController.java" as src_main_java_controller_PagoController_java
+  artifact "src/main/java/database/ConexionBD.java" as src_main_java_database_ConexionBD_java
+  artifact "src/main/java/entity/Receta.java" as src_main_java_entity_Receta_java
+  artifact "src/main/java/entity/RecetaDetalle.java" as src_main_java_entity_RecetaDetalle_java
+  src_main_java_controller_PagoController_java -[hidden]right- src_main_java_database_ConexionBD_java
+  src_main_java_database_ConexionBD_java -[hidden]right- src_main_java_entity_Receta_java
+  src_main_java_entity_Receta_java -[hidden]right- src_main_java_entity_RecetaDetalle_java
+}
+package "archivos de 1 byte, solo un salto de linea · 5" #F1F5F9 {
+  artifact "conf/config.json" as conf_config_json
+  artifact "conf/database.js" as conf_database_js
+  artifact "scripts/deploy.sh" as scripts_deploy_sh
+  artifact "scripts/start.sh" as scripts_start_sh
+  artifact "scripts/test.sh" as scripts_test_sh
+  conf_config_json -[hidden]right- conf_database_js
+  conf_database_js -[hidden]right- scripts_deploy_sh
+  scripts_deploy_sh -[hidden]right- scripts_start_sh
+  scripts_start_sh -[hidden]right- scripts_test_sh
+}
+artifact "pom.xml\n<size:9>maven-compiler-plugin excluye 7 archivos</size>\n<size:9>ninguna dependencia de Spring ni de Jakarta</size>" as A_pom
+A_pom ..> Mesero : <<exclude>>
+A_pom ..> Pago : <<exclude>>
+A_pom ..> DetallePedidoRepository : <<exclude>>
+A_pom ..> MeseroRepository : <<exclude>>
+A_pom ..> PagoRepository : <<exclude>>
+A_pom ..> PagoService : <<exclude>>
+A_pom ..> src_main_java_controller_PagoController_java : <<exclude>>
+@enduml

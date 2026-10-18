@@ -195,7 +195,7 @@ public class Main extends Application {
         cerrarSesion.getStyleClass().add("boton-salir");
         cerrarSesion.setMaxWidth(Double.MAX_VALUE);
         cerrarSesion.setOnAction(e -> {
-            SesionUsuario.cerrarSesion();
+            SesionUsuario.getInstance().cerrarSesion(); //cambio por patrón singleton de sesion usuario
             moduloAbierto = null;
             mostrarLogin();
         });
@@ -288,7 +288,7 @@ public class Main extends Application {
      * está marcado como abierto y si se puede cerrar sesión.
      */
     private void refrescarNavegacion() {
-        boolean haySesion = SesionUsuario.estaAutenticado();
+        boolean haySesion = SesionUsuario.getInstance().estaAutenticado(); //cambio por sesión usuario singleton
 
         cerrarSesion.setDisable(!haySesion);
         listaModulos.getChildren().clear();
@@ -300,9 +300,9 @@ public class Main extends Application {
             return;
         }
 
-        String rol = SesionUsuario.getRol();
+        String rol = SesionUsuario.getInstance().getRol(); //cambio a getInstance por sigleton
         String nombreRol = nombreVisible(rol);
-        String nombre = SesionUsuario.getNombre();
+        String nombre = SesionUsuario.getInstance().getNombre(); //cambio a getInstance por sigleton
 
         avatar.setText(nombre.isBlank() || "-".equals(nombre)
                 ? nombreRol.substring(0, 1).toUpperCase()
