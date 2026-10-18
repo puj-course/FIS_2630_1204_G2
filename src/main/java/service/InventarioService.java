@@ -3,11 +3,13 @@ package service;
 import ConexionBD.ConexionBD;
 import exceptions.StockInsuficienteException;
 import repository.InventarioRepository;
+import Interface.InsumoObserver;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -16,9 +18,9 @@ public class InventarioService {
     private final InventarioRepository inventarioRepository =
             new InventarioRepository();
 
+    private final List<InsumoObserver> observadores = new ArrayList<>(); // GoF - AlertaInventario
     /**
      * Descuenta los ingredientes correspondientes a una comanda.
-     *
      * El cálculo se realiza utilizando la receta oficial
      * almacenada en plato_insumo.
      */
@@ -371,5 +373,32 @@ public class InventarioService {
         );
 
         return calcularConsumoEstimado(productos);
+    }
+
+    // Uso del patron observer para alerta de stock bajo - GoF
+    public InventarioService() {
+        // Suscribimos por defecto al administrador para que reciba las alertas
+        this.agregarObservador(new AdministradorAlertaObserver());
+    }
+
+    public void agregarObservador(InsumoObserver observer) {
+        observadores.add(observer);
+    }
+
+    public void eliminarObservador(InsumoObserver observer) {
+        observadores.remove(observer);
+    }
+
+    private void notificarObservadores(String nombreInsumo, double stockActual, double stockMinimo) {
+        for (InsumoObserver observer : observadores) {
+            observer.actualizar(nombreInsumo, stockActual, stockMinimo);
+        }
+    }
+
+    // Método donde validas el stock (ej: al descontar ingredientes por un pedido)
+    public void verificarStockMinimo(String nombreInsumo, double stockActual, double stockMinimo) {
+        if (stockActual <= stockMinimo) {
+            notificarObservadores(nombreInsumo, stockActual, stockMinimo);
+        }
     }
 }

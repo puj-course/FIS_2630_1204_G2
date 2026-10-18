@@ -18,7 +18,7 @@ public class ListaEsperaRepository {
 
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-             pstmt.setString(1, estado);
+             pstmt.setString(1, String.valueOf(estado));
              try (ResultSet rs = pstmt.executeQuery()) {
                  while (rs.next()) {
                      ListaEspera item = new ListaEspera();
@@ -26,7 +26,7 @@ public class ListaEsperaRepository {
                      item.setNombreCliente(rs.getString("nombre_cliente"));
                      item.setCantidadPersonas(rs.getInt("cantidad_personas"));
                      item.setHoraIngreso(rs.getTimestamp("hora_ingreso").toLocalDateTime());
-                     item.setEstado(rs.getString("estado"));
+                     item.setEstado(EstadoListaEspera.valueOf(rs.getString("estado")));
                      lista.add(item);
                  }
              }

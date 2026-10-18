@@ -14,6 +14,7 @@ import java.util.Set;
 public class PedidoService {
 
     private static final Set<EstadoPedido> ESTADOS_YA_CERRADOS = Set.of(
+            EstadoPedido.COMPLETADO,
             EstadoPedido.ENTREGADO,
             EstadoPedido.CANCELADO
     );
@@ -56,7 +57,7 @@ public class PedidoService {
                             + " ya está en estado "
                             + pedido.getEstado());
         }
-        pedido.setEstado(EstadoPedido.ENTREGADO);
+        pedido.setEstado(EstadoPedido.COMPLETADO);
         Pedido cerrado = pedidoRepository.save(pedido);
         String destino = codigoEstadoDestinoMesa != null ? codigoEstadoDestinoMesa : "LIBRE";
         mesaService.cambiarEstado(pedido.getMesaId(), destino, "CIERRE_PEDIDO");
