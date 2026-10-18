@@ -1,7 +1,5 @@
-# Alineación de paquetes Java — HU-078 (#175)
-
-**Fecha:** 23 de septiembre de 2026  
-**Participantes:** _(Samuel Malaver)_   
+# Alineación de paquetes Java
+ 
 **Rama de trabajo:** personal → Pull Request hacia `develop`
 
 ---
