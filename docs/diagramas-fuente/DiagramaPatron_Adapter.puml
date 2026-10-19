@@ -1,0 +1,49 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 6
+skinparam nodesep 30
+skinparam ranksep 60
+skinparam ClassBorderColor #334155
+skinparam ClassBackgroundColor #FFFFFF
+skinparam ClassFontSize 14
+skinparam ClassAttributeFontSize 12
+skinparam ClassStereotypeFontSize 11
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 11
+hide circle
+interface ComandaCocina <<Target>> {
+  +getNumero() String
+  +getMesaId() Long
+  +getMinutosEspera() long
+  +getColumna() Columna
+  +puedeAvanzar() boolean
+  +getTextoAccion() String
+  +avanzar() Pedido
+}
+class PedidoComandaAdapter <<Adapter>> {
+  -pedido : Pedido
+  +PedidoComandaAdapter(pedido : Pedido)
+  +getNumero() String
+  +getMesaId() Long
+  +getMinutosEspera() long
+  +getColumna() Columna
+  +puedeAvanzar() boolean
+  +getTextoAccion() String
+  +avanzar() Pedido
+}
+class Pedido <<Adaptee>> {
+  +getNumeroPedido() String
+  +getMesaId() Long
+  +getEstado() EstadoPedido
+  +setEstado(estado : EstadoPedido) void
+  +getFechaPedido() LocalDateTime
+}
+class CocinaController {
+}
+ComandaCocina <|.. PedidoComandaAdapter
+PedidoComandaAdapter --> Pedido : pedido
+CocinaController ..> PedidoComandaAdapter : new
+CocinaController ..> ComandaCocina : avanzar, getColumna, getMesaId, getMinutosEspera, getNumero, getTextoAccion, puedeAvanzar
+@enduml

@@ -97,15 +97,32 @@ def banda_de(nombre):
     return BANDA_DE_PAQ.get(next(iter(ps))) if ps and len(ps) == 1 else None
 
 
+def pares_de(R):
+    """Las relaciones como (origen, destino), vengan de la lista que vengan.
+
+    Cada lista de relaciones.json tiene sus propias claves: asociacion y
+    dependencia usan origen/destino, generalizacion usa hijo/padre y
+    realizacion usa clase/interfaz. Tratarlas todas como origen/destino
+    reventaba en cuanto aparecio la primera realizacion del proyecto.
+    """
+    out = []
+    for r in R.get('asociacion', []) + R.get('dependencia', []):
+        out.append((r['origen'], r['destino']))
+    for r in R.get('generalizacion', []):
+        out.append((r['hijo'], r['padre']))
+    for r in R.get('realizacion', []):
+        out.append((r['clase'], r['interfaz']))
+    return out
+
+
 def dependencias():
     """Que banda depende de cual, contando relaciones y llamadas reales."""
     import collections
     pares = collections.Counter()
-    for tipo in ('asociacion', 'dependencia', 'generalizacion', 'realizacion'):
-        for r in R[tipo]:
-            a, b = banda_de(r['origen']), banda_de(r['destino'])
-            if a and b and a != b:
-                pares[(a, b)] += 1
+    for o, d in pares_de(R):
+        a, b = banda_de(o), banda_de(d)
+        if a and b and a != b:
+            pares[(a, b)] += 1
     for l in LL['llamadas']:
         a, b = banda_de(l['origen']), banda_de(l['destino'])
         if a and b and a != b:

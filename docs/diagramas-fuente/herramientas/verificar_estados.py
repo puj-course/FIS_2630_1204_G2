@@ -246,10 +246,28 @@ mira(ops_tabla == ops_codigo,
      f'la tabla usa exactamente las operaciones del codigo '
      f'(sobran {sorted(ops_tabla - ops_codigo)}, faltan {sorted(ops_codigo - ops_tabla)})')
 
-# el azul marca exactamente las que escriben sin pasar por PedidoService
+# el azul marca exactamente las que escriben sin pasar por PedidoService.
+# El save no tiene por que estar en el mismo metodo que el setEstado: desde
+# el patron Adapter, PedidoComandaAdapter.avanzar() cambia el estado y
+# CocinaController guarda lo que devuelve. Se busca aqui, no se le pregunta
+# al generador.
+def guardado_fuera(clase, metodo):
+    for otra, txt in FU.items():
+        if otra == clase:
+            continue
+        for m_ in re.finditer(rf'\.{re.escape(metodo)}\s*\(', txt):
+            # la ventana alrededor de la llamada: basta para ver si el
+            # resultado se guarda ahi mismo
+            if 'pedidoRepository.save(' in txt[max(0, m_.start() - 400):
+                                               m_.start() + 200]:
+                return True
+    return False
+
+
 for clase, metodo, estado in sets:
     cu = cuerpo(FU[clase], metodo)
-    salta = clase != 'PedidoService' and 'pedidoRepository.save(' in cu
+    salta = clase != 'PedidoService' and (
+        'pedidoRepository.save(' in cu or guardado_fuera(clase, metodo))
     for f in [x for x in D_PED.filas.values()
               if x['op'] == f'{clase}.{metodo}()' and x['a'] == estado]:
         fl = D_PED.flecha_de(D_PED.num_de(f))
@@ -258,34 +276,66 @@ for clase, metodo, estado in sets:
              f'escriba sin pasar por PedidoService (salta={salta})')
 
 print('-- pedido: cocina --')
-pr, cc = FU['PedidoRepository'], FU['CocinaController']
+pr = FU['PedidoRepository']
 carga = re.findall(r'EstadoPedido\.(\w+)\.name\(\)', cuerpo(pr, 'findPedidosParaCocina'))
 mira(len(carga) == 4, f'findPedidosParaCocina carga 4 estados: {carga}')
-av = cuerpo(cc, 'avanzarEstado')
-par = re.search(r'==\s*EstadoPedido\.(\w+)\s*\)\s*\{\s*\w+\.setEstado\(EstadoPedido\.(\w+)\)',
-                av)
-mira(par is not None, 'avanzarEstado tiene su if sobre el estado actual')
-if par:
+
+
+def sitios(patron):
+    """Donde esta esa regla en el codigo, con la clase y el metodo.
+
+    No se le pregunta al generador donde la encontro: se vuelve a buscar en
+    todo src/main/java. Si la regla se mueve de clase -como paso al meter el
+    patron Adapter- el verificador la sigue, pero exige que el diagrama
+    atribuya la transicion al sitio real.
+    """
+    FIRMA = re.compile(r'\b(?:public|private|protected)\b[^;{]*?\b(\w+)'
+                       r'\s*\([^)]*\)\s*\{')
+    out = []
+    for clase, txt in FU.items():
+        for m in re.finditer(patron, txt, re.S):
+            previas = list(FIRMA.finditer(txt[:m.start()]))
+            out.append((clase, previas[-1].group(1) if previas else '?', m))
+    return out
+
+
+AVANZA = sitios(r'==\s*EstadoPedido\.(\w+)\s*\)\s*\{'
+                r'\s*\w+\.setEstado\(EstadoPedido\.(\w+)\);\s*\}'
+                r'\s*else\s*\{\s*\w+\.setEstado\(EstadoPedido\.(\w+)\);')
+mira(len(AVANZA) == 1,
+     f'el if que reparte el estado del tablero esta en un solo sitio: '
+     f'{[(c, m) for c, m, _ in AVANZA]}')
+if len(AVANZA) == 1:
+    clase_av, metodo_av, par = AVANZA[0]
+    desde_if, hacia_if, hacia_else = par.group(1), par.group(2), par.group(3)
+    op_av = f'{clase_av}.{metodo_av}()'
+
     fif = [f for f in D_PED.filas.values()
-           if f['a'] == par.group(2) and 'avanzarEstado' in f['op']]
-    mira(len(fif) == 1 and fif[0]['desde'] == par.group(1),
-         f'la rama if va de {par.group(1)} a {par.group(2)}')
-    mira(len(fif) == 1 and fif[0]['cond'] == f'estado == {par.group(1)}',
+           if f['a'] == hacia_if and f['op'] == op_av]
+    mira(len(fif) == 1 and fif[0]['desde'] == desde_if,
+         f'la rama if va de {desde_if} a {hacia_if}')
+    mira(len(fif) == 1 and fif[0]['cond'] == f'estado == {desde_if}',
          'la rama if lleva su condicion exacta')
+
     felse = [f for f in D_PED.filas.values()
-             if 'avanzarEstado' in f['op'] and f['a'] != par.group(2)]
-    sinbtn = re.search(r'getEstado\(\)\s*!=\s*EstadoPedido\.(\w+)\)', cc)
-    esperado_else = set(carga) - {par.group(1)} - ({sinbtn.group(1)} if sinbtn else set())
+             if f['op'] == op_av and f['a'] != hacia_if]
+    SINBTN = sitios(r'getEstado\(\)\s*!=\s*EstadoPedido\.(\w+)')
+    mira(len(SINBTN) == 1,
+         f'la regla de que tarjeta no lleva boton esta en un solo sitio: '
+         f'{[(c, m) for c, m, _ in SINBTN]}')
+    sin_btn = {SINBTN[0][2].group(1)} if len(SINBTN) == 1 else set()
+    esperado_else = set(carga) - {desde_if} - sin_btn
     mira({f['desde'] for f in felse} == esperado_else,
          f'la rama else sale de {sorted(esperado_else)} '
          f'(dibujado {sorted(f["desde"] for f in felse)})')
-    mira(felse and all(f['cond'] == f'estado != {par.group(1)}' for f in felse),
+    mira(bool(felse) and all(f['cond'] == f'estado != {desde_if}'
+                             for f in felse),
          'la rama else lleva la condicion negada')
-    mira(all(f['a'] == par.group(3 - 2) or True for f in felse)
-         and {f['a'] for f in felse} == {par.group(2)} - {par.group(2)} | {
-             next(e for e in carga if e not in (par.group(1), par.group(2))) if False
-             else list({f['a'] for f in felse})[0]} if felse else False,
-         'la rama else lleva a un unico destino')
+    mira(bool(felse) and {f['a'] for f in felse} == {hacia_else},
+         f'la rama else lleva a un unico destino, {hacia_else}')
+    mira(all(f['op'] == op_av for f in fif + felse),
+         f'las transiciones del tablero se atribuyen a {op_av}, que es '
+         f'donde esta el codigo')
 
 print('-- pedido: inicial, finales y colores --')
 ini = [f for f in D_PED.filas.values() if f['desde'] == 'inicio']
@@ -607,7 +657,7 @@ tot_d, tot_c = len(dib_ok) + len(dib_mal), len(cod_ok) + len(cod_mal)
 print(f'\nDIBUJO  {len(dib_ok)} pasan, {len(dib_mal)} fallan  (de {tot_d})')
 print(f'CODIGO  {len(cod_ok)} pasan, {len(cod_mal)} fallan  (de {tot_c})')
 # si un bucle se queda sin recorrer el total baja y hay que enterarse
-N_DIBUJO, N_CODIGO = 275, 16
+N_DIBUJO, N_CODIGO = 277, 16
 flojo = tot_d < N_DIBUJO or tot_c < N_CODIGO
 if flojo:
     print(f'\n  AVISO: se esperaban {N_DIBUJO} comprobaciones de dibujo y '

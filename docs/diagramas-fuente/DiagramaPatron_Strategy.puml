@@ -1,0 +1,48 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 6
+skinparam nodesep 30
+skinparam ranksep 60
+skinparam ClassBorderColor #334155
+skinparam ClassBackgroundColor #FFFFFF
+skinparam ClassFontSize 14
+skinparam ClassAttributeFontSize 12
+skinparam ClassStereotypeFontSize 11
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 11
+hide circle
+interface DescuentoStrategy {
+  +calcular(subtotal : BigDecimal, valor : BigDecimal) BigDecimal
+  +getNombre() String
+}
+class DescuentoMontoFijo {
+  +calcular(subtotal : BigDecimal, valor : BigDecimal) BigDecimal
+  +getNombre() String
+  +toString() String
+}
+class DescuentoPorcentaje {
+  -CIEN : BigDecimal
+  +calcular(subtotal : BigDecimal, valor : BigDecimal) BigDecimal
+  +getNombre() String
+  +toString() String
+}
+class CalculadoraDescuento <<context>> {
+  -estrategia : DescuentoStrategy
+  +CalculadoraDescuento()
+  +CalculadoraDescuento(estrategia : DescuentoStrategy)
+  +setEstrategia(estrategia : DescuentoStrategy) void
+  +getEstrategia() DescuentoStrategy
+  +calcular(subtotal : BigDecimal, valor : BigDecimal) BigDecimal
+}
+class CajeroPagoController {
+}
+DescuentoStrategy <|.. DescuentoMontoFijo
+DescuentoStrategy <|.. DescuentoPorcentaje
+CalculadoraDescuento o-- DescuentoStrategy : estrategia
+CajeroPagoController ..> CalculadoraDescuento : setEstrategia
+CajeroPagoController ..> DescuentoMontoFijo : new
+CajeroPagoController ..> DescuentoPorcentaje : new
+CajeroPagoController ..> DescuentoStrategy : calcular
+@enduml

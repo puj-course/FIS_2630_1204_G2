@@ -313,11 +313,18 @@ def _banda(n):
 
 
 reales = set()
-for _t in ('asociacion', 'dependencia', 'generalizacion', 'realizacion'):
-    for r in Rj.get(_t, []):
-        a, b = _banda(r['origen']), _banda(r['destino'])
-        if a and b and a != b:
-            reales.add((a, b))
+# cada lista de relaciones.json tiene sus propias claves: asociacion y
+# dependencia usan origen/destino, generalizacion hijo/padre y realizacion
+# clase/interfaz. Tratarlas todas igual reventaba con la primera
+# realizacion del proyecto, que llego con el paquete service/descuento.
+_PARES = ([(r['origen'], r['destino'])
+           for r in Rj.get('asociacion', []) + Rj.get('dependencia', [])]
+          + [(r['hijo'], r['padre']) for r in Rj.get('generalizacion', [])]
+          + [(r['clase'], r['interfaz']) for r in Rj.get('realizacion', [])])
+for o, d in _PARES:
+    a, b = _banda(o), _banda(d)
+    if a and b and a != b:
+        reales.add((a, b))
 for l in LLj['llamadas']:
     a, b = _banda(l['origen']), _banda(l['destino'])
     if a and b and a != b:
@@ -405,8 +412,12 @@ ok(not sobra, 'las vistas ligeras no se quedaron en diagramaClases.md',
 en_disco = {os.path.basename(p) for p in
             glob.glob(f'{BASE}/docs_entrega/Imagenes/*.png')}
 todas_md = set()
-for f in glob.glob(f'{BASE}/docs_entrega/*.md'):
-    todas_md |= set(re.findall(r'!\[[^\]]*\]\(Imagenes/([\w.]+)\)',
+# tambien los de docs_entrega/patrones, que estan una carpeta mas abajo y
+# por eso enlazan ../Imagenes: si no se miran aqui, sus imagenes pasarian
+# por huerfanas
+for f in (glob.glob(f'{BASE}/docs_entrega/*.md')
+          + glob.glob(f'{BASE}/docs_entrega/*/*.md')):
+    todas_md |= set(re.findall(r'!\[[^\]]*\]\((?:\.\./)?Imagenes/([\w.]+)\)',
                                open(f, encoding='utf-8').read()))
 ok(not (en_disco - todas_md), 'ninguna imagen generada queda sin usar',
    ', '.join(sorted(en_disco - todas_md)))
