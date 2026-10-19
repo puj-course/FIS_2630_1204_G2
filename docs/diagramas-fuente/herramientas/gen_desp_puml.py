@@ -3,7 +3,7 @@
 Un solo equipo ejecuta la aplicacion y la base de datos, porque
 ConexionBD apunta a localhost. GitHub no es un nodo de despliegue: de ahi
 se descarga el codigo y el runner solo comprueba que compile, asi que se
-dibuja como una nube aparte y la instalacion ocurre entera en el equipo.
+dibuja como una caja plana aparte y la instalacion ocurre entera en el equipo.
 Todos los datos salen del repositorio.
 """
 import os, re, glob, json
@@ -117,7 +117,7 @@ ci_art = ('.github/workflows/ci.yml\\n'
           + f'\\non: pull_request → {ramas(disparo_pr)}')
 pasos = 'steps\\n' + '\\n'.join(f'{i+1}. {n}' for i, n in enumerate(pasos_ci))
 L += [
-    'cloud "GitHub" as github #FFEDD5 {',
+    'rectangle "GitHub" as github <<servicio externo>> #FFEDD5 {',
     '  node "Repositorio remoto" as repo <<execution environment>> #FFFFFF {',
     '    artifact "FIS_2630_1204_G2\\nmain · develop · features-*" as a_repo',
     '  }',

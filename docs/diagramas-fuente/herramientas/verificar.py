@@ -256,8 +256,8 @@ PERMITIDO = set('''startuml enduml skinparam backgroundColor shadowing defaultFo
  ClassStereotypeFontSize ClassBorderColor ArrowColor ArrowFontSize
  PackageBorderColor PackageFontStyle ClassAttributeIconSize hide empty members
  package class interface enum annotation hidden right down left direction
- circle allowmixing entity database component node artifact rectangle cloud
- descarga clone
+ circle allowmixing entity database component node artifact rectangle
+ descarga clone servicio externo
  ArrowThickness ArrowFontStyle ArrowFontColor PackageFontSize
  PackageTitleAlignment ClassBackgroundColor NoteBackgroundColor NoteBorderColor
  linetype ortho polyline dashed EntityFontSize ComponentBackgroundColor InterfaceBackgroundColor
@@ -391,17 +391,17 @@ ok(disp == ['Equipo'],
    f'la aplicacion se ejecuta en un unico equipo: {disp}')
 # GitHub no puede dibujarse como una maquina de despliegue: es de donde se
 # descarga el codigo, y la instalacion pasa entera en el equipo
-nubes = re.findall(r'cloud "([^"]+)" as (\w+)', desp)
-ok(nubes == [('GitHub', 'github')],
-   f'GitHub va como nube aparte y no como nodo de despliegue: {nubes}')
+fuera = re.findall(r'rectangle "([^"]+)" as (\w+) <<servicio externo>>', desp)
+ok(fuera == [('GitHub', 'github')],
+   f'GitHub va como servicio externo y no como nodo de despliegue: {fuera}')
 ok(re.search(r'a_repo \.\.> a_src', desp),
    'el codigo baja del repositorio remoto al equipo (git clone)')
 ok(not re.search(r'(runner|a_ci|a_pasos|a_pg_ci)\s*[-.]+(down|up|left|right)?'
                  r'[-.]*>\s*(equipo|a_src|a_jar|jvm|pg|a_db)', desp),
    'del runner de integracion continua no sale nada hacia el equipo')
 # y dentro de la nube no puede ejecutarse la aplicacion
-dentro_nube = desp[desp.index('cloud "GitHub"'):].split('\n}')[0]
-ok('javafx' not in dentro_nube.lower() and 'gastroflow · ' not in dentro_nube,
+dentro = desp[desp.index('rectangle "GitHub"'):].split('\n}')[0]
+ok('javafx' not in dentro.lower() and 'gastroflow · ' not in dentro,
    'en GitHub no se ejecuta la aplicacion ni vive su base de datos')
 
 

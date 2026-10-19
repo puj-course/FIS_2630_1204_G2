@@ -15,7 +15,7 @@ skinparam NodeFontStyle bold
 skinparam ArtifactFontSize 12
 skinparam NodeBackgroundColor #FFFFFF
 skinparam ArtifactBackgroundColor #FFFFFF
-cloud "GitHub" as github #FFEDD5 {
+rectangle "GitHub" as github <<servicio externo>> #FFEDD5 {
   node "Repositorio remoto" as repo <<execution environment>> #FFFFFF {
     artifact "FIS_2630_1204_G2\nmain · develop · features-*" as a_repo
   }
