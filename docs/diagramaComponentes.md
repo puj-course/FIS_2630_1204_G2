@@ -4,17 +4,6 @@ Documentan en qué piezas sustituibles está dividido el sistema y cómo depende
 
 ---
 
-## Los cinco grupos y su dependencia
-
-![Los cinco grupos y su dependencia](Imagenes/DiagramaComponentes_General.png)
-![Las cinco capas](Imagenes/DiagramaComponentes_S1_Capas.png)
-
-**Por qué está.** Un componente es una pieza que se puede sustituir si se respeta su interfaz. Esta vista responde en cuántas piezas está dividido GastroFlow y en qué orden dependen unas de otras.
-
-**Qué muestra.** El sistema se agrupa en interfaz, negocio, datos, conexión y apoyo. Las dependencias van en una sola dirección salvo las que atraviesan hacia datos desde la interfaz. Las interfaces provistas llevan el nombre real de la clase que las implementa: se dedujeron de las llamadas que cruzan el límite entre un grupo y otro, no de un diseño sobre el papel.
-
----
-
 ## Qué necesita cada pantalla para funcionar
 
 ![Qué necesita cada pantalla para funcionar](Imagenes/DiagramaComponentes_UI.png)
