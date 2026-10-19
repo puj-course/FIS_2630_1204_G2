@@ -599,22 +599,20 @@ def escribir():
     for archivo, titulo, lista, intro in SECCIONES:
         L = [f'# {titulo}', '', intro.format(**tot), '', '---', '']
         for i, item in enumerate(lista):
+            if len(item) > 5:
+                continue             # el resumen lo escribe su diagrama largo
             ruta, nombre, tit, just, expl = item[:5]
-            sub = len(item) > 5          # la version resumida del anterior
-            if sub:
-                # solo la imagen, pegada al diagrama del que es resumen: sin
-                # titulo y sin texto, que es justo lo que sobraba
-                L += [f'![{tit}](Imagenes/{nombre}.png)', '']
-                continue
             c = conteo(ruta)
-            L += [f'## {tit}', '',
-                  f'![{tit}](Imagenes/{nombre}.png)', '',
+            L += [f'## {tit}', '', f'![{tit}](Imagenes/{nombre}.png)']
+            # el resumen va pegado a la imagen larga, antes del texto: las
+            # dos imagenes juntas y debajo una sola explicacion para ambas
+            if i + 1 < len(lista) and len(lista[i + 1]) > 5:
+                r_ruta, r_nombre, r_tit = lista[i + 1][:3]
+                L.append(f'![{r_tit}](Imagenes/{r_nombre}.png)')
+            L += ['',
                   '**Por qué está.** ' + just.format(**c), '',
-                  '**Qué muestra.** ' + expl.format(**c), '']
-            # la linea divisoria no va entre un diagrama y su resumen, que
-            # son una sola cosa leida a dos niveles
-            if not (i + 1 < len(lista) and len(lista[i + 1]) > 5):
-                L += ['---', '']
+                  '**Qué muestra.** ' + expl.format(**c), '',
+                  '---', '']
         while L and L[-1] in ('', '---'):
             L.pop()
         open(f'{OUT}/{archivo}', 'w', encoding='utf-8').write('\n'.join(L) + '\n')
