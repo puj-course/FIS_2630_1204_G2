@@ -16,13 +16,15 @@ rectangle "<size:17><b>Acceso a datos</b></size>  <size:12>· 28 tipos</size>\n<
 rectangle "<size:17><b>Conexión</b></size>  <size:12>· 1 tipo</size>\n<size:12><i>Única puerta a PostgreSQL</i></size>\n<size:12>ConexionBD · 1</size>" as conexion #F1F5F9
 rectangle "<size:17><b>Modelo del dominio</b></size>  <size:12>· 42 tipos</size>\n<size:12><i>Entidades, enumeraciones, DTO y excepciones</i></size>\n<size:12>entity · 23   enums · 6   dto · 4   exceptions · 9</size>" as modelo #FEF9C3
 rectangle "<size:17><b>Apoyo transversal</b></size>  <size:12>· 2 tipos</size>\n<size:12><i>Estado de sesión y utilidades</i></size>\n<size:12>session · 1   util · 1</size>" as apoyo #F3E8FF
-presentacion -down-> negocio
-negocio -down-> datos
-datos -down-> conexion
 modelo -[hidden]down- apoyo
-presentacion -right-> apoyo
-negocio -right-> apoyo
-presentacion -right-> modelo
-negocio -right-> modelo
 datos -right-> modelo
+negocio -right-> modelo
+negocio -down-> datos
+presentacion -right-> modelo
+datos -down-> conexion
+presentacion -[#B91C1C]right-> datos : <color:#B91C1C>salta capa
+presentacion -right-> apoyo
+presentacion -down-> negocio
+negocio -[#B91C1C]right-> conexion : <color:#B91C1C>salta capa
+negocio -right-> apoyo
 @enduml

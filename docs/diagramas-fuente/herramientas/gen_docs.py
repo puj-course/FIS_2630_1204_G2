@@ -35,8 +35,11 @@ CLASES = [
      'Los {tipos_codigo} tipos del código en seis bloques, con los paquetes '
      'que forman cada uno y cuántos tipos trae cada paquete. El acceso a '
      'datos y el modelo del dominio son, con diferencia, las dos partes más '
-     'grandes: entre las dos suman más de dos tercios del código. El detalle '
-     'de qué clase está dónde está en el mapa siguiente.'),
+     'grandes: entre las dos suman más de dos tercios de los tipos. Las dos '
+     'flechas rojas son los saltos de capa que el código comete de verdad: '
+     'pantallas que llaman directamente a un repositorio, y servicios que '
+     'abren la conexión por su cuenta. El detalle de qué clase está dónde '
+     'está en el mapa siguiente.'),
     ('puml_clases/00_Mapa_Clases.puml', 'DiagramaClases_Mapa',
      'Mapa del modelo: qué clases hay y en qué capa vive cada una',
      'Los quince diagramas que siguen llevan los atributos y los métodos de '
@@ -47,10 +50,11 @@ CLASES = [
      'bloques. La '
      'columna de la izquierda es el camino normal de una operación, de la '
      'pantalla al servicio, de ahí al repositorio y de ahí a la única clase '
-     'que abre la conexión. A la derecha, el modelo del dominio, que es casi '
-     'la mitad de las clases y lo usan las tres capas de la columna. Las '
-     'clases anidadas van entre paréntesis detrás de la que las contiene, '
-     'porque no son archivos propios.'),
+     'que abre la conexión; en rojo, los dos atajos que el código se permite '
+     'saltándose una capa. A la derecha, el modelo del dominio, que es casi '
+     'la mitad de las clases y lo usan las tres primeras capas de la '
+     'columna. Las clases anidadas van entre paréntesis detrás de la que las '
+     'contiene, porque no son archivos propios.'),
     ('puml_clases/01_entity_A.puml', 'DiagramaClases_Entidades_A',
      'Entidades del dominio (A): adicionales, inventario, mesas y clientes',
      'Las entidades son el vocabulario del sistema: los servicios, los '

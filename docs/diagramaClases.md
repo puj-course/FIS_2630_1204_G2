@@ -10,7 +10,7 @@ Documentan el modelo de clases del sistema: 98 tipos, 371 atributos y 663 métod
 
 **Por qué está.** Es la vista más lejana de todas. No da nombres de clase: responde cuántas partes hay, de qué tamaño es cada una y en qué orden dependen unas de otras, que es lo primero que hay que saber al llegar al proyecto.
 
-**Qué muestra.** Los 98 tipos del código en seis bloques, con los paquetes que forman cada uno y cuántos tipos trae cada paquete. El acceso a datos y el modelo del dominio son, con diferencia, las dos partes más grandes: entre las dos suman más de dos tercios del código. El detalle de qué clase está dónde está en el mapa siguiente.
+**Qué muestra.** Los 98 tipos del código en seis bloques, con los paquetes que forman cada uno y cuántos tipos trae cada paquete. El acceso a datos y el modelo del dominio son, con diferencia, las dos partes más grandes: entre las dos suman más de dos tercios de los tipos. Las dos flechas rojas son los saltos de capa que el código comete de verdad: pantallas que llaman directamente a un repositorio, y servicios que abren la conexión por su cuenta. El detalle de qué clase está dónde está en el mapa siguiente.
 
 ---
 
@@ -20,7 +20,7 @@ Documentan el modelo de clases del sistema: 98 tipos, 371 atributos y 663 métod
 
 **Por qué está.** Los quince diagramas que siguen llevan los atributos y los métodos de cada clase, que es lo que hace falta para trabajar pero no para orientarse. Esta vista es la entrada: una banda por capa con los nombres de sus clases y nada más.
 
-**Qué muestra.** Están los 98 tipos del código repartidos en seis bloques. La columna de la izquierda es el camino normal de una operación, de la pantalla al servicio, de ahí al repositorio y de ahí a la única clase que abre la conexión. A la derecha, el modelo del dominio, que es casi la mitad de las clases y lo usan las tres capas de la columna. Las clases anidadas van entre paréntesis detrás de la que las contiene, porque no son archivos propios.
+**Qué muestra.** Están los 98 tipos del código repartidos en seis bloques. La columna de la izquierda es el camino normal de una operación, de la pantalla al servicio, de ahí al repositorio y de ahí a la única clase que abre la conexión; en rojo, los dos atajos que el código se permite saltándose una capa. A la derecha, el modelo del dominio, que es casi la mitad de las clases y lo usan las tres primeras capas de la columna. Las clases anidadas van entre paréntesis detrás de la que las contiene, porque no son archivos propios.
 
 ---
 

@@ -16,6 +16,8 @@ BASE = os.environ.get('GF_OUT', '/home/claude/diagramas')
 SAL = BASE + '/puml_clases'
 
 T = json.load(open(BASE + '/clases.json', encoding='utf-8'))
+R = json.load(open(BASE + '/relaciones.json', encoding='utf-8'))
+LL = json.load(open(BASE + '/llamadas.json', encoding='utf-8'))
 
 # las mismas capas que el diagrama de arquitectura y el de componentes, mas
 # el modelo, que en aquellos no es un componente pero aqui es la mitad de
@@ -82,6 +84,60 @@ def nombres(paquetes):
     return out
 
 
+BANDA_DE_PAQ = {p: alias for alias, _t, _c, _pie, paqs in BANDAS + LADO
+                for p in paqs}
+PAQ_DE_NOMBRE = {}
+for t in T:
+    PAQ_DE_NOMBRE.setdefault(t['nombre'], set()).add(t['paquete'])
+
+
+def banda_de(nombre):
+    ps = PAQ_DE_NOMBRE.get(nombre)
+    # un nombre que existe en dos paquetes no se puede asignar a ciegas
+    return BANDA_DE_PAQ.get(next(iter(ps))) if ps and len(ps) == 1 else None
+
+
+def dependencias():
+    """Que banda depende de cual, contando relaciones y llamadas reales."""
+    import collections
+    pares = collections.Counter()
+    for tipo in ('asociacion', 'dependencia', 'generalizacion', 'realizacion'):
+        for r in R[tipo]:
+            a, b = banda_de(r['origen']), banda_de(r['destino'])
+            if a and b and a != b:
+                pares[(a, b)] += 1
+    for l in LL['llamadas']:
+        a, b = banda_de(l['origen']), banda_de(l['destino'])
+        if a and b and a != b:
+            pares[(a, b)] += 1
+    return pares
+
+
+COLUMNA = [x[0] for x in BANDAS]
+
+
+def flechas():
+    """Todas las dependencias que existen, no solo las del camino bonito.
+
+    Las que se saltan una capa van en rojo y dicen que la saltan, igual que
+    en el diagrama de arquitectura: si no, estas dos vistas pintarian una
+    cascada limpia que el codigo no cumple.
+    """
+    out, pares = [], dependencias()
+    # modelo arriba a la derecha: deja la columna de capas casi recta
+    out.append('modelo -[hidden]down- apoyo')
+    for (a, b), n in sorted(pares.items(), key=lambda x: (-x[1], x[0])):
+        salta = (a in COLUMNA and b in COLUMNA
+                 and COLUMNA.index(b) - COLUMNA.index(a) > 1)
+        if a in COLUMNA and b in COLUMNA and not salta:
+            out.append(f'{a} -down-> {b}')
+        elif salta:
+            out.append(f'{a} -[#B91C1C]right-> {b} : <color:#B91C1C>salta capa')
+        else:
+            out.append(f'{a} -right-> {b}')
+    return out
+
+
 def en_lineas(lista, ancho=62):
     """Reparte los nombres en lineas para que la caja no salga kilometrica."""
     lineas, actual = [], ''
@@ -124,17 +180,8 @@ for alias, titulo, color, pie, paquetes in LADO:
 # La pila baja en linea recta y las dos cajas transversales van las dos al
 # mismo lado: si una tira hacia la izquierda y otra hacia la derecha,
 # graphviz dobla la columna y el dibujo deja de leerse de arriba abajo.
-for a, b in zip([x[0] for x in BANDAS], [x[0] for x in BANDAS][1:]):
-    L.append(f'{a} -down-> {b}')
-# modelo primero: es la caja grande y, puesta arriba a la derecha, deja
-# la columna de capas casi recta
-L.append('modelo -[hidden]down- apoyo')
-L += ['presentacion -right-> apoyo',
-      'negocio -right-> apoyo',
-      'presentacion -right-> modelo',
-      'negocio -right-> modelo',
-      'datos -right-> modelo',
-      '@enduml']
+L += flechas()
+L.append('@enduml')
 open(f'{SAL}/00_Mapa_Clases.puml', 'w', encoding='utf-8').write(
     '\n'.join(L) + '\n')
 
@@ -170,15 +217,8 @@ for alias, titulo, color, pie, paquetes in BANDAS + LADO:
              f'<size:12>· {n_t} tipo{"s" if n_t != 1 else ""}</size>\\n'
              f'<size:12><i>{pie}</i></size>\\n'
              f'<size:12>{resumen(paquetes)}</size>" as {alias} {color}')
-for a, b in zip([x[0] for x in BANDAS], [x[0] for x in BANDAS][1:]):
-    C.append(f'{a} -down-> {b}')
-C.append('modelo -[hidden]down- apoyo')
-C += ['presentacion -right-> apoyo',
-      'negocio -right-> apoyo',
-      'presentacion -right-> modelo',
-      'negocio -right-> modelo',
-      'datos -right-> modelo',
-      '@enduml']
+C += flechas()
+C.append('@enduml')
 open(f'{SAL}/00_Resumen_Clases.puml', 'w', encoding='utf-8').write(
     '\n'.join(C) + '\n')
 

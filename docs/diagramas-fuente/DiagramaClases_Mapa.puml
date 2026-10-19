@@ -17,13 +17,15 @@ rectangle "<size:16><b>Acceso a datos</b></size>  <size:11>· 28</size>\n<size:1
 rectangle "<size:16><b>Conexión</b></size>  <size:11>· 1</size>\n<size:11><i>Única puerta a PostgreSQL</i></size>\n\n<size:11>ConexionBD</size>" as conexion #F1F5F9
 rectangle "<size:16><b>Modelo del dominio</b></size>  <size:11>· 42</size>\n<size:11><i>Entidades, enumeraciones, DTO y excepciones</i></size>\n\n<size:11>Adicional · AdicionalNoDisponibleException · AlertaInventario</size>\n<size:11>AsignacionActivaException · AsignacionMesa</size>\n<size:11>CapacidadExcedidaException · Cliente · CuentaPago</size>\n<size:11>DetallePedido · DetallePedidoAdicional · EntradaInventario</size>\n<size:11>entity.EstadoMesa · enums.EstadoMesa · EstadoPedido</size>\n<size:11>EstadoReserva · HistorialEstadoMesa · Ingrediente</size>\n<size:11>IngredienteStockDTO · ItemPedido · Mesa</size>\n<size:11>MesaNotFoundException · MesaOcupadaException · Mesero</size>\n<size:11>MetodoPago · MovimientoInventario · NotaMesa · Pago · Pedido</size>\n<size:11>PedidoNoEditableException · Plato · PlatoInsumo · Producto</size>\n<size:11>ProductoDisponibilidad · ReglaDescuento · Reserva</size>\n<size:11>ReservaNoCancelableException · ReservaNotFoundException</size>\n<size:11>StockInsuficienteException · TipoDescuento · TipoMovimiento</size>\n<size:11>UsuarioAutenticable · Zona</size>" as modelo #FEF9C3
 rectangle "<size:16><b>Apoyo transversal</b></size>  <size:11>· 2</size>\n<size:11><i>Estado de sesión y utilidades</i></size>\n\n<size:11>SesionUsuario · TextoBusqueda</size>" as apoyo #F3E8FF
-presentacion -down-> negocio
-negocio -down-> datos
-datos -down-> conexion
 modelo -[hidden]down- apoyo
-presentacion -right-> apoyo
-negocio -right-> apoyo
-presentacion -right-> modelo
-negocio -right-> modelo
 datos -right-> modelo
+negocio -right-> modelo
+negocio -down-> datos
+presentacion -right-> modelo
+datos -down-> conexion
+presentacion -[#B91C1C]right-> datos : <color:#B91C1C>salta capa
+presentacion -right-> apoyo
+presentacion -down-> negocio
+negocio -[#B91C1C]right-> conexion : <color:#B91C1C>salta capa
+negocio -right-> apoyo
 @enduml

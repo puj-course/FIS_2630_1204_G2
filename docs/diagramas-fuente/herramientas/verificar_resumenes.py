@@ -295,6 +295,56 @@ else:
        f'la vista corta tiene las {len(esperado)} bandas',
        f'{sorted(bandas_vistas)} vs {sorted(esperado)}')
 
+print('\n=== las flechas de las dos vistas ligeras ===')
+# Se recalculan aqui desde las relaciones y las llamadas medidas sobre el
+# codigo, y se exige que las dos vistas dibujen exactamente esas y ninguna
+# mas. Sin esto, las dos pintaban una cascada limpia y se callaban los dos
+# saltos de capa que el resto de los diagramas si marcan.
+Rj = json.load(open(f'{BASE}/relaciones.json', encoding='utf-8'))
+LLj = json.load(open(f'{BASE}/llamadas.json', encoding='utf-8'))
+PAQS = {}
+for t in TIPOS:
+    PAQS.setdefault(t['nombre'], set()).add(t['paquete'])
+
+
+def _banda(n):
+    ps = PAQS.get(n)
+    return BANDA.get(next(iter(ps))) if ps and len(ps) == 1 else None
+
+
+reales = set()
+for _t in ('asociacion', 'dependencia', 'generalizacion', 'realizacion'):
+    for r in Rj.get(_t, []):
+        a, b = _banda(r['origen']), _banda(r['destino'])
+        if a and b and a != b:
+            reales.add((a, b))
+for l in LLj['llamadas']:
+    a, b = _banda(l['origen']), _banda(l['destino'])
+    if a and b and a != b:
+        reales.add((a, b))
+COLUMNA = ['presentacion', 'negocio', 'datos', 'conexion']
+saltos = {(a, b) for a, b in reales
+          if a in COLUMNA and b in COLUMNA
+          and COLUMNA.index(b) - COLUMNA.index(a) > 1}
+FL = re.compile(r'^(\w+) -(?:\[#(\w+)\])?(?:up|down|left|right)?'
+                r'(?:\[#(\w+)\])?-+> (\w+)', re.M)
+for arch, texto in (('00_Resumen_Clases.puml', corto if 'corto' in dir() else ''),
+                    ('00_Mapa_Clases.puml', mapa)):
+    if not texto:
+        ok(False, f'{arch}: no se pudo leer')
+        continue
+    dib, rojas = set(), set()
+    for o, c1, c2, d in FL.findall(texto):
+        if o in BANDA.values() or o in esperado:
+            dib.add((o, d))
+            if (c1 or c2) == 'B91C1C':
+                rojas.add((o, d))
+    ok(dib == reales, f'{arch}: dibuja las {len(reales)} dependencias reales '
+       f'entre bandas',
+       f'sobran {sorted(dib - reales)} · faltan {sorted(reales - dib)}')
+    ok(rojas == saltos, f'{arch}: marca en rojo los {len(saltos)} saltos de capa',
+       f'rojas {sorted(rojas)} vs saltos {sorted(saltos)}')
+
 print('\n=== como queda en el .md ===')
 MD = BASE + '/docs_entrega/diagramaComponentes.md'
 texto = open(MD, encoding='utf-8').read() if os.path.exists(MD) else ''
