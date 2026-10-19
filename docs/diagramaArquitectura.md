@@ -7,7 +7,7 @@ Documenta en una sola vista cómo está organizado el código y qué depende de 
 ## Organización del código en capas y dependencias entre ellas
 
 <img width="1297" height="1213" alt="image" src="https://github.com/user-attachments/assets/15d319eb-3b11-4f77-b8f5-b9d90c8612df" />
-![De un vistazo](Imagenes/DiagramaArquitectura_Resumen.png)
+<img width="1599" height="984" alt="image" src="https://github.com/user-attachments/assets/7c0fec83-40f7-4b74-b218-689bf71aaaac" />
 
 **Por qué está.** Responde, en una sola vista, cómo está organizado el código y qué depende de qué, sin tener que recorrer los archivos uno por uno. Comprueba además si el código cumple la decisión registrada en architecture.md: JavaFX con JDBC y sin Spring.
 
