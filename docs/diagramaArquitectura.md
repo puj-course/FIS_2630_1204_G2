@@ -6,9 +6,8 @@ Documenta en una sola vista cómo está organizado el código y qué depende de 
 
 ## Organización del código en capas y dependencias entre ellas
 
-![Organización del código en capas y dependencias entre ellas](Imagenes/DiagramaArquitectura_Capas.png)
-![De un vistazo](Imagenes/DiagramaArquitectura_Resumen.png)
 ![Las mismas capas con los nombres de sus clases](Imagenes/DiagramaArquitectura_Mapa.png)
+![De un vistazo](Imagenes/DiagramaArquitectura_Resumen.png)
 
 **Por qué está.** Responde, en una sola vista, cómo está organizado el código y qué depende de qué, sin tener que recorrer los archivos uno por uno. Comprueba además si el código cumple la decisión registrada en architecture.md: JavaFX con JDBC y sin Spring.
 
