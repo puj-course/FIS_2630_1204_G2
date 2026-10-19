@@ -18,7 +18,7 @@ Documentan en qué piezas sustituibles está dividido el sistema y cómo depende
 ## Cómo se apoyan los servicios entre sí
 
 ![Cómo se apoyan los servicios entre sí](Imagenes/DiagramaComponentes_Negocio.png)
-![Qué repositorio usa cada servicio](Imagenes/DiagramaComponentes_S3_Negocio.png)
+<img width="1366" height="1151" alt="image" src="https://github.com/user-attachments/assets/9436feba-1cf5-4c75-beac-a99b91975d50" />
 
 **Por qué está.** La capa de negocio es la que concentra las reglas. Esta vista muestra si están aisladas por componente o si un servicio depende de otro para cumplir su función.
 
