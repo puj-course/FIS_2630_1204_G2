@@ -54,6 +54,9 @@ public class Main extends Application {
     private static final String ICONO_VACIO =
             "M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M12,20c-4.41,0-8-3.59-8-8s3.59-8,8-8"
           + "s8,3.59,8,8S16.41,20,12,20z M11,7h2v6h-2V7z M11,15h2v2h-2V15z";
+    private static final String ICONO_INVENTARIO =
+            "M20,2H4C2.9,2,2,2.9,2,4v3h20V4C22,2.9,21.1,2,20,2z "
+          + "M4,20c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2V9H4V20z M9,12h6v2H9V12z";
     private static final String ICONO_COCINA =
             "M11,9H9V2H7v7H5V2H3v7c0,2.12,1.66,3.84,3.75,3.97V22h2.5v-9.03C11.34,12.84,13,11.12,13,9V2h-2V9z";
 
@@ -67,6 +70,11 @@ public class Main extends Application {
                     "Estado de los platos según el inventario", "ADMINISTRADOR", ICONO_LISTA,
                     "GastroFlow · Disponibilidad de platos",
                     "/views/admin-disponibilidad.fxml", "/css/disponibilidad-menu.css", 1180, 720),
+            new Modulo("Inventario",
+                    "Existencias de ingredientes y niveles de stock bajo", "ADMINISTRADOR",
+                    ICONO_INVENTARIO,
+                    "GastroFlow · Inventario",
+                    "/views/inventario.fxml", null, 1180, 720),
             new Modulo("Menú y pedidos",
                     "Carta del restaurante y toma de pedidos", "MESERO", ICONO_MENU,
                     "GastroFlow · Menú y pedidos",
