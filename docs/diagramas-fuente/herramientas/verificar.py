@@ -396,6 +396,15 @@ ok(fuera == [('GitHub', 'github')],
    f'GitHub va como servicio externo y no como nodo de despliegue: {fuera}')
 ok(re.search(r'a_repo \.\.> a_src', desp),
    'el codigo baja del repositorio remoto al equipo (git clone)')
+# y tiene que ser la unica que cruza, para que no quede duda de hacia
+# donde va el codigo
+cruzan = [l for l in desp.split('\n')
+          if not l.startswith(' ')
+          and re.match(r'(github|equipo|a_repo|a_src)\b', l)
+          and re.search(r'[-.]{1,2}(up|down|left|right)?[-.]*>', l)]
+ok(len(cruzan) == 1 and cruzan[0].startswith('a_repo ..> a_src'),
+   f'una sola flecha cruza entre GitHub y el equipo, y apunta al equipo: '
+   f'{cruzan}')
 ok(not re.search(r'(runner|a_ci|a_pasos|a_pg_ci)\s*[-.]+(down|up|left|right)?'
                  r'[-.]*>\s*(equipo|a_src|a_jar|jvm|pg|a_db)', desp),
    'del runner de integracion continua no sale nada hacia el equipo')

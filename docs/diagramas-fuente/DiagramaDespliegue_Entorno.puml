@@ -58,5 +58,4 @@ node "Equipo" as equipo <<device>> #DBEAFE {
   jvm -down-> pg : jdbc:postgresql://localhost:5432/gastroflow
 }
 a_repo ..> a_src : <<descarga>> git clone
-equipo -up-> github : <<HTTPS>> git push · pull request
 @enduml

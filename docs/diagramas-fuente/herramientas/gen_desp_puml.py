@@ -172,11 +172,13 @@ L += [
     '  a_setup ..> a_db : <<crea>> psql',
     f'  jvm -down-> pg : {url}',
     '}',
-    # El codigo baja de GitHub al equipo y es ahi donde se instala y se
-    # compila. De GitHub no sale ningun binario: el runner solo verifica
-    # que el proyecto compile y que pasen las pruebas.
+    # Una sola flecha cruza entre GitHub y el equipo, y apunta al equipo:
+    # el codigo se descarga y se instala alli. De GitHub no sale ningun
+    # binario; el runner solo verifica que compile y que pasen las pruebas.
+    # La flecha de subida se quito porque competia con esta y confundia la
+    # direccion; que el equipo empuja a GitHub ya lo dice ci.yml con sus
+    # disparadores on: push y on: pull_request.
     'a_repo ..> a_src : <<descarga>> git clone',
-    'equipo -up-> github : <<HTTPS>> git push · pull request',
     '@enduml',
 ]
 
