@@ -39,7 +39,7 @@ Documentan en qué piezas sustituibles está dividido el sistema y cómo depende
 
 ## Las tablas que tocan varios componentes
 
-![Las tablas que tocan varios componentes](Imagenes/DiagramaComponentes_Datos_Compartidos.png)
+<img width="4336" height="9074" alt="image" src="https://github.com/user-attachments/assets/15ad4b4a-2622-4a69-bd61-aaa90f6598a7" />
 
 **Por qué está.** Una tabla escrita desde varios sitios es donde aparecen las inconsistencias, porque ningún componente ve lo que hacen los otros. Esta vista aísla las que tocan dos o más componentes para poder vigilarlas.
 
