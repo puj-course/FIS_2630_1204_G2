@@ -2,6 +2,6 @@
 
 <img width="636" height="381" alt="clases_con_patron_singleton" src="https://github.com/user-attachments/assets/3ba25ca9-ca1a-4716-b673-5a130aa6a7cd" />
 
-**Por qué está.** Antes de tocar una pantalla conviene saber de qué depende. Esta vista lo resuelve pantalla por pantalla, incluidos los recursos que no son código.
+**Por qué está**. GastroFlow abre cada pantalla en su propia ventana y todas necesitan saber quién entró, pero los controladores los instancia JavaFX desde el .fxml, así que no hay por dónde pasarles el usuario. Esta vista responde dónde vive ese estado y quién lo toca.
 
-**Qué muestra.** Son 20 componentes y 14 interfaces consumidas, con 17 conexiones. Cada componente agrupa los archivos de su pantalla: el .fxml, el controlador y, cuando la tiene, su hoja de estilos. Inventario y el mapa de salón no tienen hoja propia, y Main no tiene .fxml porque arma su interfaz en código. Las hojas de estilo las carga Main y no cada controlador, que es una dependencia fácil de pasar por alto.
+**Qué muestra**. Son 5 cajas y 5 flechas, con 4 atributos y 9 operaciones en la única clase de la historia. La flecha que sale de SesionUsuario y vuelve a ella misma es lo que distingue un Singleton de cualquier clase de utilidad: la clase guarda una instancia de su propio tipo y la reparte por getInstance(), con el constructor en privado como única puerta cerrada. Las otras cuatro cajas van vacías a propósito: son quienes consumen la sesión, no código de la historia. De esos cuatro, AutenticacionService es el único que escribe, llamando a iniciarSesion(...) después de validar la contraseña; los otros tres solo leen.
