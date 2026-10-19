@@ -77,13 +77,3 @@ Documentan en qué piezas sustituibles está dividido el sistema y cómo depende
 **Por qué está.** Hay tres componentes que no pertenecen a ninguna capa. Conviene saber quién consume cada uno antes de tocarlo, porque el reparto es muy desigual y desde fuera no se adivina.
 
 **Qué muestra.** ConexionBD abre todas las conexiones a PostgreSQL, SesionUsuario guarda quién ha iniciado sesión y TextoBusqueda normaliza las búsquedas. Entre las tres suman 31 consumidores, pero muy mal repartidos: 26 de ConexionBD, 4 de SesionUsuario, 1 de TextoBusqueda. Cambiar ConexionBD toca casi todo el sistema; cambiar TextoBusqueda toca una sola pantalla.
-
----
-
-## El código de la etapa con Spring que ya no compila
-
-![El código de la etapa con Spring que ya no compila](Imagenes/DiagramaComponentes_Spring_Sin_Compilar.png)
-
-**Por qué está.** architecture.md cuenta que quedó código residual con anotaciones Spring y que el proyecto se unificó bajo JavaFX con JDBC para no mantener dos arquitecturas mezcladas. Ese código sigue en el repositorio. Documentarlo evita que alguien lo dé por funcional o intente usarlo.
-
-**Qué muestra.** Son 12 artefactos. Seis clases importan Spring o Jakarta sin que el pom.xml declare esas dependencias, y el maven-compiler-plugin excluye 7 archivos uno por uno: esos seis más controller/PagoController.java, que está vacío. Quedan fuera las entidades y los repositorios de pagos y meseros, y también DetallePedidoRepository, el único sitio que tocaría la tabla detalle_pedido.
