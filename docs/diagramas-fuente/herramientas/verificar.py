@@ -263,7 +263,7 @@ PERMITIDO = set('''startuml enduml skinparam backgroundColor shadowing defaultFo
  linetype ortho polyline dashed EntityFontSize ComponentBackgroundColor InterfaceBackgroundColor
  NodeFontSize NodeFontStyle ArtifactFontSize NodeBackgroundColor
  ArtifactBackgroundColor RectangleBorderColor RectangleBackgroundColor
- RectangleFontSize Helvetica size static abstract record anidada excluida
+ RectangleFontSize RectangleBorderThickness Helvetica size static abstract record anidada excluida
  referencias otros paquetes externa salta capa archivos clase clases nivel
  superior anidadas vacio vacios apoyo flujo transversales transversal
  Interfaz usuario resources Logica negocio service Acceso datos repository

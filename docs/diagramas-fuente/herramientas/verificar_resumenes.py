@@ -184,6 +184,88 @@ dif = [f'{k}: resumen "{v}", largo "{cuentas06.get(k)}"'
        if k in cuentas06 and v != cuentas06[k]]
 ok(not dif, 'las cuentas coinciden con las del diagrama 06', '\n'.join(dif))
 
+print('\n=== 00_Mapa_Clases ===')
+mapa = ''
+rm = f'{BASE}/puml_clases/00_Mapa_Clases.puml'
+if not os.path.exists(rm):
+    ok(False, 'existe el mapa ligero de clases')
+else:
+    mapa = open(rm, encoding='utf-8').read()
+    ok('@startuml' in mapa and '@enduml' in mapa, 'el mapa es un diagrama')
+
+# que banda le toca a cada paquete, escrito aqui aparte del generador: si
+# los dos lo dicen igual es que no se ha movido nada por accidente
+BANDA = {'controller': 'presentacion', '(raiz)': 'presentacion',
+         'service': 'negocio', 'repository': 'datos', 'dao': 'datos',
+         'ConexionBD': 'conexion', 'entity': 'modelo', 'enums': 'modelo',
+         'dto': 'modelo', 'exceptions': 'modelo', 'session': 'apoyo',
+         'util': 'apoyo'}
+TIPOS = json.load(open(f'{BASE}/clases.json', encoding='utf-8'))
+# por (paquete, nombre) y no por nombre: hay dos EstadoMesa, uno en entity
+# y otro en enums, y un conjunto de nombres los colapsaria en uno
+esperado = {}
+for t in TIPOS:
+    b = BANDA.get(t['paquete'])
+    if b is None:
+        fallos.append(f'paquete sin banda: {t["paquete"]}')
+        continue
+    esperado.setdefault(b, set()).add((t['paquete'], t['nombre']))
+PAQ_DE = {}
+for t in TIPOS:
+    PAQ_DE.setdefault(t['nombre'], set()).add(t['paquete'])
+
+
+def resolver(txt):
+    """'entity.EstadoMesa' o 'Mesa' -> (paquete, nombre)"""
+    if '.' in txt:
+        p_, n_ = txt.rsplit('.', 1)
+        return (p_, n_)
+    ps = PAQ_DE.get(txt)
+    return (next(iter(ps)), txt) if ps and len(ps) == 1 else ('?', txt)
+
+CAJA = re.compile(r'^rectangle "(.*?)" as (\w+) #', re.M | re.S)
+dibujado, cabecera = {}, {}
+for etiqueta, alias in CAJA.findall(mapa):
+    lineas = etiqueta.split('\\n')
+    m = re.search(r'<size:11>· (\d+)</size>', lineas[0])
+    cabecera[alias] = int(m.group(1)) if m else -1
+    nombres_caja = set()
+    for l in lineas[2:]:
+        cuerpo = re.fullmatch(r'<size:11>(.*)</size>', l)
+        if not cuerpo:
+            continue
+        for trozo in cuerpo.group(1).split(' · '):
+            m2 = re.fullmatch(r'([\w.]+)(?: \((.*)\))?', trozo.strip())
+            if not m2:
+                fallos.append(f'entrada rara en el mapa: {trozo!r}')
+                continue
+            nombres_caja.add(resolver(m2.group(1)))
+            if m2.group(2):
+                for h in m2.group(2).replace('en ', '').split(','):
+                    nombres_caja.add(resolver(h.strip()))
+    dibujado[alias] = nombres_caja
+
+mal = []
+for banda, nombres_ok in sorted(esperado.items()):
+    hay = dibujado.get(banda, set())
+    if hay - nombres_ok:
+        mal.append(f'{banda}: sobran {sorted(hay - nombres_ok)}')
+    if nombres_ok - hay:
+        mal.append(f'{banda}: faltan {sorted(nombres_ok - hay)}')
+ok(not mal, f'las {len(TIPOS)} clases estan en el mapa y cada una en su banda',
+   '\n'.join(mal))
+ok(set(dibujado) == set(esperado),
+   f'el mapa tiene las {len(esperado)} bandas y ninguna de mas',
+   f'{sorted(dibujado)} vs {sorted(esperado)}')
+mal = [f'{b}: la cabecera dice {cabecera.get(b)} y son {len(n)}'
+       for b, n in sorted(esperado.items())
+       if cabecera.get(b) != len(n)]
+ok(not mal, 'el numero de cada banda es el de sus clases', '\n'.join(mal))
+# ninguna clase puede salir en dos bandas
+repes = [n for n in {x for v in dibujado.values() for x in v}
+         if sum(n in v for v in dibujado.values()) > 1]
+ok(not repes, 'ninguna clase aparece en dos bandas', ', '.join(sorted(repes)))
+
 print('\n=== como queda en el .md ===')
 MD = BASE + '/docs_entrega/diagramaComponentes.md'
 texto = open(MD, encoding='utf-8').read() if os.path.exists(MD) else ''

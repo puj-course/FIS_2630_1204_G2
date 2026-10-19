@@ -26,6 +26,20 @@ RAMA = 'develop'
 # ====================================================== que se documenta ===
 # (archivo .puml, nombre de la imagen, titulo, justificacion, explicacion)
 CLASES = [
+    ('puml_clases/00_Mapa_Clases.puml', 'DiagramaClases_Mapa',
+     'Mapa del modelo: qué clases hay y en qué capa vive cada una',
+     'Los quince diagramas que siguen llevan los atributos y los métodos de '
+     'cada clase, que es lo que hace falta para trabajar pero no para '
+     'orientarse. Esta vista es la entrada: una banda por capa con los '
+     'nombres de sus clases y nada más.',
+     'Están los {tipos_codigo} tipos del código repartidos en seis '
+     'bloques. La '
+     'columna de la izquierda es el camino normal de una operación, de la '
+     'pantalla al servicio, de ahí al repositorio y de ahí a la única clase '
+     'que abre la conexión. A la derecha, el modelo del dominio, que es casi '
+     'la mitad de las clases y lo usan las tres capas de la columna. Las '
+     'clases anidadas van entre paréntesis detrás de la que las contiene, '
+     'porque no son archivos propios.'),
     ('puml_clases/01_entity_A.puml', 'DiagramaClases_Entidades_A',
      'Entidades del dominio (A): adicionales, inventario, mesas y clientes',
      'Las entidades son el vocabulario del sistema: los servicios, los '
@@ -445,7 +459,8 @@ SECCIONES = [
     ('diagramaClases.md', 'Diagramas de clases', CLASES,
      'Documentan el modelo de clases del sistema: {n_tipos} tipos, {n_attr} '
      'atributos y {n_met} métodos. Están organizados siguiendo la arquitectura '
-     'en capas del proyecto: primero las entidades del dominio, después cada '
+     'en capas del proyecto: primero un mapa ligero de todo el modelo, '
+     'después las entidades del dominio, después cada '
      'capa con sus miembros, y al final las relaciones, separadas por origen y '
      'destino para que cada vista responda una sola pregunta.'),
     ('diagramaComponentes.md', 'Diagramas de componentes',
@@ -490,7 +505,7 @@ def extras():
     """
     if _EXTRA:
         return _EXTRA
-    import collections
+    import collections, json
     p5 = open(f'{BASE}/puml_componentes/05_Componentes_datos_compartidos.puml',
               encoding='utf-8').read()
     esc = {t: int(n) for t, n in
@@ -506,6 +521,8 @@ def extras():
               encoding='utf-8').read()
     cons = collections.Counter(re.findall(r'\.\.> I_(\w+) ', p7))
     _EXTRA['reparto'] = ', '.join(f'{n} de {k}' for k, n in cons.most_common())
+    _EXTRA['tipos_codigo'] = len(json.load(
+        open(f'{BASE}/clases.json', encoding='utf-8')))
     _EXTRA['n_excludes'] = len(re.findall(
         r'<exclude>', open(f'{REPO}/pom.xml', encoding='utf-8').read()))
     return _EXTRA

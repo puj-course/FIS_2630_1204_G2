@@ -35,6 +35,7 @@ for g in gen_arq_puml gen_bd_puml gen_paq_puml gen_desp_puml; do
     python3 -I "$AQUI/$g.py" > /dev/null
 done
 python3 -I "$AQUI/gen_clases_completo.py" | tail -3
+python3 -I "$AQUI/gen_clases_ligero.py" | head -1
 python3 -I "$AQUI/gen_pruebas.py" | head -1
 python3 -I "$AQUI/gen_componentes_puml.py" | head -6
 python3 -I "$AQUI/gen_componentes_spring.py" | tail -4
