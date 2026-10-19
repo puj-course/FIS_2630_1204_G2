@@ -1,0 +1,6 @@
+## Patron Facade
+
+
+**Por qué está**. GastroFlow abre cada pantalla en su propia ventana y todas necesitan saber quién entró, pero los controladores los instancia JavaFX desde el .fxml, así que no hay por dónde pasarles el usuario. Esta vista responde dónde vive ese estado y quién lo toca.
+
+**Qué muestra**. Son 5 cajas y 5 flechas, con 4 atributos y 9 operaciones en la única clase de la historia. La flecha que sale de SesionUsuario y vuelve a ella misma es lo que distingue un Singleton de cualquier clase de utilidad: la clase guarda una instancia de su propio tipo y la reparte por getInstance(), con el constructor en privado como única puerta cerrada. Las otras cuatro cajas van vacías a propósito: son quienes consumen la sesión, no código de la historia. De esos cuatro, AutenticacionService es el único que escribe, llamando a iniciarSesion(...) después de validar la contraseña; los otros tres solo leen.
