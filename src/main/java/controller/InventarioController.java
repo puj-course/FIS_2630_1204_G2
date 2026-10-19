@@ -15,7 +15,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import repository.IngredienteRepository;
-
+import service.alerta.AlertaStockFactory;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
@@ -166,13 +166,10 @@ public class InventarioController {
 
                         setText(valor);
 
-                        if ("STOCK BAJO".equals(valor)) {
-                            setStyle(
-                                    "-fx-font-weight: bold;"
-                            );
-                        } else {
-                            setStyle("");
-                        }
+                        Ingrediente ingrediente = getTableRow() == null
+                            ? null
+                            : getTableRow().getItem();
+                        setStyle(AlertaStockFactory.crear(ingrediente).getEstiloCelda());
                     }
                 }
         );
@@ -195,13 +192,7 @@ public class InventarioController {
                             return;
                         }
 
-                        if (ingrediente.tieneStockBajo()) {
-                            setStyle(
-                                    "-fx-background-color: #fff3cd;"
-                            );
-                        } else {
-                            setStyle("");
-                        }
+                        setStyle(AlertaStockFactory.crear(ingrediente).getEstiloFila());
                     }
                 }
         );
@@ -326,9 +317,7 @@ public class InventarioController {
             return "";
         }
 
-        return ingrediente.tieneStockBajo()
-                ? "STOCK BAJO"
-                : "NORMAL";
+        return AlertaStockFactory.crear(ingrediente).getTexto();
     }
 
     /**
