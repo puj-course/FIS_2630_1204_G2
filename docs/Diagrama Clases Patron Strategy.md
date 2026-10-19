@@ -3,7 +3,8 @@ classDiagram
     direction TD
 
     class CajeroPagoController {
-        -tipoDescuentoCombo : ComboBox~TipoDescuento~
+        -tipoDescuentoCombo : ComboBox~DescuentoStrategy~
+        -calculadoraDescuento : CalculadoraDescuento
         -descuentoField : TextField
         -cuentaActual : CuentaPago
         -recalcular() void
@@ -19,31 +20,38 @@ classDiagram
         +calcularTotal() BigDecimal
     }
 
-    class TipoDescuento {
-        <<enumeration>>
-        MONTO_FIJO
-        PORCENTAJE
-        -nombre : String
+    class CalculadoraDescuento {
+        <<Context>>
+        -estrategia : DescuentoStrategy
+        +setEstrategia(estrategia : DescuentoStrategy) void
+        +getEstrategia() DescuentoStrategy
         +calcular(subtotal : BigDecimal, valor : BigDecimal) BigDecimal
-        +toString() String
-        +values() TipoDescuento[]
     }
 
-    class MONTO_FIJO {
-        <<constante>>
+    class DescuentoStrategy {
+        <<interface>>
+        +calcular(subtotal : BigDecimal, valor : BigDecimal) BigDecimal
+        +getNombre() String
+    }
+
+    class DescuentoMontoFijo {
+        <<ConcreteStrategy>>
         +calcular(subtotal, valor) BigDecimal
+        +getNombre() String
         %% valor, a 2 decimales
     }
 
-    class PORCENTAJE {
-        <<constante>>
+    class DescuentoPorcentaje {
+        <<ConcreteStrategy>>
         +calcular(subtotal, valor) BigDecimal
+        +getNombre() String
         %% subtotal * valor / 100, a 2 decimales
     }
 
     %% Relaciones
     CajeroPagoController --> CuentaPago : "cuentaActual 1"
-    CajeroPagoController ..> TipoDescuento : "«use»"
-    TipoDescuento <|-- MONTO_FIJO
-    TipoDescuento <|-- PORCENTAJE
+    CajeroPagoController --> CalculadoraDescuento : "usa"
+    CalculadoraDescuento o--> DescuentoStrategy : "estrategia"
+    DescuentoStrategy <|.. DescuentoMontoFijo
+    DescuentoStrategy <|.. DescuentoPorcentaje
 ```
