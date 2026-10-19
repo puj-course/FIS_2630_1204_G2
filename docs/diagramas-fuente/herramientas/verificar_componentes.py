@@ -92,6 +92,48 @@ ok(not mal, f'las flechas entre componentes cuadran con las llamadas ({len(mal)}
 for x in mal[:8]:
     print('      ', x)
 
+print('\n=== 3b. las flechas entre capas llevan su numero real ===')
+# Las flechas de capa a capa (en 01 y en el resumen 09) no las cubria la
+# comprobacion 3, que solo mira las que apuntan a una interfaz I_*. Un
+# numero cambiado a mano pasaba sin que nadie se enterara.
+CAPA = {'controller': 'ui', '(raiz)': 'ui', 'service': 'negocio',
+        'dao': 'datos', 'repository': 'datos', 'ConexionBD': 'conexion',
+        'session': 'apoyo', 'util': 'apoyo'}
+entre = collections.Counter()
+for o, dests in requiere.items():
+    for d, ops in dests.items():
+        a, b = CAPA[POR[o]['paquete']], CAPA[POR[d]['paquete']]
+        if a != b:
+            entre[(a, b)] += len(ops)
+mal, vistas = [], 0
+for arch, s_ in D.items():
+    # 01: "datos ..> conexion : <<use>> 22 operaciones"
+    # 09: "k_datos --> k_conexion : 22 operaciones"
+    for pat in (r'^(ui|negocio|datos|conexion|apoyo) \.\.> '
+                r'(ui|negocio|datos|conexion|apoyo) : <<use>> (\d+) operaciones',
+                r'^k_(ui|negocio|datos|conexion|apoyo) --> '
+                r'k_(ui|negocio|datos|conexion|apoyo) : (\d+) operaciones'):
+        for m in re.finditer(pat, s_, re.M):
+            vistas += 1
+            a, b, n = m.group(1), m.group(2), int(m.group(3))
+            if entre[(a, b)] != n:
+                mal.append(f'{arch}: {a} -> {b} dice {n}, son {entre[(a, b)]}')
+# y los dos diagramas que dibujan capas tienen que dibujarlas TODAS: si se
+# comprueba sobre el monton de diagramas junto, basta con que la pareja
+# salga en uno para que borrarla del otro pase inadvertido
+for arch, pat in (('01_Componentes_general.puml',
+                   r'^(\w+) \.\.> (\w+) : <<use>> \d+ operaciones'),
+                  ('09_Simple_Capas.puml',
+                   r'^k_(\w+) --> k_(\w+) : \d+ operaciones')):
+    dibujadas = {(a, b) for a, b in re.findall(pat, D.get(arch, ''), re.M)}
+    faltan = set(entre) - dibujadas
+    if faltan:
+        mal.append(f'{arch}: faltan las parejas {sorted(faltan)}')
+ok(not mal and vistas >= len(entre),
+   f'las {vistas} flechas entre capas cuadran con las llamadas ({len(mal)})')
+for x in mal[:8]:
+    print('      ', x)
+
 print('\n=== 4. ninguna dependencia entre componentes se quedo sin dibujar ===')
 falta = []
 for o, dests in requiere.items():

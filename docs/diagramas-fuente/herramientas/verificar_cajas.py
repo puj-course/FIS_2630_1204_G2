@@ -238,6 +238,27 @@ entre = {l: c for l, c in porlinea.items() if c > 1}
 ok(not entre, f'ninguna linea repetida en dos mapas ({len(entre)})')
 print(f'  lineas totales dibujadas en los siete mapas: {sum(porlinea.values())}')
 
+print('\n=== las etiquetas de las cajas de los mapas de relaciones ===')
+# En los mapas *_rel_* las cajas van con "hide members", asi que la
+# reconstruccion miembro a miembro de arriba no las toca. Sin esto, cambiar
+# el nombre que se lee en una caja no lo detectaba nadie: el alias seguia
+# bien y las flechas cuadraban igual.
+nombres_codigo = {t['nombre'] for t in T}
+mal = []
+for f in sorted(glob.glob(DIAG + '/puml_clases/*_rel_*.puml')):
+    for etiqueta, alias in re.findall(r'^\s*class "([^"]+)" as (\w+)',
+                                      open(f, encoding='utf-8').read(), re.M):
+        base = os.path.basename(f)
+        if etiqueta not in nombres_codigo:
+            mal.append(f'{base}: la caja dice "{etiqueta}" y no existe '
+                       f'ningun tipo con ese nombre')
+        elif not (alias == etiqueta or alias.endswith('_' + etiqueta)):
+            mal.append(f'{base}: la caja "{etiqueta}" lleva el alias {alias}')
+ok(not mal, f'cada caja de los mapas de relaciones se llama como su tipo '
+            f'({len(mal)} fallos)')
+for x in mal[:8]:
+    print('      ', x)
+
 print('\n=== resultado ===')
 print(f'{len(fallos)} comprobaciones fallidas' if fallos else 'todo correcto')
 
