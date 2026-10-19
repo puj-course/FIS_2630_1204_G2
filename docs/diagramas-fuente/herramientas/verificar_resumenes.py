@@ -412,12 +412,8 @@ ok(not sobra, 'las vistas ligeras no se quedaron en diagramaClases.md',
 en_disco = {os.path.basename(p) for p in
             glob.glob(f'{BASE}/docs_entrega/Imagenes/*.png')}
 todas_md = set()
-# tambien los de docs_entrega/patrones, que estan una carpeta mas abajo y
-# por eso enlazan ../Imagenes: si no se miran aqui, sus imagenes pasarian
-# por huerfanas
-for f in (glob.glob(f'{BASE}/docs_entrega/*.md')
-          + glob.glob(f'{BASE}/docs_entrega/*/*.md')):
-    todas_md |= set(re.findall(r'!\[[^\]]*\]\((?:\.\./)?Imagenes/([\w.]+)\)',
+for f in glob.glob(f'{BASE}/docs_entrega/*.md'):
+    todas_md |= set(re.findall(r'!\[[^\]]*\]\(Imagenes/([\w.]+)\)',
                                open(f, encoding='utf-8').read()))
 ok(not (en_disco - todas_md), 'ninguna imagen generada queda sin usar',
    ', '.join(sorted(en_disco - todas_md)))

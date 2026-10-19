@@ -1,6 +1,6 @@
 # Patrón Adapter · el tablero de cocina
 
-![Patrón Adapter · el tablero de cocina](../Imagenes/DiagramaPatron_Adapter.png)
+![Patrón Adapter · el tablero de cocina](Imagenes/DiagramaPatron_Adapter.png)
 
 **Por qué está.** El tablero de cocina razona en comandas (columna, minutos de espera, texto del botón) y la base guarda pedidos, con estados, fechas e identificadores. Esta vista responde quién hace esa traducción y qué deja de saber la pantalla.
 

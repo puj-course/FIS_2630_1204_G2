@@ -1,6 +1,6 @@
 # Patrón Factory · las alertas de stock del inventario
 
-![Patrón Factory · las alertas de stock del inventario](../Imagenes/DiagramaPatron_Factory.png)
+![Patrón Factory · las alertas de stock del inventario](Imagenes/DiagramaPatron_Factory.png)
 
 **Por qué está.** La pantalla de inventario decidía en tres sitios distintos el texto de la columna de alerta y los dos estilos, comparando cantidades a mano cada vez. Esta vista responde quién decide ahora qué alerta corresponde a un ingrediente.
 

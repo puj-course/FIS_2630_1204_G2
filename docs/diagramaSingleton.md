@@ -1,6 +1,6 @@
 # Patrón Singleton · HU #292 · la sesión del usuario
 
-![Patrón Singleton · HU #292 · la sesión del usuario](../Imagenes/DiagramaPatron_Singleton.png)
+![Patrón Singleton · HU #292 · la sesión del usuario](Imagenes/DiagramaPatron_Singleton.png)
 
 **Por qué está.** GastroFlow abre cada pantalla en su propia ventana y todas necesitan saber quién entró, pero los controladores los instancia JavaFX desde el .fxml, así que no hay por dónde pasarles el usuario. Esta vista responde dónde vive ese estado y quién lo toca.
 

@@ -29,9 +29,8 @@ BASE = os.environ.get('GF_PAT') or os.environ.get('GF_OUT', '.')
 OUT = os.environ.get('GF_DOCS') or (BASE + '/docs_entrega')
 IMG = OUT + '/Imagenes'
 FUENTE = OUT + '/diagramas-fuente'
-# los tres .md viven juntos en su carpeta; las imagenes y los .puml siguen
-# donde estan los del resto del repositorio, por eso el ../ del enlace
-CARPETA = OUT + '/patrones'
+# los .md van en la raiz de docs, con los demas diagramas del proyecto
+CARPETA = OUT
 JAR = os.environ.get('PLANTUML_JAR',
                      '/home/claude/pl/package/vendor/plantuml.jar')
 
@@ -169,10 +168,10 @@ def escribe(md, nombre, titulo, porque, muestra, lineas):
     c = conteo(lineas)
     open(f'{CARPETA}/{md}', 'w', encoding='utf-8').write(
         f'# {titulo}\n\n'
-        f'![{titulo}](../Imagenes/{nombre}.png)\n\n'
+        f'![{titulo}](Imagenes/{nombre}.png)\n\n'
         f'**Por qué está.** {porque.format(**c)}\n\n'
         f'**Qué muestra.** {muestra.format(**c)}\n')
-    print(f'  patrones/{md}  +  {nombre}.puml  +  {nombre}.png')
+    print(f'  {md}  +  {nombre}.puml  +  {nombre}.png')
 
 
 # ===================================================== #292 · Singleton ===

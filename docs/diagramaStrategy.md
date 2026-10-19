@@ -1,6 +1,6 @@
 # Patrón Strategy · HU #294 y #281 · el descuento de la cuenta
 
-![Patrón Strategy · HU #294 y #281 · el descuento de la cuenta](../Imagenes/DiagramaPatron_Strategy.png)
+![Patrón Strategy · HU #294 y #281 · el descuento de la cuenta](Imagenes/DiagramaPatron_Strategy.png)
 
 **Por qué está.** El cajero puede descontar por monto fijo o por porcentaje y el campo donde teclea es el mismo, así que el número significa cosas distintas según el tipo: misma entrada, misma salida, algoritmo distinto. Esta vista responde dónde vive cada cálculo y quién elige.
 

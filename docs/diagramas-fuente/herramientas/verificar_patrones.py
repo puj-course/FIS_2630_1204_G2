@@ -125,6 +125,42 @@ def padres(nombre):
     return out
 
 
+def cuerpo_de(src, metodo):
+    """El cuerpo de ese metodo, contando llaves."""
+    m = re.search(rf'\b{re.escape(metodo)}\s*\([^)]*\)\s*(?:throws [^{{]*)?\{{',
+                  src)
+    if not m:
+        return ''
+    i, prof = m.end() - 1, 0
+    while i < len(src):
+        if src[i] == '{':
+            prof += 1
+        elif src[i] == '}':
+            prof -= 1
+            if prof == 0:
+                return src[m.end():i]
+        i += 1
+    return src[m.end():]
+
+
+def tocan(clase, tipo):
+    """Los miembros de esa clase que tienen que ver con el tipo clave.
+
+    Para una caja recortada a su papel en el patron -el sujeto de un
+    Observer, por ejemplo- no vale pedirle al generador la lista: se calcula
+    aqui, y se exige que ninguno de ellos falte en el dibujo. Asi un
+    diagrama no puede esconder la mitad del patron.
+    """
+    t, src = T[clase], fuente(clase)
+    dentro = {c['nombre'] for c in t['campos'] if tipo in c['tipo']}
+    for m in t['metodos']:
+        firma = (m.get('retorno') or '') + ' ' + ' '.join(
+            p['tipo'] for p in m['params'])
+        if tipo in firma or tipo in cuerpo_de(src, m['nombre']):
+            dentro.add(m['nombre'])
+    return dentro
+
+
 def relacion_real(o, d):
     """Una flecha vale si el codigo de o toca a d de alguna forma real.
 
@@ -153,30 +189,30 @@ def relacion_real(o, d):
 # que clases puede tocar cada diagrama: las del issue, y las de alrededor
 # solo como caja vacia
 ARCHIVOS = {
-    'patrones/diagramaSingleton.md': {
+    'diagramaSingleton.md': {
         'puml': 'DiagramaPatron_Singleton',
         'completas': {'SesionUsuario'},
         'issue': '#292',
     },
-    'patrones/diagramaFacade.md': {
+    'diagramaFacade.md': {
         'puml': 'DiagramaPatron_Facade',
         'completas': {'PedidoFacade'},
         'parciales': {'PedidoService', 'InventarioService', 'DisponibilidadDAO'},
         'issue': '#293',
     },
-    'patrones/diagramaStrategy.md': {
+    'diagramaStrategy.md': {
         'puml': 'DiagramaPatron_Strategy',
         'completas': {'DescuentoStrategy', 'DescuentoMontoFijo',
                       'DescuentoPorcentaje', 'CalculadoraDescuento'},
         'issue': '#294 y #281',
     },
-    'patrones/diagramaAdapter.md': {
+    'diagramaAdapter.md': {
         'puml': 'DiagramaPatron_Adapter',
         'completas': {'ComandaCocina', 'PedidoComandaAdapter'},
         'parciales': {'Pedido'},
         'issue': 'tablero de cocina',
     },
-    'patrones/diagramaFactory.md': {
+    'diagramaFactory.md': {
         'puml': 'DiagramaPatron_Factory',
         'completas': {'AlertaStockFactory', 'AlertaStock', 'AlertaAgotado',
                       'AlertaStockBajo', 'AlertaNormal'},
@@ -187,10 +223,12 @@ ARCHIVOS = {
 # el Observer vive en la rama de Mariana; solo se comprueba si el analisis
 # que se le pasa lo contiene
 if 'InsumoObserver' in T:
-    ARCHIVOS['patrones/diagramaObserver.md'] = {
+    ARCHIVOS['diagramaObserver.md'] = {
         'puml': 'DiagramaPatron_Observer',
         'completas': {'InsumoObserver', 'AdministradorAlertaObserver'},
-        'parciales': {'InventarioService'},
+        # el sujeto no es una clase de subsistema: se recorta a su papel en
+        # el patron, y lo que se exige es que no falte ninguna de sus piezas
+        'recorte': {'InventarioService': 'InsumoObserver'},
         'issue': '#288',
     }
 
@@ -207,7 +245,7 @@ for archivo, cfg in ARCHIVOS.items():
     # 0. el .md ensena esa imagen y la imagen existe
     md = f'{DOCS}/{archivo}'
     t_md = open(md, encoding='utf-8').read() if os.path.exists(md) else ''
-    img = re.findall(r'!\[[^\]]*\]\(\.\./Imagenes/([\w.]+)\)', t_md)
+    img = re.findall(r'!\[[^\]]*\]\(Imagenes/([\w.]+)\)', t_md)
     ok(img == [f"{cfg['puml']}.png"],
        f"el .md muestra {cfg['puml']}.png y nada mas", f'muestra {img}')
     ok(os.path.exists(f"{DOCS}/Imagenes/{cfg['puml']}.png"),
@@ -253,7 +291,8 @@ for archivo, cfg in ARCHIVOS.items():
 
     # 2. las cajas con miembros son solo las del issue
     con_miembros = {n for n, c in cajas.items() if c.strip()}
-    permitidas = set(cfg['completas']) | set(cfg.get('parciales', ()))
+    permitidas = (set(cfg['completas']) | set(cfg.get('parciales', ()))
+                  | set(cfg.get('recorte', {})))
     ok(con_miembros <= permitidas,
        'solo llevan miembros las clases del issue',
        f'de mas: {sorted(con_miembros - permitidas)}')
@@ -302,6 +341,20 @@ for archivo, cfg in ARCHIVOS.items():
             mal.append(f'{n}: dibuja {sorted(dibujados)} y le llaman '
                        f'{sorted(llamados)}')
     ok(not mal, 'del subsistema solo se dibuja lo que la fachada le llama',
+       '\n'.join(mal))
+
+    # 5b. una caja recortada a su papel no puede dejarse fuera ninguna pieza
+    #     de ese papel
+    mal = []
+    for n, tipo in cfg.get('recorte', {}).items():
+        dibujados = {re.match(r'[-+#~](\w+)', l.strip()).group(1)
+                     for l in cajas.get(n, '').split('\n')
+                     if re.match(r'\s*[-+#~]\w+', l)}
+        faltan = tocan(n, tipo) - dibujados
+        if faltan:
+            mal.append(f'{n}: no dibuja {sorted(faltan)}, que si tocan '
+                       f'{tipo}')
+    ok(not mal, 'la caja recortada no esconde ninguna pieza de su papel',
        '\n'.join(mal))
 
     # 6. las flechas de uso corresponden a llamadas reales

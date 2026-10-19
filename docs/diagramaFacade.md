@@ -1,6 +1,6 @@
 # Patrón Facade · HU #293 · la confirmación de un pedido
 
-![Patrón Facade · HU #293 · la confirmación de un pedido](../Imagenes/DiagramaPatron_Facade.png)
+![Patrón Facade · HU #293 · la confirmación de un pedido](Imagenes/DiagramaPatron_Facade.png)
 
 **Por qué está.** Confirmar un pedido no es una operación sino varias y en orden, contra dos servicios y un DAO, con una bandera de idempotencia y una compensación si algo falla. Todo eso vivía en la pantalla del mesero. Esta vista responde qué quedó escondido detrás de la fachada.
 
