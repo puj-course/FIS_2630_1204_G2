@@ -1,9 +1,9 @@
-"""Un mapa ligero de todo el modelo de clases, en una sola imagen.
+"""Las dos vistas ligeras de la arquitectura, en una sola imagen cada una.
 
-Los quince diagramas de clases siguen existiendo y siguen llevando los
-atributos y los metodos. Este no: es una banda por capa con los nombres de
-sus clases y nada mas, para saber de un vistazo que hay y donde vive cada
-cosa antes de entrar al detalle.
+El diagrama de arquitectura detallado sigue existiendo y sigue llevando
+todo: los archivos de cada paquete, las pruebas, el pom.xml y las flechas
+de punta a punta. Estas dos no. Son la misma estructura en capas leida a
+dos distancias: una con los nombres de las clases y otra sin ellos.
 
 Las clases anidadas van con su clase contenedora entre parentesis, porque
 no son archivos propios y ponerlas sueltas en la banda haria creer que si.
@@ -13,7 +13,7 @@ import json
 import os
 
 BASE = os.environ.get('GF_OUT', '/home/claude/diagramas')
-SAL = BASE + '/puml_clases'
+SAL = BASE + '/puml'
 
 T = json.load(open(BASE + '/clases.json', encoding='utf-8'))
 R = json.load(open(BASE + '/relaciones.json', encoding='utf-8'))
@@ -182,7 +182,7 @@ for alias, titulo, color, pie, paquetes in LADO:
 # graphviz dobla la columna y el dibujo deja de leerse de arriba abajo.
 L += flechas()
 L.append('@enduml')
-open(f'{SAL}/00_Mapa_Clases.puml', 'w', encoding='utf-8').write(
+open(f'{SAL}/01_Arquitectura_Mapa.puml', 'w', encoding='utf-8').write(
     '\n'.join(L) + '\n')
 
 # ======================================================= version corta ===
@@ -219,11 +219,11 @@ for alias, titulo, color, pie, paquetes in BANDAS + LADO:
              f'<size:12>{resumen(paquetes)}</size>" as {alias} {color}')
 C += flechas()
 C.append('@enduml')
-open(f'{SAL}/00_Resumen_Clases.puml', 'w', encoding='utf-8').write(
+open(f'{SAL}/01_Arquitectura_Resumen.puml', 'w', encoding='utf-8').write(
     '\n'.join(C) + '\n')
 
 total = sum(len(tipos_de(p)) for *_x, p in BANDAS + LADO)
-print(f'mapa ligero: {total} tipos de los {len(T)} de clases.json')
+print(f'arquitectura ligera: {total} tipos de los {len(T)} de clases.json')
 for alias, titulo, _c, _p, paquetes in BANDAS + LADO:
     print(f'  {titulo:22} {len(tipos_de(paquetes)):3}  '
           f'({len(nombres(paquetes))} entradas)')

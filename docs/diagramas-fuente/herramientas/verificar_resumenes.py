@@ -185,11 +185,11 @@ dif = [f'{k}: resumen "{v}", largo "{cuentas06.get(k)}"'
        if k in cuentas06 and v != cuentas06[k]]
 ok(not dif, 'las cuentas coinciden con las del diagrama 06', '\n'.join(dif))
 
-print('\n=== 00_Mapa_Clases ===')
+print('\n=== 01_Arquitectura_Mapa ===')
 mapa = ''
-rm = f'{BASE}/puml_clases/00_Mapa_Clases.puml'
+rm = f'{BASE}/puml/01_Arquitectura_Mapa.puml'
 if not os.path.exists(rm):
-    ok(False, 'existe el mapa ligero de clases')
+    ok(False, 'existe el mapa ligero de la arquitectura')
 else:
     mapa = open(rm, encoding='utf-8').read()
     ok('@startuml' in mapa and '@enduml' in mapa, 'el mapa es un diagrama')
@@ -267,10 +267,10 @@ repes = [n for n in {x for v in dibujado.values() for x in v}
          if sum(n in v for v in dibujado.values()) > 1]
 ok(not repes, 'ninguna clase aparece en dos bandas', ', '.join(sorted(repes)))
 
-print('\n=== 00_Resumen_Clases ===')
-rr = f'{BASE}/puml_clases/00_Resumen_Clases.puml'
+print('\n=== 01_Arquitectura_Resumen ===')
+rr = f'{BASE}/puml/01_Arquitectura_Resumen.puml'
 if not os.path.exists(rr):
-    ok(False, 'existe la vista corta de clases')
+    ok(False, 'existe la vista corta de la arquitectura')
 else:
     corto = open(rr, encoding='utf-8').read()
     ok('@startuml' in corto and '@enduml' in corto, 'la vista corta es un diagrama')
@@ -328,8 +328,8 @@ saltos = {(a, b) for a, b in reales
           and COLUMNA.index(b) - COLUMNA.index(a) > 1}
 FL = re.compile(r'^(\w+) -(?:\[#(\w+)\])?(?:up|down|left|right)?'
                 r'(?:\[#(\w+)\])?-+> (\w+)', re.M)
-for arch, texto in (('00_Resumen_Clases.puml', corto if 'corto' in dir() else ''),
-                    ('00_Mapa_Clases.puml', mapa)):
+for arch, texto in (('01_Arquitectura_Resumen.puml', corto if 'corto' in dir() else ''),
+                    ('01_Arquitectura_Mapa.puml', mapa)):
     if not texto:
         ok(False, f'{arch}: no se pudo leer')
         continue
@@ -362,21 +362,44 @@ PAREJAS = [('DiagramaComponentes_General', 'DiagramaComponentes_S1_Capas'),
            ('DiagramaComponentes_Infraestructura', 'DiagramaComponentes_S4_Apoyo'),
            ('DiagramaComponentes_Datos', 'DiagramaComponentes_S5_Datos'),
            ('DiagramaComponentes_Artefactos', 'DiagramaComponentes_S6_Artefactos')]
-orden = imgs
-mal = []
-for largo, resumen in PAREJAS:
-    if f'{largo}.png' not in orden or f'{resumen}.png' not in orden:
-        mal.append(f'falta alguna de {largo} / {resumen}')
-        continue
-    i, j = orden.index(f'{largo}.png'), orden.index(f'{resumen}.png')
-    if j != i + 1:
-        mal.append(f'{resumen} no va justo despues de {largo}')
-    # entre los dos no puede haber un titulo
-    trozo = texto.split(f'{largo}.png)')[1].split(f'{resumen}.png)')[0]
-    if re.search(r'^#+ ', trozo, re.M):
-        mal.append(f'hay un titulo entre {largo} y {resumen}')
-ok(not mal, 'los 6 resumenes van pegados a su version larga y sin titulo',
-   '\n'.join(mal))
+ARQ = [('DiagramaArquitectura_Capas', 'DiagramaArquitectura_Resumen'),
+       ('DiagramaArquitectura_Resumen', 'DiagramaArquitectura_Mapa')]
+MD_ARQ = BASE + '/docs_entrega/diagramaArquitectura.md'
+texto_arq = open(MD_ARQ, encoding='utf-8').read() if os.path.exists(MD_ARQ) else ''
+ok(bool(texto_arq), 'existe diagramaArquitectura.md')
+
+
+def pegados(texto_, parejas):
+    orden = re.findall(r'!\[[^\]]*\]\(Imagenes/([\w.]+)\)', texto_)
+    mal = []
+    for largo, resumen in parejas:
+        if f'{largo}.png' not in orden or f'{resumen}.png' not in orden:
+            mal.append(f'falta alguna de {largo} / {resumen}')
+            continue
+        i, j = orden.index(f'{largo}.png'), orden.index(f'{resumen}.png')
+        if j != i + 1:
+            mal.append(f'{resumen} no va justo despues de {largo}')
+        # entre los dos no puede haber un titulo
+        trozo = texto_.split(f'{largo}.png)')[1].split(f'{resumen}.png)')[0]
+        if re.search(r'^#+ ', trozo, re.M):
+            mal.append(f'hay un titulo entre {largo} y {resumen}')
+    return mal
+
+
+mal = pegados(texto, PAREJAS)
+ok(not mal, 'los 6 resumenes de componentes van pegados a su version larga '
+            'y sin titulo', '\n'.join(mal))
+mal = pegados(texto_arq, ARQ)
+ok(not mal, 'las 2 vistas ligeras van pegadas al diagrama de arquitectura '
+            'y sin titulo', '\n'.join(mal))
+# y no pueden haberse quedado en el de clases
+clases_md = BASE + '/docs_entrega/diagramaClases.md'
+sobra = [n for n in ('DiagramaArquitectura_Mapa', 'DiagramaArquitectura_Resumen',
+                     'DiagramaClases_Mapa', 'DiagramaClases_Resumen')
+         if os.path.exists(clases_md)
+         and n in open(clases_md, encoding='utf-8').read()]
+ok(not sobra, 'las vistas ligeras no se quedaron en diagramaClases.md',
+   ', '.join(sobra))
 
 # ninguna imagen generada se queda sin usar
 en_disco = {os.path.basename(p) for p in

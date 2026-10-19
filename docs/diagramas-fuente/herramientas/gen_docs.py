@@ -26,35 +26,6 @@ RAMA = 'develop'
 # ====================================================== que se documenta ===
 # (archivo .puml, nombre de la imagen, titulo, justificacion, explicacion)
 CLASES = [
-    ('puml_clases/00_Resumen_Clases.puml', 'DiagramaClases_Resumen',
-     'De un vistazo: en cuántas partes está dividido el modelo',
-     'Es la vista más lejana de todas. No da nombres de clase: responde '
-     'cuántas partes hay, de qué tamaño es cada una y en qué orden dependen '
-     'unas de otras, que es lo primero que hay que saber al llegar al '
-     'proyecto.',
-     'Los {tipos_codigo} tipos del código en seis bloques, con los paquetes '
-     'que forman cada uno y cuántos tipos trae cada paquete. El acceso a '
-     'datos y el modelo del dominio son, con diferencia, las dos partes más '
-     'grandes: entre las dos suman más de dos tercios de los tipos. Las dos '
-     'flechas rojas son los saltos de capa que el código comete de verdad: '
-     'pantallas que llaman directamente a un repositorio, y servicios que '
-     'abren la conexión por su cuenta. El detalle de qué clase está dónde '
-     'está en el mapa siguiente.'),
-    ('puml_clases/00_Mapa_Clases.puml', 'DiagramaClases_Mapa',
-     'Mapa del modelo: qué clases hay y en qué capa vive cada una',
-     'Los quince diagramas que siguen llevan los atributos y los métodos de '
-     'cada clase, que es lo que hace falta para trabajar pero no para '
-     'orientarse. Esta vista es la entrada: una banda por capa con los '
-     'nombres de sus clases y nada más.',
-     'Están los {tipos_codigo} tipos del código repartidos en seis '
-     'bloques. La '
-     'columna de la izquierda es el camino normal de una operación, de la '
-     'pantalla al servicio, de ahí al repositorio y de ahí a la única clase '
-     'que abre la conexión; en rojo, los dos atajos que el código se permite '
-     'saltándose una capa. A la derecha, el modelo del dominio, que es casi '
-     'la mitad de las clases y lo usan las tres primeras capas de la '
-     'columna. Las clases anidadas van entre paréntesis detrás de la que las '
-     'contiene, porque no son archivos propios.'),
     ('puml_clases/01_entity_A.puml', 'DiagramaClases_Entidades_A',
      'Entidades del dominio (A): adicionales, inventario, mesas y clientes',
      'Las entidades son el vocabulario del sistema: los servicios, los '
@@ -387,7 +358,16 @@ ARQUITECTURA = [
      'capa de datos y no en la de negocio, porque ejecutan SQL igual que un '
      'repositorio. El diagrama no esconde los incumplimientos: marca los '
      'saltos de capa que el código comete y cuántas veces ocurre cada uno, '
-     'sobre todo desde presentación hacia datos.'),
+     'sobre todo desde presentación hacia datos. Debajo van las dos '
+     'versiones ligeras de esta misma estructura, sin los archivos ni las '
+     'flechas de punta a punta: la primera dice de qué se compone cada capa '
+     'y cuánto pesa, y la segunda añade los nombres de las clases. Las dos '
+     'marcan en rojo los mismos dos saltos de capa.'),
+    ('puml/01_Arquitectura_Resumen.puml', 'DiagramaArquitectura_Resumen',
+     'De un vistazo', 'resumen', 'resumen', 'sub'),
+    ('puml/01_Arquitectura_Mapa.puml', 'DiagramaArquitectura_Mapa',
+     'Las mismas capas con los nombres de sus clases', 'resumen', 'resumen',
+     'sub')
 ]
 
 DESPLIEGUE = [
@@ -474,8 +454,7 @@ SECCIONES = [
     ('diagramaClases.md', 'Diagramas de clases', CLASES,
      'Documentan el modelo de clases del sistema: {n_tipos} tipos, {n_attr} '
      'atributos y {n_met} métodos. Están organizados siguiendo la arquitectura '
-     'en capas del proyecto: primero dos vistas ligeras de todo el modelo, '
-     'después las entidades del dominio, después cada '
+     'en capas del proyecto: primero las entidades del dominio, después cada '
      'capa con sus miembros, y al final las relaciones, separadas por origen y '
      'destino para que cada vista responda una sola pregunta.'),
     ('diagramaComponentes.md', 'Diagramas de componentes',
@@ -636,11 +615,13 @@ def escribir():
             ruta, nombre, tit, just, expl = item[:5]
             c = conteo(ruta)
             L += [f'## {tit}', '', f'![{tit}](Imagenes/{nombre}.png)']
-            # el resumen va pegado a la imagen larga, antes del texto: las
-            # dos imagenes juntas y debajo una sola explicacion para ambas
-            if i + 1 < len(lista) and len(lista[i + 1]) > 5:
-                r_ruta, r_nombre, r_tit = lista[i + 1][:3]
+            # los resumenes van pegados a la imagen larga, antes del texto:
+            # las imagenes juntas y debajo una sola explicacion para todas
+            k = i + 1
+            while k < len(lista) and len(lista[k]) > 5:
+                _r, r_nombre, r_tit = lista[k][:3]
                 L.append(f'![{r_tit}](Imagenes/{r_nombre}.png)')
+                k += 1
             L += ['',
                   '**Por qué está.** ' + just.format(**c), '',
                   '**Qué muestra.** ' + expl.format(**c), '',
