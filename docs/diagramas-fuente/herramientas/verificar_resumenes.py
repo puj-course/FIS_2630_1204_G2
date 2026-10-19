@@ -10,6 +10,7 @@ uno de los dos esta mal y hay que mirar.
 
     python3 verificar_resumenes.py <clon> <carpeta de trabajo>
 """
+import collections
 import glob
 import json
 import os
@@ -265,6 +266,34 @@ ok(not mal, 'el numero de cada banda es el de sus clases', '\n'.join(mal))
 repes = [n for n in {x for v in dibujado.values() for x in v}
          if sum(n in v for v in dibujado.values()) > 1]
 ok(not repes, 'ninguna clase aparece en dos bandas', ', '.join(sorted(repes)))
+
+print('\n=== 00_Resumen_Clases ===')
+rr = f'{BASE}/puml_clases/00_Resumen_Clases.puml'
+if not os.path.exists(rr):
+    ok(False, 'existe la vista corta de clases')
+else:
+    corto = open(rr, encoding='utf-8').read()
+    ok('@startuml' in corto and '@enduml' in corto, 'la vista corta es un diagrama')
+    porpaq = collections.Counter(t['paquete'] for t in TIPOS)
+    mal, bandas_vistas = [], set()
+    for etiqueta, alias in CAJA.findall(corto):
+        bandas_vistas.add(alias)
+        m = re.search(r'<size:12>· (\d+) tipos?</size>', etiqueta)
+        total_dicho = int(m.group(1)) if m else -1
+        if total_dicho != len(esperado.get(alias, ())):
+            mal.append(f'{alias}: la cabecera dice {total_dicho} y son '
+                       f'{len(esperado.get(alias, ()))}')
+        pares = re.findall(r'([\w()]+) · (\d+)', etiqueta.split('\\n')[-1])
+        dichos = {p_: int(n_) for p_, n_ in pares}
+        reales = {p_: porpaq[p_] for p_ in porpaq
+                  if BANDA.get(p_) == alias and porpaq[p_]}
+        if dichos != reales:
+            mal.append(f'{alias}: dice {dichos} y son {reales}')
+    ok(not mal, 'cada banda de la vista corta dice sus paquetes y su tamano',
+       '\n'.join(mal))
+    ok(bandas_vistas == set(esperado),
+       f'la vista corta tiene las {len(esperado)} bandas',
+       f'{sorted(bandas_vistas)} vs {sorted(esperado)}')
 
 print('\n=== como queda en el .md ===')
 MD = BASE + '/docs_entrega/diagramaComponentes.md'

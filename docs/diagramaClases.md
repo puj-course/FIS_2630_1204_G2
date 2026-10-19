@@ -1,6 +1,16 @@
 # Diagramas de clases
 
-Documentan el modelo de clases del sistema: 98 tipos, 371 atributos y 663 métodos. Están organizados siguiendo la arquitectura en capas del proyecto: primero un mapa ligero de todo el modelo, después las entidades del dominio, después cada capa con sus miembros, y al final las relaciones, separadas por origen y destino para que cada vista responda una sola pregunta.
+Documentan el modelo de clases del sistema: 98 tipos, 371 atributos y 663 métodos. Están organizados siguiendo la arquitectura en capas del proyecto: primero dos vistas ligeras de todo el modelo, después las entidades del dominio, después cada capa con sus miembros, y al final las relaciones, separadas por origen y destino para que cada vista responda una sola pregunta.
+
+---
+
+## De un vistazo: en cuántas partes está dividido el modelo
+
+![De un vistazo: en cuántas partes está dividido el modelo](Imagenes/DiagramaClases_Resumen.png)
+
+**Por qué está.** Es la vista más lejana de todas. No da nombres de clase: responde cuántas partes hay, de qué tamaño es cada una y en qué orden dependen unas de otras, que es lo primero que hay que saber al llegar al proyecto.
+
+**Qué muestra.** Los 98 tipos del código en seis bloques, con los paquetes que forman cada uno y cuántos tipos trae cada paquete. El acceso a datos y el modelo del dominio son, con diferencia, las dos partes más grandes: entre las dos suman más de dos tercios del código. El detalle de qué clase está dónde está en el mapa siguiente.
 
 ---
 

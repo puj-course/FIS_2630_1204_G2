@@ -138,6 +138,50 @@ L += ['presentacion -right-> apoyo',
 open(f'{SAL}/00_Mapa_Clases.puml', 'w', encoding='utf-8').write(
     '\n'.join(L) + '\n')
 
+# ======================================================= version corta ===
+# La misma estructura pero sin un solo nombre de clase: cada banda dice de
+# que paquetes se compone y cuantos tipos trae cada uno. Es para mirarla de
+# lejos y saber el tamano de cada parte; para saber que clase esta donde
+# esta el mapa de al lado.
+def resumen(paquetes):
+    trozos = []
+    for p in paquetes:
+        n = len(POR_PAQ.get(p, []))
+        if n:
+            trozos.append(f'{p} · {n}')
+    return '   '.join(trozos)
+
+
+C = ['@startuml',
+     'skinparam backgroundColor #FFFFFF',
+     'skinparam shadowing false',
+     'skinparam defaultFontName Helvetica',
+     'skinparam roundCorner 10',
+     'skinparam nodesep 16',
+     'skinparam ranksep 24',
+     'skinparam ArrowColor #F59E0B',
+     'skinparam ArrowThickness 2.2',
+     'skinparam RectangleBorderColor #94A3B8',
+     'skinparam RectangleBorderThickness 1.2',
+     'skinparam padding 4']
+for alias, titulo, color, pie, paquetes in BANDAS + LADO:
+    n_t = len(tipos_de(paquetes))
+    C.append(f'rectangle "<size:17><b>{titulo}</b></size>  '
+             f'<size:12>· {n_t} tipo{"s" if n_t != 1 else ""}</size>\\n'
+             f'<size:12><i>{pie}</i></size>\\n'
+             f'<size:12>{resumen(paquetes)}</size>" as {alias} {color}')
+for a, b in zip([x[0] for x in BANDAS], [x[0] for x in BANDAS][1:]):
+    C.append(f'{a} -down-> {b}')
+C.append('modelo -[hidden]down- apoyo')
+C += ['presentacion -right-> apoyo',
+      'negocio -right-> apoyo',
+      'presentacion -right-> modelo',
+      'negocio -right-> modelo',
+      'datos -right-> modelo',
+      '@enduml']
+open(f'{SAL}/00_Resumen_Clases.puml', 'w', encoding='utf-8').write(
+    '\n'.join(C) + '\n')
+
 total = sum(len(tipos_de(p)) for *_x, p in BANDAS + LADO)
 print(f'mapa ligero: {total} tipos de los {len(T)} de clases.json')
 for alias, titulo, _c, _p, paquetes in BANDAS + LADO:

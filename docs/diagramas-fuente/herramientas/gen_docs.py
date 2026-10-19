@@ -26,6 +26,17 @@ RAMA = 'develop'
 # ====================================================== que se documenta ===
 # (archivo .puml, nombre de la imagen, titulo, justificacion, explicacion)
 CLASES = [
+    ('puml_clases/00_Resumen_Clases.puml', 'DiagramaClases_Resumen',
+     'De un vistazo: en cuántas partes está dividido el modelo',
+     'Es la vista más lejana de todas. No da nombres de clase: responde '
+     'cuántas partes hay, de qué tamaño es cada una y en qué orden dependen '
+     'unas de otras, que es lo primero que hay que saber al llegar al '
+     'proyecto.',
+     'Los {tipos_codigo} tipos del código en seis bloques, con los paquetes '
+     'que forman cada uno y cuántos tipos trae cada paquete. El acceso a '
+     'datos y el modelo del dominio son, con diferencia, las dos partes más '
+     'grandes: entre las dos suman más de dos tercios del código. El detalle '
+     'de qué clase está dónde está en el mapa siguiente.'),
     ('puml_clases/00_Mapa_Clases.puml', 'DiagramaClases_Mapa',
      'Mapa del modelo: qué clases hay y en qué capa vive cada una',
      'Los quince diagramas que siguen llevan los atributos y los métodos de '
@@ -459,7 +470,7 @@ SECCIONES = [
     ('diagramaClases.md', 'Diagramas de clases', CLASES,
      'Documentan el modelo de clases del sistema: {n_tipos} tipos, {n_attr} '
      'atributos y {n_met} métodos. Están organizados siguiendo la arquitectura '
-     'en capas del proyecto: primero un mapa ligero de todo el modelo, '
+     'en capas del proyecto: primero dos vistas ligeras de todo el modelo, '
      'después las entidades del dominio, después cada '
      'capa con sus miembros, y al final las relaciones, separadas por origen y '
      'destino para que cada vista responda una sola pregunta.'),
