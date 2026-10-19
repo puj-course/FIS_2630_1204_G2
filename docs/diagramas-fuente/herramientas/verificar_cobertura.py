@@ -96,3 +96,9 @@ if sin_cubrir or mal:
           f'{len(mal)} recuentos que no cuadran')
 else:
     print('todo el repositorio esta representado')
+
+# Un verificador que termina en 0 con fallos no sirve de nada: rehacer.sh
+# corre con pipefail y asi el guion se para en el momento en que algo deja
+# de cuadrar, en vez de seguir y empaquetar lo que esta mal.
+if sin_cubrir or mal:
+    sys.exit(1)

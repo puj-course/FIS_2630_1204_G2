@@ -4,7 +4,7 @@ No usa los .json intermedios para lo que puede leer del .puml: compara lo
 dibujado contra clases.json / relaciones.json / esquema.json, que a su vez
 salen del parse del codigo.
 """
-import json, os, re, glob, collections
+import json, os, re, sys, glob, collections
 
 REPO = os.environ.get('GF_SRC', '/tmp/claude-0/-home-claude/'
                       'cf991e6c-a30f-5c5f-8ffa-56f3e8e08a43/scratchpad/gf293')
@@ -256,7 +256,8 @@ PERMITIDO = set('''startuml enduml skinparam backgroundColor shadowing defaultFo
  ClassStereotypeFontSize ClassBorderColor ArrowColor ArrowFontSize
  PackageBorderColor PackageFontStyle ClassAttributeIconSize hide empty members
  package class interface enum annotation hidden right down left direction
- circle allowmixing entity database component node artifact rectangle
+ circle allowmixing entity database component node artifact rectangle cloud
+ descarga clone
  ArrowThickness ArrowFontStyle ArrowFontColor PackageFontSize
  PackageTitleAlignment ClassBackgroundColor NoteBackgroundColor NoteBorderColor
  linetype ortho polyline dashed EntityFontSize ComponentBackgroundColor InterfaceBackgroundColor
@@ -386,8 +387,22 @@ ok(all(r in desp for r in reqs), f'los requisitos del README: {reqs}')
 svg = leer(BASE + '/puml/06_Despliegue.svg')
 ok('text-decoration' not in svg, 'ningun texto sale tachado en el SVG')
 disp = re.findall(r'node "([^"]+)" as \w+ <<device>>', desp)
-ok(len(disp) == 2 and any('GitHub' in d for d in disp),
-   f'un solo equipo ejecuta la aplicacion, mas GitHub: {disp}')
+ok(disp == ['Equipo'],
+   f'la aplicacion se ejecuta en un unico equipo: {disp}')
+# GitHub no puede dibujarse como una maquina de despliegue: es de donde se
+# descarga el codigo, y la instalacion pasa entera en el equipo
+nubes = re.findall(r'cloud "([^"]+)" as (\w+)', desp)
+ok(nubes == [('GitHub', 'github')],
+   f'GitHub va como nube aparte y no como nodo de despliegue: {nubes}')
+ok(re.search(r'a_repo \.\.> a_src', desp),
+   'el codigo baja del repositorio remoto al equipo (git clone)')
+ok(not re.search(r'(runner|a_ci|a_pasos|a_pg_ci)\s*[-.]+(down|up|left|right)?'
+                 r'[-.]*>\s*(equipo|a_src|a_jar|jvm|pg|a_db)', desp),
+   'del runner de integracion continua no sale nada hacia el equipo')
+# y dentro de la nube no puede ejecutarse la aplicacion
+dentro_nube = desp[desp.index('cloud "GitHub"'):].split('\n}')[0]
+ok('javafx' not in dentro_nube.lower() and 'gastroflow · ' not in dentro_nube,
+   'en GitHub no se ejecuta la aplicacion ni vive su base de datos')
 
 
 print('\n=== 12. el diagrama de arquitectura ===')
@@ -505,3 +520,9 @@ ok(not mal, f'los saltos de capa llevan su numero real ({dict(cuenta)})')
 
 print('\n=== resultado ===')
 print(f'{len(fallos)} comprobaciones fallidas' if fallos else 'todo correcto')
+
+# Un verificador que termina en 0 con fallos no sirve de nada: rehacer.sh
+# corre con pipefail y asi el guion se para en el momento en que algo deja
+# de cuadrar, en vez de seguir y empaquetar lo que esta mal.
+if fallos:
+    sys.exit(1)
