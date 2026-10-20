@@ -169,7 +169,7 @@ public class InventarioController {
                         Ingrediente ingrediente = getTableRow() == null
                             ? null
                             : getTableRow().getItem();
-                        setStyle(AlertaStockFactory.crear(ingrediente).getEstiloCelda());
+                        setStyle(AlertaStockFactory.para(ingrediente).crearAlerta().getEstiloCelda());
                     }
                 }
         );
@@ -192,7 +192,7 @@ public class InventarioController {
                             return;
                         }
 
-                        setStyle(AlertaStockFactory.crear(ingrediente).getEstiloFila());
+                        setStyle(AlertaStockFactory.para(ingrediente).crearAlerta().getEstiloFila());
                     }
                 }
         );
@@ -317,7 +317,7 @@ public class InventarioController {
             return "";
         }
 
-        return AlertaStockFactory.crear(ingrediente).getTexto();
+        return AlertaStockFactory.para(ingrediente).crearAlerta().getTexto();
     }
 
     /**
