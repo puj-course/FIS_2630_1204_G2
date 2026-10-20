@@ -1,4 +1,4 @@
-# Alineación de paquetes Java — HU-078 (#175)
+# Alineación de paquetes Java
 ---
 
 ## Objetivo
