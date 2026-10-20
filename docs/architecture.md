@@ -1,9 +1,5 @@
 # Decisión de arquitectura
 
-**Fecha:** 22 de septiembre de 2026  
-**Participantes:** _(Samuel Malaver)_  
-**Rama de trabajo:** personal → Pull Request hacia `develop`
-
 ---
 
 ## Decisión
