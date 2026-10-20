@@ -27,7 +27,7 @@ No se utilizará Spring Boot, Spring Data JPA ni Spring Web en esta etapa del pr
 | Capa | Tecnología |
 |------|------------|
 | Interfaz | JavaFX 21.0.5 |
-| Lenguaje | Java 17+ |
+| Lenguaje | Java 21+ |
 | Acceso a datos | JDBC |
 | Base de datos | PostgreSQL |
 | Driver | org.postgresql:postgresql 42.7.5 |
