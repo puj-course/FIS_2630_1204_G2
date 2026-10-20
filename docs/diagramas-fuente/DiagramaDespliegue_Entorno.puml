@@ -1,0 +1,61 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 40
+skinparam ranksep 70
+skinparam padding 5
+skinparam ArrowColor #1E293B
+skinparam ArrowThickness 1.6
+skinparam ArrowFontSize 11
+skinparam ArrowFontStyle bold
+skinparam NodeFontSize 14
+skinparam NodeFontStyle bold
+skinparam ArtifactFontSize 12
+skinparam NodeBackgroundColor #FFFFFF
+skinparam ArtifactBackgroundColor #FFFFFF
+rectangle "GitHub" as github <<servicio externo>> #FFEDD5 {
+  node "Repositorio remoto" as repo <<execution environment>> #FFFFFF {
+    artifact "FIS_2630_1204_G2\nmain · develop · features-*" as a_repo
+  }
+  node "Runner ubuntu-latest" as runner <<execution environment>> #FFFFFF {
+    artifact ".github/workflows/ci.yml\nactions/checkout@v4\nactions/setup-java@v4\njava-version 21 · temurin\non: push → develop, 'features-*'\non: pull_request → develop" as a_ci
+    artifact "steps\n1. Descargar código\n2. Configurar Java 21 y caché Maven\n3. Instalar cliente PostgreSQL\n4. Preparar permisos del script\n5. Crear esquema y datos de prueba\n6. Compilar el proyecto\n7. Ejecutar pruebas automatizadas" as a_pasos
+    artifact "services: postgres\npostgres:16\nports 5432:5432" as a_pg_ci
+    a_ci -[hidden]right- a_pasos
+    a_pasos -[hidden]right- a_pg_ci
+  }
+  repo -down-> runner : on: push · pull_request
+}
+node "Equipo" as equipo <<device>> #DBEAFE {
+  artifact "FIS_2630_1204_G2\nmain · develop · features-*" as a_src
+  artifact "pom.xml\njavafx-maven-plugin\nmaven-compiler-plugin\nmaven-surefire-plugin\nningun plugin de empaquetado" as a_pom
+  artifact "mvnw · mvnw.cmd\n.mvn/wrapper" as a_mvn
+  artifact "db/ddl · 26\ndb/migrations · 10\ndb/functions · 12" as a_ddl
+  artifact "scripts/setup.sh\n--con-datos-prueba\n--db\n--help\n--recrear" as a_setup
+  node "JDK 21 · Maven 3.9 o superior" as jvm <<execution environment>> #FFFFFF {
+    artifact "target/classes\nVisualMesas 1.0-SNAPSHOT\napplication.properties\ncss · 5\nstatic · 1\nviews · 7" as a_jar
+    artifact "javafx-controls 21.0.5\njavafx-fxml 21.0.5" as a_fx
+    artifact "postgresql 42.7.5\njbcrypt 0.4" as a_libs
+    artifact "ConexionBD.ConexionBD\nURL = jdbc:postgresql://localhost:5432/gastroflow\nUSER = postgres\nPASSWORD = postgres" as a_conf
+    artifact "mvn clean compile\nmvn javafx:run" as a_cmd
+    a_jar -[hidden]right- a_fx
+    a_fx -[hidden]right- a_libs
+    a_libs -[hidden]right- a_conf
+    a_conf -[hidden]right- a_cmd
+  }
+  node "PostgreSQL 16" as pg <<execution environment>> #FFFFFF {
+    artifact "gastroflow · 27 tablas" as a_db
+  }
+  a_src -[hidden]right- a_pom
+  a_pom -[hidden]right- a_mvn
+  a_mvn -[hidden]right- a_ddl
+  a_ddl -[hidden]right- a_setup
+  a_pom ..> a_jar : <<build>> mvn clean compile
+  a_ddl ..> a_setup : <<entrada>>
+  a_setup ..> a_db : <<crea>> psql
+  jvm -down-> pg : jdbc:postgresql://localhost:5432/gastroflow
+}
+a_repo ..> a_src : <<descarga>> git clone
+@enduml

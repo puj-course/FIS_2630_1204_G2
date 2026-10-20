@@ -122,6 +122,34 @@ public class IngredienteRepository {
         }
     }
 
+    public List<Ingrediente> findAllActivos()
+            throws SQLException {
+
+        String sql = """
+                SELECT ingrediente_id,
+                       nombre,
+                       stock_actual,
+                       stock_minimo,
+                       estado
+                FROM ingredientes
+                WHERE estado = 'ACTIVO'
+                ORDER BY nombre
+                """;
+
+        List<Ingrediente> ingredientes = new ArrayList<>();
+
+        try (Connection conn = ConexionBD.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                ingredientes.add(map(rs));
+            }
+        }
+
+        return ingredientes;
+    }
+
     private void bindCampos(PreparedStatement stmt, Ingrediente i) throws SQLException {
         stmt.setString(1, i.getNombre());
         stmt.setString(2, i.getDescripcion());

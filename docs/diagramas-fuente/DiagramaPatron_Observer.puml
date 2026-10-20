@@ -1,0 +1,33 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 6
+skinparam nodesep 30
+skinparam ranksep 60
+skinparam ClassBorderColor #334155
+skinparam ClassBackgroundColor #FFFFFF
+skinparam ClassFontSize 14
+skinparam ClassAttributeFontSize 12
+skinparam ClassStereotypeFontSize 11
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 11
+hide circle
+class InventarioService <<Subject>> {
+  -observadores : List<InsumoObserver>
+  +InventarioService()
+  +agregarObservador(observer : InsumoObserver) void
+  +eliminarObservador(observer : InsumoObserver) void
+  -notificarObservadores(nombreInsumo : String, stockActual : double, stockMinimo : double) void
+  +verificarStockMinimo(nombreInsumo : String, stockActual : double, stockMinimo : double) void
+}
+interface InsumoObserver <<Observer>> {
+  +actualizar(nombreInsumo : String, stockActual : double, stockMinimo : double) void
+}
+class AdministradorAlertaObserver <<ConcreteObserver>> {
+  +actualizar(nombreInsumo : String, stockActual : double, stockMinimo : double) void
+}
+InsumoObserver <|.. AdministradorAlertaObserver
+InventarioService o-- "*" InsumoObserver : observadores
+InventarioService ..> AdministradorAlertaObserver : new
+@enduml

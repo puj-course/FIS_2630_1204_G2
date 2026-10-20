@@ -43,6 +43,13 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- BCrypt para almacenamiento seguro de contraseñas -->
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>0.4</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -53,6 +60,22 @@
                 <version>3.13.0</version>
                 <configuration>
                     <release>21</release>
+                    <!--
+                        Clases que todavia usan Spring Data JPA y jakarta.persistence.
+                        El proyecto quedo definido con JDBC en el PR #172 y esas
+                        dependencias salieron del pom, asi que estas clases no compilan.
+                        Se excluyen del build para no perderlas: siguen en el repositorio
+                        y se van sacando de esta lista a medida que se migren a JDBC.
+                    -->
+                    <excludes>
+                            <exclude>controller/PagoController.java</exclude>
+                            <exclude>entity/Mesero.java</exclude>
+                            <exclude>entity/Pago.java</exclude>
+                            <exclude>repository/DetallePedidoRepository.java</exclude>
+                            <exclude>repository/MeseroRepository.java</exclude>
+                            <exclude>repository/PagoRepository.java</exclude>
+                            <exclude>service/PagoService.java</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
             <plugin>

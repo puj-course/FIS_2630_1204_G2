@@ -1,0 +1,393 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 35
+skinparam ranksep 60
+skinparam padding 3
+skinparam ClassFontSize 13
+skinparam ClassAttributeFontSize 11
+skinparam ClassStereotypeFontSize 10
+skinparam ClassBorderColor #334155
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ClassAttributeIconSize 0
+hide empty members
+
+package "controller" {
+  class AccionMesa <<record · anidada en MapaSalonController>> #DBEAFE {
+    - cantidadPersonas : Integer
+    - liberarMesa : boolean
+    --
+    - {static} asignar(cantidadPersonas : int) : AccionMesa
+    - {static} liberar() : AccionMesa
+  }
+  class CajeroPagoController #DBEAFE {
+    - numeroPedidoField : TextField
+    - cajeroLabel : Label
+    - estadoCuentaLabel : Label
+    - pedidoLabel : Label
+    - mesaLabel : Label
+    - subtotalLabel : Label
+    - impuestosLabel : Label
+    - subtotalResumenLabel : Label
+    - tipoDescuentoCombo : ComboBox<TipoDescuento>
+    - impuestosResumenLabel : Label
+    - descuentoField : TextField
+    - motivoDescuentoField : TextField
+    - propinaField : TextField
+    - descuentoResumenLabel : Label
+    - propinaResumenLabel : Label
+    - totalLabel : Label
+    - buscarPedidoButton : Button
+    - eliminarDescuentoButton : Button
+    - eliminarPropinaButton : Button
+    - cerrarPagoButton : Button
+    - pagoDAO : PagoDAO
+    - moneda : NumberFormat
+    - cuentaActual : CuentaPago
+    --
+    + initialize() : void
+    - buscarPedido() : void
+    - mostrarCuenta() : void
+    - recalcular() : void
+    - actualizarResumen() : void
+    - eliminarPropina() : void
+    - eliminarDescuento() : void
+    - cerrarPago() : void
+    - leerValor(texto : String) : BigDecimal
+    - limpiarCuenta() : void
+    - setEdicionCuenta(habilitada : boolean) : void
+    - bloquearPantalla(bloqueada : boolean) : void
+    - mostrarAlerta(tipo : Alert.AlertType, titulo : String, mensaje : String) : void
+  }
+  class CocinaController #DBEAFE {
+    - columnaPendientes : VBox
+    - columnaPreparacion : VBox
+    - columnaListos : VBox
+    - lblPendientes : Label
+    - lblPreparacion : Label
+    - lblListos : Label
+    - pedidoRepository : PedidoRepository
+    - mesaRepository : MesaRepository
+    - {static} MINUTOS_ALERTA_MEDIA : long
+    - {static} MINUTOS_ALERTA_ALTA : long
+    --
+    + initialize() : void
+    - cargarTablero() : void
+    - crearTarjeta(pedido : Pedido) : VBox
+    - textoSiguienteEstado(estado : EstadoPedido) : String
+    - avanzarEstado(pedido : Pedido) : void
+    - formatearTiempo(minutos : long) : String
+    - claseAlertaPorTiempo(minutos : long) : String
+    - mostrarError(mensaje : String) : void
+  }
+  class DisponibilidadAdminController #DBEAFE {
+    - tablaProductos : TableView<ProductoDisponibilidad>
+    - colCodigo : TableColumn<ProductoDisponibilidad, String>
+    - colNombre : TableColumn<ProductoDisponibilidad, String>
+    - colCategoria : TableColumn<ProductoDisponibilidad, String>
+    - colEstado : TableColumn<ProductoDisponibilidad, String>
+    - colMotivo : TableColumn<ProductoDisponibilidad, String>
+    - lblDisponibles : Label
+    - lblAgotados : Label
+    - dao : DisponibilidadDAO
+    --
+    + initialize() : void
+    - recalcularYCargar() : void
+    - mostrarError(e : Throwable) : void
+  }
+  enum EstadoMesaVisual <<anidada en MapaSalonController>> #DBEAFE {
+    DISPONIBLE
+    OCUPADA
+    RESERVADA
+    PENDIENTE_PAGO
+    INHABILITADA
+    --
+    - etiqueta : String
+    - color : String
+    - codigosValidos : Set<String>
+    --
+    - EstadoMesaVisual(etiqueta : String, color : String, codigosValidos : String...)
+    - {static} desdeCodigo(codigo : String) : EstadoMesaVisual
+  }
+  class InventarioController #DBEAFE {
+    - campoBusqueda : TextField
+    - tablaIngredientes : TableView<Ingrediente>
+    - columnaId : TableColumn<Ingrediente, Long>
+    - columnaNombre : TableColumn<Ingrediente, String>
+    - columnaStock : TableColumn<Ingrediente, BigDecimal>
+    - columnaStockMinimo : TableColumn<Ingrediente, BigDecimal>
+    - columnaEstado : TableColumn<Ingrediente, String>
+    - columnaAlerta : TableColumn<Ingrediente, String>
+    - etiquetaTotal : Label
+    - etiquetaStockBajo : Label
+    - etiquetaEstado : Label
+    - botonBuscar : Button
+    - botonLimpiar : Button
+    - botonActualizar : Button
+    - ingredienteRepository : IngredienteRepository
+    - ingredientes : ObservableList<Ingrediente>
+    --
+    + initialize() : void
+    - configurarTabla() : void
+    - cargarIngredientes() : void
+    - buscar() : void
+    - limpiarBusqueda() : void
+    - actualizar() : void
+    - actualizarResumen() : void
+    - obtenerTextoAlerta(ingrediente : Ingrediente) : String
+    - mostrarError(mensaje : String, excepcion : Exception) : void
+  }
+  class LoginController #DBEAFE {
+    - campoUsuario : TextField
+    - campoContrasena : PasswordField
+    - botonEntrar : Button
+    - cajaError : HBox
+    - mensajeError : Label
+    - autenticacion : AutenticacionService
+    - alEntrar : Consumer<Void>
+    --
+    + setAlEntrar(accion : Runnable) : void
+    - initialize() : void
+    - entrar() : void
+    - mostrarError(texto : String) : void
+    - ocultarError() : void
+    - marcarCampos(conError : boolean) : void
+  }
+  class MapaSalonController #DBEAFE {
+    - {static} MESA_ANCHO : double
+    - {static} MESA_ALTO : double
+    - {static} INICIO_X : double
+    - {static} INICIO_Y : double
+    - {static} ESPACIO_X : double
+    - {static} ESPACIO_Y : double
+    - {static} COLUMNAS : int
+    - panelMesas : Pane
+    - leyendaEstados : VBox
+    - filtroTodas : ToggleButton
+    - filtroLibres : ToggleButton
+    - filtroOcupadas : ToggleButton
+    - filtroReservadas : ToggleButton
+    - mensajeFiltro : Label
+    - contadorTotal : Label
+    - contadorDisponibles : Label
+    - contadorOcupadas : Label
+    - contadorReservadas : Label
+    - contadorPendientePago : Label
+    - contadorInhabilitadas : Label
+    - tituloDetalleMesa : Label
+    - detalleNumero : Label
+    - detalleEstado : Label
+    - detalleCapacidad : Label
+    - detalleComensales : Label
+    - detallePedido : Label
+    - detalleMesero : Label
+    - detalleCodigo : Label
+    - mesaRepository : MesaRepository
+    - mesaService : MesaService
+    - botonesPorMesa : Map<Integer, Button>
+    - mesaSeleccionada : Mesa
+    - actualizadorEstados : Timeline
+    - filtroActivo : EstadoMesaVisual
+    --
+    + initialize() : void
+    - cargarMesas() : void
+    - cumpleFiltro(mesa : Mesa) : boolean
+    - crearBotonMesa(mesa : Mesa, posicion : int) : Button
+    - actualizarBotonMesa(btn : Button, mesa : Mesa, posicion : int) : void
+    - crearContenidoBoton(mesa : Mesa, textoEstado : String, colorTexto : String) : VBox
+    - construirDetalleMesa(mesa : Mesa, textoEstado : String) : String
+    - obtenerIdentificadorMesa(mesa : Mesa) : String
+    - estiloMesa(estado : EstadoMesaVisual, seleccionada : boolean) : String
+    - estiloEstadoNoValido(seleccionada : boolean) : String
+    - quitarMesasNoVisibles(mesasVisibles : Set<Integer>) : void
+    - actualizarMensajeFiltro(cantidadVisible : int, hayIdentificadoresDuplicados : boolean) : void
+    - configurarFiltros() : void
+    - aplicarFiltro(nuevoFiltro : EstadoMesaVisual, botonSeleccionado : ToggleButton) : void
+    - actualizarDetalleMesa(mesa : Mesa) : void
+    - limpiarDetalleMesa() : void
+    - textoComensales(mesa : Mesa, ocupada : boolean) : String
+    - textoOpcional(valor : String, textoVacio : String) : String
+    - construirLeyenda() : void
+    - iniciarActualizacionAutomatica() : void
+    - agregarMesa() : void
+    - quitarMesa() : void
+    - asignarComensales() : void
+    - liberarMesaSeleccionada() : void
+    - solicitarAsignacionMesa(mesa : Mesa) : void
+    - liberarMesa(mesa : Mesa) : void
+    - validarCantidadComensales(valorIngresado : String, capacidadMaxima : int, advertenciaLabel : Label, confirmarButton : Node) : void
+    - cambiarEstadoMesaSeleccionada() : void
+    - cambiarEstadoMesa(mesa : Mesa) : void
+    - ajustarTamanoDialogo(dialog : Dialog<?>) : void
+    - guardarAsignacion(mesa : Mesa, cantidadComensales : int) : void
+    - mostrarInformacion(titulo : String, mensaje : String) : void
+    - mostrarError(mensaje : String) : void
+    - textoDeAlerta(mensaje : String) : Label
+    - abrirPedidoMesa() : void
+    - actualizarContadores(mesas : List<Mesa>) : void
+    - actualizarTextoSiExiste(label : Label, texto : String) : void
+  }
+  class MenuMeseroController #DBEAFE {
+    - categoriasBox : VBox
+    - pedidoBox : VBox
+    - totalLabel : Label
+    - busquedaField : TextField
+    - categoriaCombo : ComboBox<String>
+    - soloDisponiblesCheck : CheckBox
+    - resultadosLabel : Label
+    - pedidoService : PedidoService
+    - pedidoFacade : PedidoFacade
+    - mesaId : Long
+    - usuarioId : Long
+    - pedidoActual : Pedido
+    - {static} TODAS_LAS_CATEGORIAS : String
+    - productoDAO : ProductoDAO
+    - pedido : Map<Long, ItemPedido>
+    - moneda : NumberFormat
+    - menuCompleto : Map<String, List<Producto>>
+    - pedidoActivoCargado : boolean
+    --
+    + configurarMesa(mesaId : long, usuarioId : long) : void
+    + initialize() : void
+    - cargarMenu() : void
+    - cargarPedidoActivo() : void
+    - cargarProductosDesdeJson(json : String) : void
+    - buscarProductoEnMenu(productoId : long) : Producto
+    - extraerLong(texto : String, expresion : String) : Long
+    - extraerInteger(texto : String, expresion : String) : Integer
+    - limpiarFiltros() : void
+    - actualizarCategorias() : void
+    - mostrarMenuFiltrado() : void
+    - mostrarMensajeEnMenu(mensaje : String) : void
+    - crearTarjeta(producto : Producto) : VBox
+    - agregarProducto(producto : Producto) : void
+    - actualizarPedido() : void
+    - confirmarPedido() : void
+    - iniciar(tarea : Task<?>, nombreHilo : String) : void
+    - anularPedido() : void
+    - cerrarPedido() : void
+    - mostrarError(e : Throwable) : void
+  }
+  class ResumenMesas <<record · anidada en MapaSalonController>> #DBEAFE {
+    - total : int
+    - disponibles : int
+    - ocupadas : int
+    - reservadas : int
+    - pendientesPago : int
+    - inhabilitadas : int
+    - noReconocidas : int
+    --
+    - {static} calcular(mesas : List<Mesa>) : ResumenMesas
+  }
+  AccionMesa -[hidden]right- CajeroPagoController
+  CajeroPagoController -[hidden]right- CocinaController
+  AccionMesa -[hidden]down- DisponibilidadAdminController
+  DisponibilidadAdminController -[hidden]right- EstadoMesaVisual
+  CajeroPagoController -[hidden]down- EstadoMesaVisual
+  EstadoMesaVisual -[hidden]right- InventarioController
+  CocinaController -[hidden]down- InventarioController
+  DisponibilidadAdminController -[hidden]down- LoginController
+  LoginController -[hidden]right- MapaSalonController
+  EstadoMesaVisual -[hidden]down- MapaSalonController
+  MapaSalonController -[hidden]right- MenuMeseroController
+  InventarioController -[hidden]down- MenuMeseroController
+  LoginController -[hidden]down- ResumenMesas
+}
+package "referencias" <<otros paquetes>> #FAFAFA {
+  class AutenticacionService <<service>> #DCFCE7 {
+  }
+  class CuentaPago <<dto>> #FEF9C3 {
+  }
+  class DisponibilidadDAO <<dao>> #DCFCE7 {
+  }
+  enum EstadoPedido <<enums>> #FEF9C3 {
+  }
+  class Ingrediente <<entity>> #F3E8FF {
+  }
+  class IngredienteRepository <<repository>> #FFEDD5 {
+  }
+  class ItemPedido <<dto>> #FEF9C3 {
+  }
+  class Mesa <<entity>> #F3E8FF {
+  }
+  class MesaRepository <<repository>> #FFEDD5 {
+  }
+  class MesaService <<service>> #DCFCE7 {
+  }
+  class PagoDAO <<dao>> #DCFCE7 {
+  }
+  class Pedido <<entity>> #F3E8FF {
+  }
+  class PedidoFacade <<service>> #DCFCE7 {
+  }
+  class PedidoRepository <<repository>> #FFEDD5 {
+  }
+  class PedidoService <<service>> #DCFCE7 {
+  }
+  class Producto <<entity>> #F3E8FF {
+  }
+  class ProductoDAO <<dao>> #DCFCE7 {
+  }
+  class ProductoDisponibilidad <<dto>> #FEF9C3 {
+  }
+  enum TipoDescuento <<enums>> #FEF9C3 {
+  }
+  AutenticacionService -[hidden]right- CuentaPago
+  CuentaPago -[hidden]right- DisponibilidadDAO
+  DisponibilidadDAO -[hidden]right- EstadoPedido
+  AutenticacionService -[hidden]down- Ingrediente
+  Ingrediente -[hidden]right- IngredienteRepository
+  CuentaPago -[hidden]down- IngredienteRepository
+  IngredienteRepository -[hidden]right- ItemPedido
+  DisponibilidadDAO -[hidden]down- ItemPedido
+  ItemPedido -[hidden]right- Mesa
+  EstadoPedido -[hidden]down- Mesa
+  Ingrediente -[hidden]down- MesaRepository
+  MesaRepository -[hidden]right- MesaService
+  IngredienteRepository -[hidden]down- MesaService
+  MesaService -[hidden]right- PagoDAO
+  ItemPedido -[hidden]down- PagoDAO
+  PagoDAO -[hidden]right- Pedido
+  Mesa -[hidden]down- Pedido
+  MesaRepository -[hidden]down- PedidoFacade
+  PedidoFacade -[hidden]right- PedidoRepository
+  MesaService -[hidden]down- PedidoRepository
+  PedidoRepository -[hidden]right- PedidoService
+  PagoDAO -[hidden]down- PedidoService
+  PedidoService -[hidden]right- Producto
+  Pedido -[hidden]down- Producto
+  PedidoFacade -[hidden]down- ProductoDAO
+  ProductoDAO -[hidden]right- ProductoDisponibilidad
+  PedidoRepository -[hidden]down- ProductoDisponibilidad
+  ProductoDisponibilidad -[hidden]right- TipoDescuento
+  PedidoService -[hidden]down- TipoDescuento
+}
+CajeroPagoController "1" *-[#047857]-> "1 pagoDAO" PagoDAO
+CajeroPagoController -[#A16207]-> "* tipoDescuentoCombo" TipoDescuento
+CajeroPagoController -[#A16207]-> "1 cuentaActual" CuentaPago
+CocinaController "1" *-[#C2410C]-> "1 mesaRepository" MesaRepository
+CocinaController "1" *-[#C2410C]-> "1 pedidoRepository" PedidoRepository
+CocinaController -[#7E22CE,dashed]-> Mesa
+CocinaController -[#7E22CE,dashed]-> Pedido
+CocinaController -[#A16207,dashed]-> EstadoPedido
+DisponibilidadAdminController "1" *-[#047857]-> "1 dao" DisponibilidadDAO
+DisponibilidadAdminController -[#A16207]-> "* tablaProductos\ncolCodigo\ncolNombre\ncolCategoria\ncolEstado\ncolMotivo" ProductoDisponibilidad
+InventarioController "1" *-[#C2410C]-> "1 ingredienteRepository" IngredienteRepository
+InventarioController -[#7E22CE]-> "* tablaIngredientes\ncolumnaId\ncolumnaNombre\ncolumnaStock\ncolumnaStockMinimo\ncolumnaEstado\ncolumnaAlerta\ningredientes" Ingrediente
+LoginController "1" *-[#047857]-> "1 autenticacion" AutenticacionService
+MapaSalonController "1" *-[#047857]-> "1 mesaService" MesaService
+MapaSalonController "1" *-[#C2410C]-> "1 mesaRepository" MesaRepository
+MapaSalonController -[#1D4ED8]-> "1 filtroActivo" EstadoMesaVisual
+MapaSalonController -[#7E22CE]-> "1 mesaSeleccionada" Mesa
+MenuMeseroController "1" *-[#047857]-> "1 pedidoFacade" PedidoFacade
+MenuMeseroController "1" *-[#047857]-> "1 pedidoService" PedidoService
+MenuMeseroController "1" *-[#047857]-> "1 productoDAO" ProductoDAO
+MenuMeseroController -[#7E22CE]-> "* menuCompleto" Producto
+MenuMeseroController -[#7E22CE]-> "1 pedidoActual" Pedido
+MenuMeseroController -[#A16207]-> "* pedido" ItemPedido
+@enduml
