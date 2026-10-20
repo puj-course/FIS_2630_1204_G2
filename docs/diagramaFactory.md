@@ -1,7 +1,13 @@
 # Patrón Factory · las alertas de stock del inventario
 
-![Patrón Factory · las alertas de stock del inventario](Imagenes/DiagramaPatron_Factory.png)
+<img width="1860" height="1080" alt="imagen" src="https://github.com/user-attachments/assets/f51108bb-06b3-4a5c-b905-cdec5b96d99c" />
+
 
 **Por qué está.** La pantalla de inventario decidía en tres sitios distintos el texto de la columna de alerta y los dos estilos, comparando cantidades a mano cada vez. Esta vista responde quién decide ahora qué alerta corresponde a un ingrediente.
 
-**Qué muestra.** Son 7 cajas y 9 flechas, 3 de ellas de realización, con 16 operaciones. Las tres flechas new que salen del creador son la decisión del patrón, y la que va a Ingrediente muestra en qué se basa para tomarla. InventarioController queda a un lado pidiendo por crear y consumiendo por la interfaz, sin nombrar nunca una clase concreta. Hay que decir una cosa: este creador es un método estático con constructor privado, lo que se conoce como Simple Factory y no figura en el catálogo de los 23 patrones GoF, que recoge Factory Method y Abstract Factory.
+**Qué muestra.** El controller llama a AlertaStockFactory.para(ingrediente), que elige el creator según el stock:
+
+Stock cero o menos: AlertaAgotadoFactory, que crea AlertaAgotado.
+Stock en el mínimo o por debajo: AlertaStockBajoFactory, que crea AlertaStockBajo.
+Cualquier otro caso: AlertaNormalFactory, que crea AlertaNormal.
+Después llama a crearAlerta() y usa el resultado a través de AlertaStock.
