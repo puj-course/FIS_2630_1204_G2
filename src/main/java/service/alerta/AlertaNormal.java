@@ -1,6 +1,6 @@
 package service.alerta;
 
-/** Producto concreto: el stock está por encima del mínimo. */
+/** ConcreteProduct: el stock está por encima del mínimo. */
 public class AlertaNormal implements AlertaStock {
 
     @Override
