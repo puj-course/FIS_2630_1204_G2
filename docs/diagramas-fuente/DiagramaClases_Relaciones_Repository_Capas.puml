@@ -1,0 +1,101 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 35
+skinparam ranksep 60
+skinparam padding 3
+skinparam ClassFontSize 13
+skinparam ClassAttributeFontSize 11
+skinparam ClassStereotypeFontSize 10
+skinparam ClassBorderColor #334155
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ClassAttributeIconSize 0
+hide empty members
+
+hide members
+hide circle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 70
+package "repository" #FFEDD5 {
+  class "AdicionalRepository" as repository_AdicionalRepository
+  class "AlertaInventarioRepository" as repository_AlertaInventarioRepository
+  class "AsignacionMesaRepository" as repository_AsignacionMesaRepository
+  class "ClienteRepository" as repository_ClienteRepository
+  class "DetallePedidoAdicionalRepository" as repository_DetallePedidoAdicionalRepository
+  class "EntradaInventarioRepository" as repository_EntradaInventarioRepository
+  class "EstadoMesaRepository" as repository_EstadoMesaRepository
+  class "HistorialEstadoMesaRepository" as repository_HistorialEstadoMesaRepository
+  class "IngredienteRepository" as repository_IngredienteRepository
+  class "InventarioRepository" as repository_InventarioRepository
+  class "MesaRepository" as repository_MesaRepository
+  class "MovimientoInventarioRepository" as repository_MovimientoInventarioRepository
+  class "NotaMesaRepository" as repository_NotaMesaRepository
+  class "PedidoRepository" as repository_PedidoRepository
+  class "PlatoInsumoRepository" as repository_PlatoInsumoRepository
+  class "PlatoRepository" as repository_PlatoRepository
+  class "ReglaDescuentoRepository" as repository_ReglaDescuentoRepository
+  class "ReservaRepository" as repository_ReservaRepository
+  class "UsuarioRepository" as repository_UsuarioRepository
+  class "ZonaRepository" as repository_ZonaRepository
+  repository_AdicionalRepository -[hidden]right- repository_AlertaInventarioRepository
+  repository_AlertaInventarioRepository -[hidden]right- repository_AsignacionMesaRepository
+  repository_AdicionalRepository -[hidden]down- repository_ClienteRepository
+  repository_ClienteRepository -[hidden]right- repository_DetallePedidoAdicionalRepository
+  repository_AlertaInventarioRepository -[hidden]down- repository_DetallePedidoAdicionalRepository
+  repository_DetallePedidoAdicionalRepository -[hidden]right- repository_EntradaInventarioRepository
+  repository_AsignacionMesaRepository -[hidden]down- repository_EntradaInventarioRepository
+  repository_ClienteRepository -[hidden]down- repository_EstadoMesaRepository
+  repository_EstadoMesaRepository -[hidden]right- repository_HistorialEstadoMesaRepository
+  repository_DetallePedidoAdicionalRepository -[hidden]down- repository_HistorialEstadoMesaRepository
+  repository_HistorialEstadoMesaRepository -[hidden]right- repository_IngredienteRepository
+  repository_EntradaInventarioRepository -[hidden]down- repository_IngredienteRepository
+  repository_EstadoMesaRepository -[hidden]down- repository_InventarioRepository
+  repository_InventarioRepository -[hidden]right- repository_MesaRepository
+  repository_HistorialEstadoMesaRepository -[hidden]down- repository_MesaRepository
+  repository_MesaRepository -[hidden]right- repository_MovimientoInventarioRepository
+  repository_IngredienteRepository -[hidden]down- repository_MovimientoInventarioRepository
+  repository_InventarioRepository -[hidden]down- repository_NotaMesaRepository
+  repository_NotaMesaRepository -[hidden]right- repository_PedidoRepository
+  repository_MesaRepository -[hidden]down- repository_PedidoRepository
+  repository_PedidoRepository -[hidden]right- repository_PlatoInsumoRepository
+  repository_MovimientoInventarioRepository -[hidden]down- repository_PlatoInsumoRepository
+  repository_NotaMesaRepository -[hidden]down- repository_PlatoRepository
+  repository_PlatoRepository -[hidden]right- repository_ReglaDescuentoRepository
+  repository_PedidoRepository -[hidden]down- repository_ReglaDescuentoRepository
+  repository_ReglaDescuentoRepository -[hidden]right- repository_ReservaRepository
+  repository_PlatoInsumoRepository -[hidden]down- repository_ReservaRepository
+  repository_PlatoRepository -[hidden]down- repository_UsuarioRepository
+  repository_UsuarioRepository -[hidden]right- repository_ZonaRepository
+  repository_ReglaDescuentoRepository -[hidden]down- repository_ZonaRepository
+}
+package "ConexionBD" #F1F5F9 {
+  class "ConexionBD" as ConexionBD_ConexionBD
+}
+repository_AdicionalRepository -[hidden]down- ConexionBD_ConexionBD
+repository_AdicionalRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_AlertaInventarioRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_AsignacionMesaRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_ClienteRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_DetallePedidoAdicionalRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_EntradaInventarioRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_EstadoMesaRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_HistorialEstadoMesaRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_IngredienteRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_InventarioRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_MesaRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_MovimientoInventarioRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_NotaMesaRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_PedidoRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_PlatoInsumoRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_PlatoRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_ReglaDescuentoRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_ReservaRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_UsuarioRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+repository_ZonaRepository -[#475569,dashed]-> ConexionBD_ConexionBD
+@enduml

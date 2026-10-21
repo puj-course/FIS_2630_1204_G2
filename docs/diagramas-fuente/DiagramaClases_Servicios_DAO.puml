@@ -1,0 +1,431 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 35
+skinparam ranksep 60
+skinparam padding 3
+skinparam ClassFontSize 13
+skinparam ClassAttributeFontSize 11
+skinparam ClassStereotypeFontSize 10
+skinparam ClassBorderColor #334155
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ClassAttributeIconSize 0
+hide empty members
+
+package "service · dao" {
+  class AdicionalService #DCFCE7 {
+    - adicionalRepository : AdicionalRepository
+    - detallePedidoAdicionalRepository : DetallePedidoAdicionalRepository
+    --
+    + listarActivos() : List<Adicional>
+    + obtener(id : long) : Adicional
+    + agregarADetalle(detallePedidoId : long, adicionalId : long, cantidad : int) : DetallePedidoAdicional
+    + calcularSobrecosto(adicional : Adicional, cantidad : int) : BigDecimal
+  }
+  class AsignacionMesaService #DCFCE7 {
+    - asignacionMesaRepository : AsignacionMesaRepository
+    --
+    + asignar(mesaId : long, usuarioId : long) : AsignacionMesa
+    + liberar(mesaId : long) : void
+  }
+  class AutenticacionService #DCFCE7 {
+    - usuarioRepository : UsuarioRepository
+    --
+    + AutenticacionService()
+    + AutenticacionService(usuarioRepository : UsuarioRepository)
+    + iniciarSesion(identificador : String, contrasena : String) : Resultado
+    + {static} mensajeDe(resultado : Resultado) : String
+    ~ {static} contrasenaCoincide(contrasena : String, almacenado : String) : boolean
+    - {static} esHashBcrypt(almacenado : String) : boolean
+    - {static} esHashSha256(almacenado : String) : boolean
+    + {static} generarHash(contrasena : String) : String
+    + {static} generarHash(salt : String, contrasena : String) : String
+    - {static} hash(salt : String, contrasena : String) : String
+  }
+  class DisponibilidadDAO #DCFCE7 {
+    + recalcularTodos() : int
+    + recalcularProducto(productoId : long) : String
+    + estaDisponible(productoId : long) : boolean
+    + estaDisponible(productoId : long, cantidad : int) : boolean
+    + faltantesDelPedido(lineas : Map<Long, Integer>) : List<String>
+    + listarProductos() : List<ProductoDisponibilidad>
+  }
+  class DisponibilidadService #DCFCE7 {
+    - platoInsumoRepo : PlatoInsumoRepository
+    --
+    + tieneInsumosDisponibles(platoId : int) : boolean
+    - obtenerStockInsumo(insumoId : int) : int
+    + actualizarDisponibilidad(platoId : int) : void
+  }
+  class EntradaInventarioService #DCFCE7 {
+    - repo : EntradaInventarioRepository
+    --
+    + registrar(entrada : EntradaInventario) : void
+    - actualizarStock(ingredienteId : Long, cantidad : double) : void
+  }
+  class InventarioService #DCFCE7 {
+    - inventarioRepository : InventarioRepository
+    --
+    + descontarIngredientes(pedidoId : long, productos : Map<Long, Integer>, usuarioId : long) : void
+    + revertirDescuento(pedidoId : long, usuarioId : long) : void
+    + calcularConsumoEstimado(productos : Map<Long, Integer>) : Map<Long, BigDecimal>
+    + calcularConsumoProducto(productoId : long, cantidad : int) : Map<Long, BigDecimal>
+  }
+  class MesaService #DCFCE7 {
+    - mesaRepository : MesaRepository
+    - zonaRepository : ZonaRepository
+    - estadoMesaRepository : EstadoMesaRepository
+    - historialEstadoMesaRepository : HistorialEstadoMesaRepository
+    --
+    + registrarMesa(numeroMesa : int) : void
+    + listarMesas() : List<Mesa>
+    + quitarMesa(idMesa : int) : void
+    + cambiarEstado(mesaId : long, codigoEstadoNuevo : String, motivo : String) : void
+    + obtenerZona(zonaId : long) : Zona
+    + obtenerEstadoPorCodigo(codigo : String) : EstadoMesa
+  }
+  class PagoDAO #DCFCE7 {
+    + buscarCuenta(numeroPedido : String) : Optional<CuentaPago>
+    + cerrarPago(cuenta : CuentaPago, cajeroId : int, motivoDescuento : String) : void
+    - validarValores(cuenta : CuentaPago, motivoDescuento : String) : void
+    - validarCajero(connection : Connection, sql : String, cajeroId : int) : void
+    - bloquearYValidarPedido(connection : Connection, sql : String, cuenta : CuentaPago) : void
+    - validarPagoNoDuplicado(connection : Connection, sql : String, pedidoId : long) : void
+  }
+  class PagoService <<excluida en pom.xml>> #DCFCE7 {
+    - pagoRepository : PagoRepository
+    - pedidoRepository : PedidoRepository
+    --
+    + PagoService(pagoRepository : PagoRepository, pedidoRepository : PedidoRepository)
+    + registrarPago(pedidoId : Long, metodo : MetodoPago, monto : BigDecimal) : Pago
+    + consultarPagos(pedidoId : Long) : List<Pago>
+    + obtenerTotalPagado(pedidoId : Long) : BigDecimal
+    + obtenerSaldoPendiente(pedidoId : Long) : BigDecimal
+  }
+  class PedidoFacade #DCFCE7 {
+    - pedidoService : PedidoService
+    - inventarioService : InventarioService
+    - disponibilidadDAO : DisponibilidadDAO
+    --
+    + PedidoFacade()
+    + PedidoFacade(pedidoService : PedidoService, inventarioService : InventarioService, disponibilidadDAO : DisponibilidadDAO)
+    + validarDisponibilidad(items : Collection<ItemPedido>) : List<String>
+    + confirmarPedido(mesaId : long, usuarioId : long, items : Collection<ItemPedido>) : Pedido
+    + calcularSubtotal(items : Collection<ItemPedido>) : BigDecimal
+    - aLineas(items : Collection<ItemPedido>) : Map<Long, Integer>
+    - construirJson(items : Collection<ItemPedido>) : String
+  }
+  class PedidoService #DCFCE7 {
+    - {static} ESTADOS_YA_CERRADOS : Set<EstadoPedido>
+    - pedidoRepository : PedidoRepository
+    - mesaService : MesaService
+    - inventarioService : InventarioService
+    --
+    + crearPedido(mesaId : long, usuarioId : long) : Pedido
+    + obtenerPedidoActivo(mesaId : long) : Optional<Pedido>
+    + obtenerOCrearPedido(mesaId : long, usuarioId : long) : Pedido
+    + actualizarPedido(pedido : Pedido) : Pedido
+    + cerrarPedido(pedidoId : long, codigoEstadoDestinoMesa : String) : Pedido
+    + cancelarPedido(pedidoId : long, codigoEstadoDestinoMesa : String) : Pedido
+  }
+  class ProductoDAO #DCFCE7 {
+    - disponibilidadDAO : DisponibilidadDAO
+    --
+    + obtenerMenuPorCategorias() : Map<String, List<Producto>>
+    + estaDisponible(productoId : long) : boolean
+    + estaDisponible(productoId : long, cantidad : int) : boolean
+  }
+  class ReglaDescuentoService #DCFCE7 {
+    - repo : ReglaDescuentoRepository
+    --
+    + registrar(regla : ReglaDescuento) : void
+    + calcularPrecioFinal(precioBase : double, regla : ReglaDescuento) : double
+  }
+  class ReservaService #DCFCE7 {
+    - reservaRepository : ReservaRepository
+    - pedidoRepository : PedidoRepository
+    - mesaService : MesaService
+    --
+    + listarMesasReservadas() : List<Reserva>
+    + listarReservasDelTurnoActual() : List<Reserva>
+    + cancelarReserva(idReserva : int) : Reserva
+  }
+  enum Resultado <<anidada en AutenticacionService>> #DCFCE7 {
+    OK
+    CREDENCIALES_INVALIDAS
+    USUARIO_INACTIVO
+    CAMPOS_VACIOS
+    ERROR_DE_CONEXION
+  }
+  AdicionalService -[hidden]right- AsignacionMesaService
+  AsignacionMesaService -[hidden]right- AutenticacionService
+  AutenticacionService -[hidden]right- DisponibilidadDAO
+  DisponibilidadDAO -[hidden]right- DisponibilidadService
+  AdicionalService -[hidden]down- EntradaInventarioService
+  EntradaInventarioService -[hidden]right- InventarioService
+  AsignacionMesaService -[hidden]down- InventarioService
+  InventarioService -[hidden]right- MesaService
+  AutenticacionService -[hidden]down- MesaService
+  MesaService -[hidden]right- PagoDAO
+  DisponibilidadDAO -[hidden]down- PagoDAO
+  PagoDAO -[hidden]right- PagoService
+  DisponibilidadService -[hidden]down- PagoService
+  EntradaInventarioService -[hidden]down- PedidoFacade
+  PedidoFacade -[hidden]right- PedidoService
+  InventarioService -[hidden]down- PedidoService
+  PedidoService -[hidden]right- ProductoDAO
+  MesaService -[hidden]down- ProductoDAO
+  ProductoDAO -[hidden]right- ReglaDescuentoService
+  PagoDAO -[hidden]down- ReglaDescuentoService
+  ReglaDescuentoService -[hidden]right- ReservaService
+  PagoService -[hidden]down- ReservaService
+  PedidoFacade -[hidden]down- Resultado
+}
+package "referencias" <<otros paquetes>> #FAFAFA {
+  class Adicional <<entity>> #F3E8FF {
+  }
+  class AdicionalNoDisponibleException <<exceptions>> #FEF9C3 {
+  }
+  class AdicionalRepository <<repository>> #FFEDD5 {
+  }
+  class AsignacionActivaException <<exceptions>> #FEF9C3 {
+  }
+  class AsignacionMesa <<entity>> #F3E8FF {
+  }
+  class AsignacionMesaRepository <<repository>> #FFEDD5 {
+  }
+  class CajeroPagoController <<controller>> #DBEAFE {
+  }
+  class CuentaPago <<dto>> #FEF9C3 {
+  }
+  class DetallePedidoAdicional <<entity>> #F3E8FF {
+  }
+  class DetallePedidoAdicionalRepository <<repository>> #FFEDD5 {
+  }
+  class DisponibilidadAdminController <<controller>> #DBEAFE {
+  }
+  class EntradaInventario <<entity>> #F3E8FF {
+  }
+  class EntradaInventarioRepository <<repository>> #FFEDD5 {
+  }
+  class EstadoMesa <<entity>> #F3E8FF {
+  }
+  class EstadoMesaRepository <<repository>> #FFEDD5 {
+  }
+  enum EstadoPedido <<enums>> #FEF9C3 {
+  }
+  class HistorialEstadoMesa <<entity>> #F3E8FF {
+  }
+  class HistorialEstadoMesaRepository <<repository>> #FFEDD5 {
+  }
+  class InventarioRepository <<repository>> #FFEDD5 {
+  }
+  class ItemPedido <<dto>> #FEF9C3 {
+  }
+  class LoginController <<controller>> #DBEAFE {
+  }
+  class MapaSalonController <<controller>> #DBEAFE {
+  }
+  class MenuMeseroController <<controller>> #DBEAFE {
+  }
+  class Mesa <<entity>> #F3E8FF {
+  }
+  class MesaNotFoundException <<exceptions>> #FEF9C3 {
+  }
+  class MesaOcupadaException <<exceptions>> #FEF9C3 {
+  }
+  class MesaRepository <<repository>> #FFEDD5 {
+  }
+  enum MetodoPago <<enums>> #FEF9C3 {
+  }
+  class Pago <<entity>> #F3E8FF {
+  }
+  interface PagoRepository <<repository>> #FFEDD5 {
+  }
+  class Pedido <<entity>> #F3E8FF {
+  }
+  class PedidoNoEditableException <<exceptions>> #FEF9C3 {
+  }
+  class PedidoRepository <<repository>> #FFEDD5 {
+  }
+  class PlatoInsumo <<entity>> #F3E8FF {
+  }
+  class PlatoInsumoRepository <<repository>> #FFEDD5 {
+  }
+  class Producto <<entity>> #F3E8FF {
+  }
+  class ProductoDisponibilidad <<dto>> #FEF9C3 {
+  }
+  class ReglaDescuento <<entity>> #F3E8FF {
+  }
+  class ReglaDescuentoRepository <<repository>> #FFEDD5 {
+  }
+  class Reserva <<entity>> #F3E8FF {
+  }
+  class ReservaNoCancelableException <<exceptions>> #FEF9C3 {
+  }
+  class ReservaNotFoundException <<exceptions>> #FEF9C3 {
+  }
+  class ReservaRepository <<repository>> #FFEDD5 {
+  }
+  class StockInsuficienteException <<exceptions>> #FEF9C3 {
+  }
+  class UsuarioAutenticable <<entity>> #F3E8FF {
+  }
+  class UsuarioRepository <<repository>> #FFEDD5 {
+  }
+  class Zona <<entity>> #F3E8FF {
+  }
+  class ZonaRepository <<repository>> #FFEDD5 {
+  }
+  Adicional -[hidden]right- AdicionalNoDisponibleException
+  AdicionalNoDisponibleException -[hidden]right- AdicionalRepository
+  AdicionalRepository -[hidden]right- AsignacionActivaException
+  Adicional -[hidden]down- AsignacionMesa
+  AsignacionMesa -[hidden]right- AsignacionMesaRepository
+  AdicionalNoDisponibleException -[hidden]down- AsignacionMesaRepository
+  AsignacionMesaRepository -[hidden]right- CajeroPagoController
+  AdicionalRepository -[hidden]down- CajeroPagoController
+  CajeroPagoController -[hidden]right- CuentaPago
+  AsignacionActivaException -[hidden]down- CuentaPago
+  AsignacionMesa -[hidden]down- DetallePedidoAdicional
+  DetallePedidoAdicional -[hidden]right- DetallePedidoAdicionalRepository
+  AsignacionMesaRepository -[hidden]down- DetallePedidoAdicionalRepository
+  DetallePedidoAdicionalRepository -[hidden]right- DisponibilidadAdminController
+  CajeroPagoController -[hidden]down- DisponibilidadAdminController
+  DisponibilidadAdminController -[hidden]right- EntradaInventario
+  CuentaPago -[hidden]down- EntradaInventario
+  DetallePedidoAdicional -[hidden]down- EntradaInventarioRepository
+  EntradaInventarioRepository -[hidden]right- EstadoMesa
+  DetallePedidoAdicionalRepository -[hidden]down- EstadoMesa
+  EstadoMesa -[hidden]right- EstadoMesaRepository
+  DisponibilidadAdminController -[hidden]down- EstadoMesaRepository
+  EstadoMesaRepository -[hidden]right- EstadoPedido
+  EntradaInventario -[hidden]down- EstadoPedido
+  EntradaInventarioRepository -[hidden]down- HistorialEstadoMesa
+  HistorialEstadoMesa -[hidden]right- HistorialEstadoMesaRepository
+  EstadoMesa -[hidden]down- HistorialEstadoMesaRepository
+  HistorialEstadoMesaRepository -[hidden]right- InventarioRepository
+  EstadoMesaRepository -[hidden]down- InventarioRepository
+  InventarioRepository -[hidden]right- ItemPedido
+  EstadoPedido -[hidden]down- ItemPedido
+  HistorialEstadoMesa -[hidden]down- LoginController
+  LoginController -[hidden]right- MapaSalonController
+  HistorialEstadoMesaRepository -[hidden]down- MapaSalonController
+  MapaSalonController -[hidden]right- MenuMeseroController
+  InventarioRepository -[hidden]down- MenuMeseroController
+  MenuMeseroController -[hidden]right- Mesa
+  ItemPedido -[hidden]down- Mesa
+  LoginController -[hidden]down- MesaNotFoundException
+  MesaNotFoundException -[hidden]right- MesaOcupadaException
+  MapaSalonController -[hidden]down- MesaOcupadaException
+  MesaOcupadaException -[hidden]right- MesaRepository
+  MenuMeseroController -[hidden]down- MesaRepository
+  MesaRepository -[hidden]right- MetodoPago
+  Mesa -[hidden]down- MetodoPago
+  MesaNotFoundException -[hidden]down- Pago
+  Pago -[hidden]right- PagoRepository
+  MesaOcupadaException -[hidden]down- PagoRepository
+  PagoRepository -[hidden]right- Pedido
+  MesaRepository -[hidden]down- Pedido
+  Pedido -[hidden]right- PedidoNoEditableException
+  MetodoPago -[hidden]down- PedidoNoEditableException
+  Pago -[hidden]down- PedidoRepository
+  PedidoRepository -[hidden]right- PlatoInsumo
+  PagoRepository -[hidden]down- PlatoInsumo
+  PlatoInsumo -[hidden]right- PlatoInsumoRepository
+  Pedido -[hidden]down- PlatoInsumoRepository
+  PlatoInsumoRepository -[hidden]right- Producto
+  PedidoNoEditableException -[hidden]down- Producto
+  PedidoRepository -[hidden]down- ProductoDisponibilidad
+  ProductoDisponibilidad -[hidden]right- ReglaDescuento
+  PlatoInsumo -[hidden]down- ReglaDescuento
+  ReglaDescuento -[hidden]right- ReglaDescuentoRepository
+  PlatoInsumoRepository -[hidden]down- ReglaDescuentoRepository
+  ReglaDescuentoRepository -[hidden]right- Reserva
+  Producto -[hidden]down- Reserva
+  ProductoDisponibilidad -[hidden]down- ReservaNoCancelableException
+  ReservaNoCancelableException -[hidden]right- ReservaNotFoundException
+  ReglaDescuento -[hidden]down- ReservaNotFoundException
+  ReservaNotFoundException -[hidden]right- ReservaRepository
+  ReglaDescuentoRepository -[hidden]down- ReservaRepository
+  ReservaRepository -[hidden]right- StockInsuficienteException
+  Reserva -[hidden]down- StockInsuficienteException
+  ReservaNoCancelableException -[hidden]down- UsuarioAutenticable
+  UsuarioAutenticable -[hidden]right- UsuarioRepository
+  ReservaNotFoundException -[hidden]down- UsuarioRepository
+  UsuarioRepository -[hidden]right- Zona
+  ReservaRepository -[hidden]down- Zona
+  Zona -[hidden]right- ZonaRepository
+  StockInsuficienteException -[hidden]down- ZonaRepository
+}
+AdicionalService "1" *-[#C2410C]-> "1 adicionalRepository" AdicionalRepository
+AdicionalService "1" *-[#C2410C]-> "1 detallePedidoAdicionalRepository" DetallePedidoAdicionalRepository
+AdicionalService -[#7E22CE,dashed]-> Adicional
+AdicionalService -[#7E22CE,dashed]-> DetallePedidoAdicional
+AdicionalService -[#A16207,dashed]-> AdicionalNoDisponibleException
+AsignacionMesaService "1" *-[#C2410C]-> "1 asignacionMesaRepository" AsignacionMesaRepository
+AsignacionMesaService -[#7E22CE,dashed]-> AsignacionMesa
+AsignacionMesaService -[#A16207,dashed]-> AsignacionActivaException
+AutenticacionService -[#7E22CE,dashed]-> UsuarioAutenticable
+AutenticacionService o-[#C2410C]-> "1 usuarioRepository" UsuarioRepository
+CajeroPagoController "1" *-[#047857]-> "1 pagoDAO" PagoDAO
+DisponibilidadAdminController "1" *-[#047857]-> "1 dao" DisponibilidadDAO
+DisponibilidadDAO -[#A16207,dashed]-> ProductoDisponibilidad
+DisponibilidadService "1" *-[#C2410C]-> "1 platoInsumoRepo" PlatoInsumoRepository
+DisponibilidadService -[#7E22CE,dashed]-> PlatoInsumo
+EntradaInventarioService "1" *-[#C2410C]-> "1 repo" EntradaInventarioRepository
+EntradaInventarioService -[#7E22CE,dashed]-> EntradaInventario
+InventarioService "1" *-[#C2410C]-> "1 inventarioRepository" InventarioRepository
+InventarioService -[#A16207,dashed]-> StockInsuficienteException
+LoginController "1" *-[#047857]-> "1 autenticacion" AutenticacionService
+MapaSalonController "1" *-[#047857]-> "1 mesaService" MesaService
+MenuMeseroController "1" *-[#047857]-> "1 pedidoFacade" PedidoFacade
+MenuMeseroController "1" *-[#047857]-> "1 pedidoService" PedidoService
+MenuMeseroController "1" *-[#047857]-> "1 productoDAO" ProductoDAO
+MesaService "1" *-[#C2410C]-> "1 estadoMesaRepository" EstadoMesaRepository
+MesaService "1" *-[#C2410C]-> "1 historialEstadoMesaRepository" HistorialEstadoMesaRepository
+MesaService "1" *-[#C2410C]-> "1 mesaRepository" MesaRepository
+MesaService "1" *-[#C2410C]-> "1 zonaRepository" ZonaRepository
+MesaService -[#7E22CE,dashed]-> EstadoMesa
+MesaService -[#7E22CE,dashed]-> HistorialEstadoMesa
+MesaService -[#7E22CE,dashed]-> Mesa
+MesaService -[#7E22CE,dashed]-> Zona
+MesaService -[#A16207,dashed]-> MesaNotFoundException
+PagoDAO -[#A16207,dashed]-> CuentaPago
+PagoService -[#7E22CE,dashed]-> Pago
+PagoService -[#7E22CE,dashed]-> Pedido
+PagoService -[#A16207,dashed]-> EstadoPedido
+PagoService -[#A16207,dashed]-> MetodoPago
+PagoService o-[#C2410C]-> "1 pagoRepository" PagoRepository
+PagoService o-[#C2410C]-> "1 pedidoRepository" PedidoRepository
+PedidoFacade -[#7E22CE,dashed]-> Pedido
+PedidoFacade -[#A16207,dashed]-> ItemPedido
+PedidoFacade o-[#047857]-> "1 disponibilidadDAO" DisponibilidadDAO
+PedidoFacade o-[#047857]-> "1 inventarioService" InventarioService
+PedidoFacade o-[#047857]-> "1 pedidoService" PedidoService
+PedidoService "1" *-[#047857]-> "1 inventarioService" InventarioService
+PedidoService "1" *-[#047857]-> "1 mesaService" MesaService
+PedidoService "1" *-[#C2410C]-> "1 pedidoRepository" PedidoRepository
+PedidoService -[#7E22CE,dashed]-> Pedido
+PedidoService -[#A16207,dashed]-> MesaNotFoundException
+PedidoService -[#A16207,dashed]-> MesaOcupadaException
+PedidoService -[#A16207,dashed]-> PedidoNoEditableException
+PedidoService -[#A16207]-> "* ESTADOS_YA_CERRADOS" EstadoPedido
+ProductoDAO "1" *-[#047857]-> "1 disponibilidadDAO" DisponibilidadDAO
+ProductoDAO -[#7E22CE,dashed]-> Producto
+ReglaDescuentoService "1" *-[#C2410C]-> "1 repo" ReglaDescuentoRepository
+ReglaDescuentoService -[#7E22CE,dashed]-> ReglaDescuento
+ReservaService "1" *-[#047857]-> "1 mesaService" MesaService
+ReservaService "1" *-[#C2410C]-> "1 pedidoRepository" PedidoRepository
+ReservaService "1" *-[#C2410C]-> "1 reservaRepository" ReservaRepository
+ReservaService -[#7E22CE,dashed]-> Reserva
+ReservaService -[#A16207,dashed]-> EstadoPedido
+ReservaService -[#A16207,dashed]-> ReservaNoCancelableException
+ReservaService -[#A16207,dashed]-> ReservaNotFoundException
+@enduml

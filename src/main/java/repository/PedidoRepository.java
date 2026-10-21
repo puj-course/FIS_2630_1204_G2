@@ -188,7 +188,7 @@ public class PedidoRepository {
                         "inventario_descontado " +
                         "FROM pedidos " +
                         "WHERE mesa_id = ? " +
-                        "AND estado <> ? " +
+                        "AND estado NOT IN ('CANCELADO', 'ENTREGADO') " +
                         "ORDER BY pedido_id DESC " +
                         "LIMIT 1";
 
@@ -199,11 +199,6 @@ public class PedidoRepository {
             stmt.setLong(
                     1,
                     mesaId
-            );
-
-            stmt.setString(
-                    2,
-                    EstadoPedido.CANCELADO.name()
             );
 
             try (ResultSet rs =

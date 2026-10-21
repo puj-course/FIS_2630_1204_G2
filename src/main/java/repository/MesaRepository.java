@@ -479,8 +479,8 @@ public class MesaRepository {
      * Genera el código de una mesa.
      */
     private String generarCodigoMesa(int idZona, int numeroMesa) {
-        return String.format("M-%02d-%02d", idZona, numeroMesa);
-    }
+    return String.format("MESA-%03d", numeroMesa);
+}
 
     /**
      * Cambia el estado usando una conexión existente.
@@ -488,16 +488,16 @@ public class MesaRepository {
     public void cambiarEstadoMesa(Connection conn, int idMesa, String codigoEstado) throws SQLException {
         String sql =
                 "UPDATE mesas " +
-                        "SET id_estado_mesa = (" +
-                        "        SELECT id_estado_mesa " +
-                        "        FROM estados_mesa " +
-                        "        WHERE UPPER(codigo_estado) = UPPER(?)" +
-                        "    ), " +
-                        "    cantidad_comensales = CASE " +
-                        "        WHEN UPPER(?) IN ('LIBRE', 'DISPONIBLE') THEN NULL " +
-                        "        ELSE cantidad_comensales " +
-                        "    END " +
-                        "WHERE id_mesa = ?";
+                "SET id_estado_mesa = (" +
+                "        SELECT id_estado_mesa " +
+                "        FROM estados_mesa " +
+                "        WHERE UPPER(codigo_estado) = UPPER(?)" +
+                "    ), " +
+                "    cantidad_comensales = CASE " +
+                "        WHEN UPPER(?) IN ('LIBRE', 'DISPONIBLE') THEN NULL " +
+                "        ELSE cantidad_comensales " +
+                "    END " +
+                "WHERE id_mesa = ?";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, codigoEstado);
@@ -510,6 +510,7 @@ public class MesaRepository {
             }
         }
     }
+
     /**
      * Cambia la capacidad de una mesa.
      */

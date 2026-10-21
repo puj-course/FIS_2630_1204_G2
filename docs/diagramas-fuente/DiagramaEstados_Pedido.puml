@@ -1,0 +1,47 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam nodesep 32
+skinparam ranksep 48
+skinparam ArrowFontSize 12
+skinparam ArrowFontStyle bold
+skinparam ArrowColor #1E293B
+skinparam StateFontSize 13
+skinparam StateFontStyle bold
+skinparam StateBackgroundColor #FFFFFF
+skinparam StateBorderColor #334155
+skinparam legendBackgroundColor #FFFFFF
+skinparam legendBorderColor #94A3B8
+skinparam legendFontSize 11
+state "Pedido  ·  enums/EstadoPedido" as PEDIDO #DBEAFE {
+  state "activo" as P_ACTIVO #F8FAFC {
+    state "PENDIENTE" as P_PENDIENTE
+    state "ASIGNADO_MESA" as P_ASIGNADO_MESA #E5E7EB
+    state "EN_PREPARACION" as P_EN_PREPARACION
+    state "COMPLETADO" as P_COMPLETADO
+  }
+  state "ENTREGADO" as P_ENTREGADO #FEF9C3
+  state "CANCELADO" as P_CANCELADO #FEF9C3
+  [*] --> P_PENDIENTE : T1
+  P_EN_PREPARACION -[#2563EB]-> P_COMPLETADO : T2
+  P_PENDIENTE -[#2563EB]-> P_EN_PREPARACION : T3
+  P_ASIGNADO_MESA -[#2563EB]-> P_EN_PREPARACION : T4
+  P_ACTIVO --> P_ENTREGADO : T5
+  P_ACTIVO --> P_CANCELADO : T6
+  P_ENTREGADO --> [*]
+  P_CANCELADO --> [*]
+}
+legend bottom
+<b>Transiciones</b>
+|=  |= desde |= a |= operacion |= condicion |
+| <b>T1</b> | inicio | PENDIENTE | PedidoService.crearPedido() | falla si: La mesa ... ya tiene una comanda activa |
+| <b>T2</b> | EN_PREPARACION | COMPLETADO | PedidoComandaAdapter.avanzar() | estado == EN_PREPARACION |
+| <b>T3</b> | PENDIENTE | EN_PREPARACION | PedidoComandaAdapter.avanzar() | estado != EN_PREPARACION |
+| <b>T4</b> | ASIGNADO_MESA | EN_PREPARACION | PedidoComandaAdapter.avanzar() | estado != EN_PREPARACION |
+| <b>T5</b> | cualquier estado activo | ENTREGADO | PedidoService.cerrarPedido() | estado no esta en {ENTREGADO, CANCELADO}; falla si: El pedido ... ya está en estado |
+| <b>T6</b> | cualquier estado activo | CANCELADO | PedidoService.cancelarPedido() | estado no esta en {ENTREGADO, CANCELADO}; falla si: El pedido ... ya está en estado |
+
+<b>Colores</b>  <back:#E5E7EB>      </back> ningun codigo lo asigna   <back:#FEF9C3>      </back> estado final   <back:#2563EB>      </back> flecha azul: escribe con pedidoRepository.save() sin pasar por PedidoService, asi que se salta la guarda ESTADOS_YA_CERRADOS
+endlegend
+@enduml
