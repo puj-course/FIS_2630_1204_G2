@@ -558,16 +558,81 @@ public class MesaRepository {
         return mesa;
     }
     /**
-     * Desactiva una mesa.
+     * Desactiva una mesa solamente si no tiene pedidos activos.
+     * La validación y la desactivación se realizan en una transacción.
      */
     public void quitarMesa(int idMesa) throws SQLException {
+        String sqlBloquearMesa =
+                "SELECT id_mesa FROM mesas " +
+                        "WHERE id_mesa = ? AND is_active = 1 FOR UPDATE";
 
-        String sql = "UPDATE mesas " + "SET is_active = 0 " + "WHERE id_mesa = ?";
+        String sqlPedidoActivo =
+                "SELECT 1 FROM pedidos " +
+                        "WHERE mesa_id = ? " +
+                        "AND UPPER(estado) NOT IN " +
+                        "('CANCELADO', 'COMPLETADO', 'ENTREGADO', " +
+                        "'PAGADO', 'CERRADO', 'FINALIZADO') " +
+                        "LIMIT 1";
 
-        try (Connection conn = ConexionBD.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idMesa);
-            stmt.executeUpdate();
+        String sqlDesactivar =
+                "UPDATE mesas SET is_active = 0 " +
+                        "WHERE id_mesa = ? AND is_active = 1";
+
+        try (Connection conn = ConexionBD.getConnection()) {
+            boolean autoCommitOriginal = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+
+            try {
+                // Verifica que la mesa exista y la bloquea durante la operación.
+                try (PreparedStatement stmt =
+                             conn.prepareStatement(sqlBloquearMesa)) {
+                    stmt.setInt(1, idMesa);
+
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (!rs.next()) {
+                            throw new exceptions.MesaNotFoundException(
+                                    "La mesa no existe o ya fue retirada."
+                            );
+                        }
+                    }
+                }
+
+                // No se permite retirar mesas con pedidos activos.
+                try (PreparedStatement stmt =
+                             conn.prepareStatement(sqlPedidoActivo)) {
+                    stmt.setInt(1, idMesa);
+
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            throw new exceptions.MesaConPedidoActivoException(
+                                    "No se puede quitar esta mesa porque tiene " +
+                                            "un pedido activo. Finaliza o cancela el " +
+                                            "pedido antes de retirar la mesa."
+                            );
+                        }
+                    }
+                }
+
+                // Desactiva la mesa sin eliminar su historial.
+                try (PreparedStatement stmt =
+                             conn.prepareStatement(sqlDesactivar)) {
+                    stmt.setInt(1, idMesa);
+
+                    if (stmt.executeUpdate() != 1) {
+                        throw new SQLException(
+                                "No se pudo retirar la mesa."
+                        );
+                    }
+                }
+
+                conn.commit();
+
+            } catch (SQLException | RuntimeException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(autoCommitOriginal);
+            }
         }
     }
 }

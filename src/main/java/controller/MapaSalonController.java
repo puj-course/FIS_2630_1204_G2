@@ -31,7 +31,8 @@ import javafx.util.Duration;
 import entity.Mesa;
 import repository.MesaRepository;
 import service.MesaService;
-
+import exceptions.MesaConPedidoActivoException;
+import exceptions.MesaNotFoundException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -433,6 +434,7 @@ public class MapaSalonController {
         }
     }
 
+
     @FXML
     private void quitarMesa() {
         if (mesaSeleccionada == null) {
@@ -440,22 +442,50 @@ public class MapaSalonController {
             return;
         }
 
+        Mesa mesaPorRetirar = mesaSeleccionada;
+
+        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmacion.setTitle("Retirar mesa");
+        confirmacion.setHeaderText("¿Desea retirar esta mesa?");
+        confirmacion.setContentText(
+                "La mesa dejará de aparecer en el mapa. " +
+                        "No podrá retirarse si tiene un pedido activo."
+        );
+
+        Optional<ButtonType> resultado = confirmacion.showAndWait();
+
+        if (resultado.isEmpty()
+                || resultado.get() != ButtonType.OK) {
+            return;
+        }
+
         try {
-            mesaRepository.quitarMesa(mesaSeleccionada.getIdMesa());
-
-            // Buscar y eliminar solamente el botón de esa mesa
-            String idBoton = "mesa-" + mesaSeleccionada.getIdMesa();
-
-            panelMesas.getChildren().removeIf(
-                    nodo -> idBoton.equals(nodo.getId())
-            );
+            mesaService.quitarMesa(mesaPorRetirar.getIdMesa());
 
             mesaSeleccionada = null;
 
+            // Recarga las mesas y actualiza el mapa y los contadores.
+            cargarMesas();
+
+            mostrarInformacion(
+                    "Mesa retirada",
+                    "La mesa se retiró correctamente."
+            );
+
+        } catch (MesaConPedidoActivoException e) {
+            mostrarError(e.getMessage());
+
+        } catch (MesaNotFoundException e) {
+            mostrarError(e.getMessage());
+
         } catch (SQLException e) {
-            mostrarError("Error al quitar mesa: " + e.getMessage());
+            mostrarError(
+                    "No se pudo retirar la mesa por un error de base de datos. " +
+                            "Verifique la conexión e inténtelo nuevamente."
+            );
         }
     }
+
 
     /**
      * HU-60: pide la cantidad de comensales para la mesa seleccionada y advierte
