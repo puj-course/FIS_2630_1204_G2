@@ -466,13 +466,43 @@ public class MesaRepository {
      * Agrega una nueva mesa.
      */
     public void agregarMesa(int numeroMesa) throws SQLException {
-        String sql = "INSERT INTO mesas " + "(numero_mesa, codigo_mesa, capacidad, id_zona, id_estado_mesa) " + "VALUES (?, ?, 2, ?, 1)";
-        try (Connection conn = ConexionBD.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, numeroMesa);
-            stmt.setString(2, generarCodigoMesa(ZONA_POR_DEFECTO, numeroMesa));
-            stmt.setInt(3, ZONA_POR_DEFECTO);
-            stmt.executeUpdate();
+        String sqlExiste =
+                "SELECT 1 FROM mesas " +
+                        "WHERE numero_mesa = ? " +
+                        "AND id_zona = ? " +
+                        "AND is_active = 1 " +
+                        "LIMIT 1";
+
+        try (Connection conn = ConexionBD.getConnection()) {
+            try (PreparedStatement stmt = conn.prepareStatement(sqlExiste)) {
+                stmt.setInt(1, numeroMesa);
+                stmt.setInt(2, ZONA_POR_DEFECTO);
+
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        throw new SQLException(
+                                "Ya existe una mesa activa con el número "
+                                        + numeroMesa + " en esta zona.",
+                                "23505"
+                        );
+                    }
+                }
+            }
+
+            String sqlInsertar =
+                    "INSERT INTO mesas " +
+                            "(numero_mesa, codigo_mesa, capacidad, id_zona, id_estado_mesa) " +
+                            "VALUES (?, ?, 2, ?, 1)";
+
+            try (PreparedStatement stmt = conn.prepareStatement(sqlInsertar)) {
+                stmt.setInt(1, numeroMesa);
+                stmt.setString(
+                        2,
+                        generarCodigoMesa(ZONA_POR_DEFECTO, numeroMesa)
+                );
+                stmt.setInt(3, ZONA_POR_DEFECTO);
+                stmt.executeUpdate();
+            }
         }
     }
     /**

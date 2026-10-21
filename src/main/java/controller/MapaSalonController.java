@@ -413,24 +413,62 @@ public class MapaSalonController {
         TextInputDialog dialog = new TextInputDialog();
 
         dialog.setTitle("Agregar mesa");
-        dialog.setHeaderText("Nueva mesa");
-        dialog.setContentText("Número de mesa:");
+        dialog.setHeaderText("Registrar una nueva mesa");
+        dialog.setContentText("Ingrese el número de mesa:");
 
         Optional<String> resultado = dialog.showAndWait();
 
-        if (resultado.isPresent()) {
-            try {
-                int numeroMesa = Integer.parseInt(resultado.get());
+        if (resultado.isEmpty()) {
+            return;
+        }
 
-                mesaRepository.agregarMesa(numeroMesa);
+        String entrada = resultado.get().trim();
 
-                cargarMesas();
+        if (entrada.isEmpty()) {
+            mostrarError("Debe ingresar el número de la mesa.");
+            return;
+        }
 
-            } catch (NumberFormatException e) {
-                mostrarError("Ingrese un número válido.");
-            } catch (SQLException e) {
-                mostrarError("Error al agregar mesa: " + e.getMessage());
+        final int numeroMesa;
+
+        try {
+            numeroMesa = Integer.parseInt(entrada);
+        } catch (NumberFormatException e) {
+            mostrarError("El número de mesa debe ser un número entero válido.");
+            return;
+        }
+
+        if (numeroMesa < 1 || numeroMesa > 9999) {
+            mostrarError("El número de mesa debe estar entre 1 y 9999.");
+            return;
+        }
+
+        try {
+            mesaService.registrarMesa(numeroMesa);
+            cargarMesas();
+
+            Alert exito = new Alert(Alert.AlertType.INFORMATION);
+            exito.setTitle("Mesa registrada");
+            exito.setHeaderText("Mesa agregada correctamente");
+            exito.setContentText(
+                    "La mesa " + numeroMesa
+                            + " se agregó al mapa del salón."
+            );
+            exito.showAndWait();
+
+        } catch (SQLException e) {
+            if ("23505".equals(e.getSQLState())) {
+                mostrarError(
+                        "Ya existe una mesa con ese número en esta zona."
+                );
+            } else {
+                mostrarError(
+                        "No se pudo registrar la mesa. "
+                                + "Verifique la información e inténtelo nuevamente."
+                );
             }
+        } catch (IllegalArgumentException e) {
+            mostrarError(e.getMessage());
         }
     }
 
