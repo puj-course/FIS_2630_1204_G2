@@ -318,6 +318,46 @@ class MesaModuloFuncionalTest {
     }
 
     // ------------------------------------------------------------------
+    // ------------------------------------------------------------------
+    // Issue 7 · Consistencia de los comensales al cambiar el estado
+    // ------------------------------------------------------------------
+
+    @Test
+    @Order(15)
+    @DisplayName("Issue 7 · Cambiar el estado a LIBRE limpia los comensales")
+    void cambiarEstadoALibreLimpiaComensales() throws SQLException {
+        assertTrue(repositorio.asignarComensales(idMesaCuatro, 3));
+
+        try (Connection conn = ConexionBD.getConnection()) {
+            repositorio.cambiarEstadoMesa(conn, idMesaCuatro, "LIBRE");
+        }
+
+        Mesa mesa = buscar(idMesaCuatro);
+        assertAll(
+                () -> assertEquals("LIBRE", mesa.getCodigoEstado().toUpperCase(),
+                        "la mesa debe quedar libre"),
+                () -> assertNull(comensalesEnBaseDeDatos(idMesaCuatro),
+                        "al dejar la mesa libre deben limpiarse los comensales"));
+    }
+
+    @Test
+    @Order(16)
+    @DisplayName("Issue 7 · Cambiar a RESERVADA conserva los comensales")
+    void cambiarAReservadaConservaComensales() throws SQLException {
+        assertTrue(repositorio.asignarComensales(idMesaCuatro, 3));
+
+        try (Connection conn = ConexionBD.getConnection()) {
+            repositorio.cambiarEstadoMesa(conn, idMesaCuatro, "RESERVADA");
+        }
+
+        Mesa mesa = buscar(idMesaCuatro);
+        assertAll(
+                () -> assertEquals("RESERVADA", mesa.getCodigoEstado().toUpperCase(),
+                        "la mesa debe quedar reservada"),
+                () -> assertEquals(3, comensalesEnBaseDeDatos(idMesaCuatro),
+                        "el cambio a RESERVADA no debe limpiar los comensales"));
+    }
+
     // Utilidades
     // ------------------------------------------------------------------
 

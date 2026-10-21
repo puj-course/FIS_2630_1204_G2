@@ -466,13 +466,43 @@ public class MesaRepository {
      * Agrega una nueva mesa.
      */
     public void agregarMesa(int numeroMesa) throws SQLException {
-        String sql = "INSERT INTO mesas " + "(numero_mesa, codigo_mesa, capacidad, id_zona, id_estado_mesa) " + "VALUES (?, ?, 2, ?, 1)";
-        try (Connection conn = ConexionBD.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, numeroMesa);
-            stmt.setString(2, generarCodigoMesa(ZONA_POR_DEFECTO, numeroMesa));
-            stmt.setInt(3, ZONA_POR_DEFECTO);
-            stmt.executeUpdate();
+        String sqlExiste =
+                "SELECT 1 FROM mesas " +
+                        "WHERE numero_mesa = ? " +
+                        "AND id_zona = ? " +
+                        "AND is_active = 1 " +
+                        "LIMIT 1";
+
+        try (Connection conn = ConexionBD.getConnection()) {
+            try (PreparedStatement stmt = conn.prepareStatement(sqlExiste)) {
+                stmt.setInt(1, numeroMesa);
+                stmt.setInt(2, ZONA_POR_DEFECTO);
+
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        throw new SQLException(
+                                "Ya existe una mesa activa con el número "
+                                        + numeroMesa + " en esta zona.",
+                                "23505"
+                        );
+                    }
+                }
+            }
+
+            String sqlInsertar =
+                    "INSERT INTO mesas " +
+                            "(numero_mesa, codigo_mesa, capacidad, id_zona, id_estado_mesa) " +
+                            "VALUES (?, ?, 2, ?, 1)";
+
+            try (PreparedStatement stmt = conn.prepareStatement(sqlInsertar)) {
+                stmt.setInt(1, numeroMesa);
+                stmt.setString(
+                        2,
+                        generarCodigoMesa(ZONA_POR_DEFECTO, numeroMesa)
+                );
+                stmt.setInt(3, ZONA_POR_DEFECTO);
+                stmt.executeUpdate();
+            }
         }
     }
     /**
@@ -486,13 +516,31 @@ public class MesaRepository {
      * Cambia el estado usando una conexión existente.
      */
     public void cambiarEstadoMesa(Connection conn, int idMesa, String codigoEstado) throws SQLException {
-        String sql = "UPDATE mesas " + "SET id_estado_mesa = (" + "    SELECT id_estado_mesa " + "    FROM estados_mesa " + "    WHERE UPPER(codigo_estado) = UPPER(?)" + ") " + "WHERE id_mesa = ?";
+        String sql =
+                "UPDATE mesas " +
+                "SET id_estado_mesa = (" +
+                "        SELECT id_estado_mesa " +
+                "        FROM estados_mesa " +
+                "        WHERE UPPER(codigo_estado) = UPPER(?)" +
+                "    ), " +
+                "    cantidad_comensales = CASE " +
+                "        WHEN UPPER(?) IN ('LIBRE', 'DISPONIBLE') THEN NULL " +
+                "        ELSE cantidad_comensales " +
+                "    END " +
+                "WHERE id_mesa = ?";
+
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, codigoEstado);
-            stmt.setInt(2, idMesa);
-            stmt.executeUpdate();
+            stmt.setString(2, codigoEstado);
+            stmt.setInt(3, idMesa);
+
+            int filasActualizadas = stmt.executeUpdate();
+            if (filasActualizadas == 0) {
+                throw new SQLException("No se pudo cambiar el estado: la mesa no existe.");
+            }
         }
     }
+
     /**
      * Cambia la capacidad de una mesa.
      */
@@ -540,16 +588,81 @@ public class MesaRepository {
         return mesa;
     }
     /**
-     * Desactiva una mesa.
+     * Desactiva una mesa solamente si no tiene pedidos activos.
+     * La validación y la desactivación se realizan en una transacción.
      */
     public void quitarMesa(int idMesa) throws SQLException {
+        String sqlBloquearMesa =
+                "SELECT id_mesa FROM mesas " +
+                        "WHERE id_mesa = ? AND is_active = 1 FOR UPDATE";
 
-        String sql = "UPDATE mesas " + "SET is_active = 0 " + "WHERE id_mesa = ?";
+        String sqlPedidoActivo =
+                "SELECT 1 FROM pedidos " +
+                        "WHERE mesa_id = ? " +
+                        "AND UPPER(estado) NOT IN " +
+                        "('CANCELADO', 'COMPLETADO', 'ENTREGADO', " +
+                        "'PAGADO', 'CERRADO', 'FINALIZADO') " +
+                        "LIMIT 1";
 
-        try (Connection conn = ConexionBD.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idMesa);
-            stmt.executeUpdate();
+        String sqlDesactivar =
+                "UPDATE mesas SET is_active = 0 " +
+                        "WHERE id_mesa = ? AND is_active = 1";
+
+        try (Connection conn = ConexionBD.getConnection()) {
+            boolean autoCommitOriginal = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+
+            try {
+                // Verifica que la mesa exista y la bloquea durante la operación.
+                try (PreparedStatement stmt =
+                             conn.prepareStatement(sqlBloquearMesa)) {
+                    stmt.setInt(1, idMesa);
+
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (!rs.next()) {
+                            throw new exceptions.MesaNotFoundException(
+                                    "La mesa no existe o ya fue retirada."
+                            );
+                        }
+                    }
+                }
+
+                // No se permite retirar mesas con pedidos activos.
+                try (PreparedStatement stmt =
+                             conn.prepareStatement(sqlPedidoActivo)) {
+                    stmt.setInt(1, idMesa);
+
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            throw new exceptions.MesaConPedidoActivoException(
+                                    "No se puede quitar esta mesa porque tiene " +
+                                            "un pedido activo. Finaliza o cancela el " +
+                                            "pedido antes de retirar la mesa."
+                            );
+                        }
+                    }
+                }
+
+                // Desactiva la mesa sin eliminar su historial.
+                try (PreparedStatement stmt =
+                             conn.prepareStatement(sqlDesactivar)) {
+                    stmt.setInt(1, idMesa);
+
+                    if (stmt.executeUpdate() != 1) {
+                        throw new SQLException(
+                                "No se pudo retirar la mesa."
+                        );
+                    }
+                }
+
+                conn.commit();
+
+            } catch (SQLException | RuntimeException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(autoCommitOriginal);
+            }
         }
     }
 }
