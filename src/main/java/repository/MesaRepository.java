@@ -486,11 +486,28 @@ public class MesaRepository {
      * Cambia el estado usando una conexión existente.
      */
     public void cambiarEstadoMesa(Connection conn, int idMesa, String codigoEstado) throws SQLException {
-        String sql = "UPDATE mesas " + "SET id_estado_mesa = (" + "    SELECT id_estado_mesa " + "    FROM estados_mesa " + "    WHERE UPPER(codigo_estado) = UPPER(?)" + ") " + "WHERE id_mesa = ?";
+        String sql =
+                "UPDATE mesas " +
+                        "SET id_estado_mesa = (" +
+                        "        SELECT id_estado_mesa " +
+                        "        FROM estados_mesa " +
+                        "        WHERE UPPER(codigo_estado) = UPPER(?)" +
+                        "    ), " +
+                        "    cantidad_comensales = CASE " +
+                        "        WHEN UPPER(?) IN ('LIBRE', 'DISPONIBLE') THEN NULL " +
+                        "        ELSE cantidad_comensales " +
+                        "    END " +
+                        "WHERE id_mesa = ?";
+
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, codigoEstado);
-            stmt.setInt(2, idMesa);
-            stmt.executeUpdate();
+            stmt.setString(2, codigoEstado);
+            stmt.setInt(3, idMesa);
+
+            int filasActualizadas = stmt.executeUpdate();
+            if (filasActualizadas == 0) {
+                throw new SQLException("No se pudo cambiar el estado: la mesa no existe.");
+            }
         }
     }
     /**

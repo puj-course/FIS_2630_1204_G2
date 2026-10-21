@@ -96,15 +96,15 @@ class MesaModuloFuncionalTest {
 
             stmt.executeUpdate(
                     "UPDATE mesas SET cantidad_comensales = NULL, capacidad = 4, " +
-                    "    id_estado_mesa = (SELECT id_estado_mesa FROM estados_mesa " +
-                    "                      WHERE UPPER(codigo_estado) = 'LIBRE') " +
-                    "WHERE id_mesa = " + idMesaCuatro);
+                            "    id_estado_mesa = (SELECT id_estado_mesa FROM estados_mesa " +
+                            "                      WHERE UPPER(codigo_estado) = 'LIBRE') " +
+                            "WHERE id_mesa = " + idMesaCuatro);
 
             stmt.executeUpdate(
                     "UPDATE mesas SET cantidad_comensales = NULL, capacidad = 2, " +
-                    "    id_estado_mesa = (SELECT id_estado_mesa FROM estados_mesa " +
-                    "                      WHERE UPPER(codigo_estado) = 'LIBRE') " +
-                    "WHERE id_mesa = " + idMesaDos);
+                            "    id_estado_mesa = (SELECT id_estado_mesa FROM estados_mesa " +
+                            "                      WHERE UPPER(codigo_estado) = 'LIBRE') " +
+                            "WHERE id_mesa = " + idMesaDos);
         }
     }
 
@@ -278,8 +278,8 @@ class MesaModuloFuncionalTest {
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT m.numero_mesa, m.capacidad, m.cantidad_comensales, e.codigo_estado " +
-                     "FROM mesas m JOIN estados_mesa e ON e.id_estado_mesa = m.id_estado_mesa " +
-                     "WHERE m.id_mesa = ?")) {
+                             "FROM mesas m JOIN estados_mesa e ON e.id_estado_mesa = m.id_estado_mesa " +
+                             "WHERE m.id_mesa = ?")) {
 
             stmt.setInt(1, idMesaCuatro);
 
@@ -318,6 +318,46 @@ class MesaModuloFuncionalTest {
     }
 
     // ------------------------------------------------------------------
+    // ------------------------------------------------------------------
+    // Issue 7 · Consistencia de los comensales al cambiar el estado
+    // ------------------------------------------------------------------
+
+    @Test
+    @Order(15)
+    @DisplayName("Issue 7 · Cambiar el estado a LIBRE limpia los comensales")
+    void cambiarEstadoALibreLimpiaComensales() throws SQLException {
+        assertTrue(repositorio.asignarComensales(idMesaCuatro, 3));
+
+        try (Connection conn = ConexionBD.getConnection()) {
+            repositorio.cambiarEstadoMesa(conn, idMesaCuatro, "LIBRE");
+        }
+
+        Mesa mesa = buscar(idMesaCuatro);
+        assertAll(
+                () -> assertEquals("LIBRE", mesa.getCodigoEstado().toUpperCase(),
+                        "la mesa debe quedar libre"),
+                () -> assertNull(comensalesEnBaseDeDatos(idMesaCuatro),
+                        "al dejar la mesa libre deben limpiarse los comensales"));
+    }
+
+    @Test
+    @Order(16)
+    @DisplayName("Issue 7 · Cambiar a RESERVADA conserva los comensales")
+    void cambiarAReservadaConservaComensales() throws SQLException {
+        assertTrue(repositorio.asignarComensales(idMesaCuatro, 3));
+
+        try (Connection conn = ConexionBD.getConnection()) {
+            repositorio.cambiarEstadoMesa(conn, idMesaCuatro, "RESERVADA");
+        }
+
+        Mesa mesa = buscar(idMesaCuatro);
+        assertAll(
+                () -> assertEquals("RESERVADA", mesa.getCodigoEstado().toUpperCase(),
+                        "la mesa debe quedar reservada"),
+                () -> assertEquals(3, comensalesEnBaseDeDatos(idMesaCuatro),
+                        "el cambio a RESERVADA no debe limpiar los comensales"));
+    }
+
     // Utilidades
     // ------------------------------------------------------------------
 
@@ -392,9 +432,9 @@ class MesaModuloFuncionalTest {
 
         try (PreparedStatement insertar = conn.prepareStatement(
                 "INSERT INTO mesas (numero_mesa, codigo_mesa, capacidad, id_zona, " +
-                "                   id_estado_mesa, is_active) " +
-                "VALUES (?, ?, ?, ?, (SELECT id_estado_mesa FROM estados_mesa " +
-                "                     WHERE UPPER(codigo_estado) = 'LIBRE'), 1)",
+                        "                   id_estado_mesa, is_active) " +
+                        "VALUES (?, ?, ?, ?, (SELECT id_estado_mesa FROM estados_mesa " +
+                        "                     WHERE UPPER(codigo_estado) = 'LIBRE'), 1)",
                 Statement.RETURN_GENERATED_KEYS)) {
 
             insertar.setInt(1, numeroMesa);
