@@ -441,16 +441,21 @@ public class MapaSalonController {
         }
 
         try {
-            mesaRepository.quitarMesa(mesaSeleccionada.getIdMesa());
+            int idMesa = mesaSeleccionada.getIdMesa();
+            mesaRepository.quitarMesa(idMesa);
 
-            // Buscar y eliminar solamente el botón de esa mesa
-            String idBoton = "mesa-" + mesaSeleccionada.getIdMesa();
-
-            panelMesas.getChildren().removeIf(
-                    nodo -> idBoton.equals(nodo.getId())
-            );
+            // Quitar del mapa de botones y del panel (cargarMesas también limpia,
+            // pero así no queda basura si algo falla a medias).
+            Button boton = botonesPorMesa.remove(idMesa);
+            if (boton != null) {
+                panelMesas.getChildren().remove(boton);
+            }
 
             mesaSeleccionada = null;
+            limpiarDetalleMesa();
+
+            // Recarga desde BD: botones, posiciones y contadores al día.
+            cargarMesas();
 
         } catch (SQLException e) {
             mostrarError("Error al quitar mesa: " + e.getMessage());
