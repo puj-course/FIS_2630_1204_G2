@@ -4,6 +4,7 @@ public enum EstadoPedido {
     PENDIENTE,
     ASIGNADO_MESA,
     EN_PREPARACION,
+    PAGADO,
     COMPLETADO,
     ENTREGADO,
     CANCELADO
