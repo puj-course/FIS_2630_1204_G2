@@ -1,6 +1,6 @@
 package service.alerta;
 
-/** Producto concreto: no queda stock del ingrediente. */
+/** ConcreteProduct: no queda stock del ingrediente. */
 public class AlertaAgotado implements AlertaStock {
 
     @Override

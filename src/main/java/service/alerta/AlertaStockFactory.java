@@ -5,33 +5,38 @@ import entity.Ingrediente;
 import java.math.BigDecimal;
 
 /**
- * Patrón Factory: decide qué tipo de alerta crear según el stock del
- * ingrediente, y así la pantalla no necesita comparar cantidades ni conocer
- * las clases concretas.
+ * Patrón Factory Method (GoF) - rol Creator.
  *
- * Reglas:
- *   - sin stock (cero o menos)            -> AlertaAgotado
- *   - stock menor o igual al mínimo       -> AlertaStockBajo
- *   - cualquier otro caso                 -> AlertaNormal
+ * Define la interfaz para crear una AlertaStock (el factory method
+ * {@link #crearAlerta()}) pero delega en las subclases la decisión de qué
+ * clase concreta instanciar:
+ *
+ *   AlertaAgotadoFactory   -> AlertaAgotado
+ *   AlertaStockBajoFactory -> AlertaStockBajo
+ *   AlertaNormalFactory    -> AlertaNormal
+ *
+ * {@link #para(Ingrediente)} solo elige cuál de las fábricas concretas
+ * corresponde al stock del ingrediente; no crea ninguna alerta por sí misma.
  */
-public class AlertaStockFactory {
+public abstract class AlertaStockFactory {
 
-    private AlertaStockFactory() {
-    }
+    /** Factory Method: cada subclase decide qué alerta concreta crear. */
+    public abstract AlertaStock crearAlerta();
 
-    public static AlertaStock crear(Ingrediente ingrediente) {
+    /** Elige la fábrica concreta según el stock del ingrediente. */
+    public static AlertaStockFactory para(Ingrediente ingrediente) {
         if (ingrediente == null || ingrediente.getStockActual() == null) {
-            return new AlertaNormal();
+            return new AlertaNormalFactory();
         }
 
         if (ingrediente.getStockActual().compareTo(BigDecimal.ZERO) <= 0) {
-            return new AlertaAgotado();
+            return new AlertaAgotadoFactory();
         }
 
         if (ingrediente.tieneStockBajo()) {
-            return new AlertaStockBajo();
+            return new AlertaStockBajoFactory();
         }
 
-        return new AlertaNormal();
+        return new AlertaNormalFactory();
     }
 }

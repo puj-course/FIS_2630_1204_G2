@@ -23,6 +23,12 @@ public class MesaService {
     private final HistorialEstadoMesaRepository historialEstadoMesaRepository = new HistorialEstadoMesaRepository();
 
     public void registrarMesa(int numeroMesa) throws SQLException {
+        if (numeroMesa < 1 || numeroMesa > 9999) {
+            throw new IllegalArgumentException(
+                    "El número de mesa debe estar entre 1 y 9999."
+            );
+        }
+
         mesaRepository.agregarMesa(numeroMesa);
     }
 

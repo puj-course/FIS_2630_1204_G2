@@ -31,7 +31,8 @@ import javafx.util.Duration;
 import entity.Mesa;
 import repository.MesaRepository;
 import service.MesaService;
-
+import exceptions.MesaConPedidoActivoException;
+import exceptions.MesaNotFoundException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -412,31 +413,87 @@ public class MapaSalonController {
         TextInputDialog dialog = new TextInputDialog();
 
         dialog.setTitle("Agregar mesa");
-        dialog.setHeaderText("Nueva mesa");
-        dialog.setContentText("Número de mesa:");
+        dialog.setHeaderText("Registrar una nueva mesa");
+        dialog.setContentText("Ingrese el número de mesa:");
 
         Optional<String> resultado = dialog.showAndWait();
 
-        if (resultado.isPresent()) {
-            try {
-                int numeroMesa = Integer.parseInt(resultado.get());
+        if (resultado.isEmpty()) {
+            return;
+        }
 
-                mesaRepository.agregarMesa(numeroMesa);
+        String entrada = resultado.get().trim();
 
-                cargarMesas();
+        if (entrada.isEmpty()) {
+            mostrarError("Debe ingresar el número de la mesa.");
+            return;
+        }
 
-            } catch (NumberFormatException e) {
-                mostrarError("Ingrese un número válido.");
-            } catch (SQLException e) {
-                mostrarError("Error al agregar mesa: " + e.getMessage());
+        final int numeroMesa;
+
+        try {
+            numeroMesa = Integer.parseInt(entrada);
+        } catch (NumberFormatException e) {
+            mostrarError("El número de mesa debe ser un número entero válido.");
+            return;
+        }
+
+        if (numeroMesa < 1 || numeroMesa > 9999) {
+            mostrarError("El número de mesa debe estar entre 1 y 9999.");
+            return;
+        }
+
+        try {
+            mesaService.registrarMesa(numeroMesa);
+            cargarMesas();
+
+            Alert exito = new Alert(Alert.AlertType.INFORMATION);
+            exito.setTitle("Mesa registrada");
+            exito.setHeaderText("Mesa agregada correctamente");
+            exito.setContentText(
+                    "La mesa " + numeroMesa
+                            + " se agregó al mapa del salón."
+            );
+            exito.showAndWait();
+
+        } catch (SQLException e) {
+            if ("23505".equals(e.getSQLState())) {
+                mostrarError(
+                        "Ya existe una mesa con ese número en esta zona."
+                );
+            } else {
+                mostrarError(
+                        "No se pudo registrar la mesa. "
+                                + "Verifique la información e inténtelo nuevamente."
+                );
             }
+        } catch (IllegalArgumentException e) {
+            mostrarError(e.getMessage());
         }
     }
+
 
     @FXML
     private void quitarMesa() {
         if (mesaSeleccionada == null) {
             mostrarError("Seleccione una mesa primero.");
+            return;
+        }
+
+        Mesa mesaPorRetirar = mesaSeleccionada;
+
+        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmacion.setTitle("Retirar mesa");
+        confirmacion.setHeaderText("¿Desea retirar esta mesa?");
+        confirmacion.setContentText(
+                "La mesa dejará de aparecer en el mapa. " +
+                        "No podrá retirarse si tiene un pedido activo."
+        );
+
+        Optional<ButtonType> resultado = confirmacion.showAndWait();
+
+        if (resultado.isEmpty()
+                || resultado.get() != ButtonType.OK) {
             return;
         }
 
@@ -458,9 +515,13 @@ public class MapaSalonController {
             cargarMesas();
 
         } catch (SQLException e) {
-            mostrarError("Error al quitar mesa: " + e.getMessage());
+            mostrarError(
+                    "No se pudo retirar la mesa por un error de base de datos. " +
+                            "Verifique la conexión e inténtelo nuevamente."
+            );
         }
     }
+
 
     /**
      * HU-60: pide la cantidad de comensales para la mesa seleccionada y advierte
