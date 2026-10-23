@@ -5,6 +5,7 @@ import dto.ItemPedido;
 import entity.Pedido;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -26,6 +27,7 @@ import java.util.Map;
  */
 public class PedidoFacade {
 
+    private static final BigDecimal TASA_IVA = new BigDecimal("0.19");
     private final PedidoService pedidoService;
     private final InventarioService inventarioService;
     private final DisponibilidadDAO disponibilidadDAO;
@@ -78,8 +80,14 @@ public class PedidoFacade {
             }
 
             pedido.setProductos(construirJson(items));
+            BigDecimal impuestos = subtotal
+                    .multiply(TASA_IVA)  // ej. new BigDecimal("0.19")
+                    .setScale(2, RoundingMode.HALF_UP);
+            BigDecimal total = subtotal.add(impuestos);
+
             pedido.setSubtotal(subtotal);
-            pedido.setTotal(subtotal);
+            pedido.setImpuestos(impuestos);
+            pedido.setTotal(total);
             pedidoService.actualizarPedido(pedido);
 
             inventarioService.descontarIngredientes(pedido.getId(), lineas, usuarioId);

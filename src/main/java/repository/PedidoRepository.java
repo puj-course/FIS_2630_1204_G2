@@ -16,7 +16,7 @@ import java.util.Optional;
 public class PedidoRepository {
 
     public Optional<Pedido> findById(long id) throws SQLException {
-        String sql = "SELECT pedido_id, numero_pedido, mesa_id, usuario_id, " + "productos, estado, fecha_pedido, subtotal, total, " + "inventario_descontado " + "FROM pedidos " + "WHERE pedido_id = ?";
+        String sql = "SELECT pedido_id, numero_pedido, mesa_id, usuario_id, " + "productos, estado, fecha_pedido, subtotal, impuestos, total, " + "inventario_descontado " + "FROM pedidos " + "WHERE pedido_id = ?";
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
@@ -52,9 +52,9 @@ public class PedidoRepository {
         if (p.getId() == null) {
             String sql = "INSERT INTO pedidos " +
                             "(numero_pedido, mesa_id, usuario_id, productos, " +
-                            "estado, fecha_pedido, subtotal, total, " +
+                            "estado, fecha_pedido, subtotal, impuestos, total, " +
                             "inventario_descontado) " +
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
                             "RETURNING pedido_id";
             try (Connection conn = ConexionBD.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -65,13 +65,14 @@ public class PedidoRepository {
                 stmt.setString(5, p.getEstado() != null ? p.getEstado().name() : EstadoPedido.PENDIENTE.name());
                 stmt.setTimestamp(6, Timestamp.valueOf(p.getFechaPedido() != null ? p.getFechaPedido() : java.time.LocalDateTime.now()));
                 stmt.setBigDecimal(7, p.getSubtotal() != null ? p.getSubtotal() : BigDecimal.ZERO);
-                stmt.setBigDecimal(8, p.getTotal() != null ? p.getTotal() : BigDecimal.ZERO);
+                stmt.setBigDecimal(8, p.getImpuestos() != null ? p.getImpuestos() : BigDecimal.ZERO);
+                stmt.setBigDecimal(9, p.getTotal() != null ? p.getTotal() : BigDecimal.ZERO);
                 /*
                  * La base de datos utiliza:
                  * S = inventario descontado
                  * N = inventario no descontado
                  */
-                stmt.setString(9, p.isInventarioDescontado() ? "S" : "N");
+                stmt.setString(10, p.isInventarioDescontado() ? "S" : "N");
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
                         p.setId(rs.getLong(1));
@@ -86,6 +87,7 @@ public class PedidoRepository {
                             "productos = ?, " +
                             "estado = ?, " +
                             "subtotal = ?, " +
+                            "impuestos = ?, " +
                             "total = ?, " +
                             "inventario_descontado = ? " +
                             "WHERE pedido_id = ?";
@@ -131,6 +133,13 @@ public class PedidoRepository {
 
                 stmt.setBigDecimal(
                         7,
+                        p.getImpuestos() != null
+                                ? p.getImpuestos()
+                                : BigDecimal.ZERO
+                );
+
+                stmt.setBigDecimal(
+                        8,
                         p.getTotal() != null
                                 ? p.getTotal()
                                 : BigDecimal.ZERO
@@ -142,14 +151,14 @@ public class PedidoRepository {
                  * N = inventario no descontado
                  */
                 stmt.setString(
-                        8,
+                        9,
                         p.isInventarioDescontado()
                                 ? "S"
                                 : "N"
                 );
 
                 stmt.setLong(
-                        9,
+                        10,
                         p.getId()
                 );
 
@@ -184,7 +193,7 @@ public class PedidoRepository {
 
         String sql =
                 "SELECT pedido_id, numero_pedido, mesa_id, usuario_id, " +
-                        "productos, estado, fecha_pedido, subtotal, total, " +
+                        "productos, estado, fecha_pedido, subtotal, impuestos, total, " +
                         "inventario_descontado " +
                         "FROM pedidos " +
                         "WHERE mesa_id = ? " +
@@ -220,7 +229,7 @@ public class PedidoRepository {
         java.util.List<Pedido> pedidos = new java.util.ArrayList<>();
 
         String sql = "SELECT pedido_id, numero_pedido, mesa_id, usuario_id, productos, estado, fecha_pedido, " +
-        "subtotal, total, inventario_descontado " +
+        "subtotal, impuestos, total, inventario_descontado " +
         "FROM pedidos WHERE estado IN (?, ?, ?, ?) ORDER BY fecha_pedido";
 
         try (Connection conn = ConexionBD.getConnection();
@@ -307,6 +316,14 @@ public class PedidoRepository {
             p.setSubtotal(
                     subtotal
             );
+        }
+
+        BigDecimal impuestos =
+                rs.getBigDecimal(
+                        "impuestos"
+                );
+        if (impuestos != null) {
+            p.setImpuestos(impuestos);
         }
 
         BigDecimal total =

@@ -15,6 +15,7 @@ public class Pedido {
     private EstadoPedido estado = EstadoPedido.PENDIENTE;
     private LocalDateTime fechaPedido = LocalDateTime.now();
     private BigDecimal subtotal = BigDecimal.ZERO;
+    private BigDecimal impuestos = BigDecimal.ZERO;
     private BigDecimal total = BigDecimal.ZERO;
     /*
      * Indica si los ingredientes de este pedido
@@ -105,5 +106,13 @@ public class Pedido {
 
     public void setInventarioDescontado(boolean inventarioDescontado) {
         this.inventarioDescontado = inventarioDescontado;
+    }
+
+    public BigDecimal getImpuestos() {
+        return impuestos;
+    }
+
+    public void setImpuestos(BigDecimal impuestos) {
+        this.impuestos = impuestos != null ? impuestos : BigDecimal.ZERO;
     }
 }
