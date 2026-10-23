@@ -2,26 +2,54 @@
 ## Descripción de cada directorio y archivos
 ```bash
 FIS_2630_1204_G2/
-├── app/   
-    ├── controllers/
-    ├── roots/
-    ├── services/
-├── conf/         
-├── db/           
-    ├── ddl/
-    ├── functions/
-    ├── migrations/
-├── docs/        
+├── .github/
+│   ├── workflows/
+│   │   └── ci.yml
+│   └── pull_request_template.md
+├── .mvn/
+│   └── wrapper/
+├── db/
+│   ├── ddl/
+│   ├── functions/
+│   └── migrations/
+├── docs/
+│   ├── Imagenes/
+│   ├── database/
+│   └── pruebas/
 ├── scripts/
-├── src/        
-    ├── main/java/
-    ├── middleware/
-    ├── models/
-    ├── tests/
-    ├── utils/
-├── temp/
-    ├── uploads/
-├── LICENSE/
+│   └── setup.sh
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   ├── ConexionBD/
+│   │   │   ├── controller/
+│   │   │   ├── dao/
+│   │   │   ├── dto/
+│   │   │   ├── entity/
+│   │   │   ├── enums/
+│   │   │   ├── exceptions/
+│   │   │   ├── repository/
+│   │   │   ├── service/
+│   │   │   ├── session/
+│   │   │   ├── util/
+│   │   │   └── Main.java
+│   │   └── resources/
+│   │       ├── css/
+│   │       └── views/
+│   └── test/
+│       └── java/
+│           ├── dto/
+│           ├── repository/
+│           └── util/
+├── .gitattributes
+├── .gitignore
+├── BOILERPLATE_template.md
+├── CONTRIBUTING.md
+├── LICENSE
+├── README.md
+├── mvnw
+├── mvnw.cmd
+└── pom.xml
 ```
 
 

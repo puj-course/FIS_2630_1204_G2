@@ -1,6 +1,9 @@
 import session.SesionUsuario;
 import javafx.application.Application;
 import controller.LoginController;
+import controller.MenuMeseroController;
+import entity.Mesa;
+import repository.MesaRepository;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -9,6 +12,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -16,8 +20,10 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
 import javafx.stage.Stage;
+import java.util.stream.Collectors;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Punto de entrada único de GastroFlow.
@@ -365,11 +371,24 @@ public class Main extends Application {
 
     private void abrirModulo(Modulo modulo) {
         try {
-            Parent raiz = FXMLLoader.load(Main.class.getResource(modulo.fxml()));
+            FXMLLoader loader = new FXMLLoader(Main.class.getResource(modulo.fxml()));
+            Parent raiz = loader.load();
+
+            // HU-146: el menú de pedidos necesita mesa + usuario antes de confirmar.
+            if ("/views/menu-mesero.fxml".equals(modulo.fxml())) {
+                MenuMeseroController controller = loader.getController();
+                if (!configurarMenuMeseroDesdeNavegacion(controller)) {
+                    // El usuario canceló la selección de mesa: no abrir la ventana.
+                    moduloAbierto = null;
+                    refrescarNavegacion();
+                    return;
+                }
+            }
 
             Scene escena = new Scene(raiz, modulo.ancho(), modulo.alto());
             if (modulo.css() != null) {
-                escena.getStylesheets().add(Main.class.getResource(modulo.css()).toExternalForm());
+                escena.getStylesheets().add(
+                        Main.class.getResource(modulo.css()).toExternalForm());
             }
 
             Stage ventana = new Stage();
@@ -395,6 +414,67 @@ public class Main extends Application {
             alerta.setContentText(describirCausa(e));
             alerta.showAndWait();
         }
+    }
+
+    /**
+     * HU-146: al abrir "Menú y pedidos" desde el menú principal no hay mesa de
+     * contexto. Se pide una mesa ocupada y se llama configurarMesa, igual que
+     * cuando se entra desde el mapa de salón.
+     *
+     * @return false si el usuario cancela o no hay mesas ocupadas
+     */
+    private boolean configurarMenuMeseroDesdeNavegacion(MenuMeseroController controller)
+            throws Exception {
+
+        if (!SesionUsuario.estaAutenticado()) {
+            Alert alerta = new Alert(Alert.AlertType.WARNING);
+            alerta.setTitle("Sesión requerida");
+            alerta.setHeaderText(null);
+            alerta.setContentText("Debe iniciar sesión como mesero para tomar pedidos.");
+            alerta.showAndWait();
+            return false;
+        }
+
+        MesaRepository mesaRepository = new MesaRepository();
+        List<Mesa> ocupadas = mesaRepository.obtenerTodas().stream()
+                .filter(m -> {
+                    String codigo = m.getCodigoEstado();
+                    if (codigo == null) {
+                        return false;
+                    }
+                    String n = codigo.trim().toUpperCase().replace(' ', '_');
+                    return "OCUPADA".equals(n);
+                })
+                .collect(Collectors.toList());
+
+        if (ocupadas.isEmpty()) {
+            Alert alerta = new Alert(Alert.AlertType.INFORMATION);
+            alerta.setTitle("Sin mesas ocupadas");
+            alerta.setHeaderText(null);
+            alerta.setContentText(
+                    "No hay mesas ocupadas. Ocupe una mesa desde el mapa de salón "
+                            + "antes de tomar un pedido.");
+            alerta.showAndWait();
+            return false;
+        }
+
+        ChoiceDialog<Mesa> dialog = new ChoiceDialog<>(ocupadas.get(0), ocupadas);
+        dialog.setTitle("Seleccionar mesa");
+        dialog.setHeaderText("Menú y pedidos");
+        dialog.setContentText("Mesa ocupada:");
+
+        // Texto legible en el combo (número / código).
+        dialog.getItems().setAll(ocupadas);
+        dialog.setSelectedItem(ocupadas.get(0));
+
+        Optional<Mesa> elegida = dialog.showAndWait();
+        if (elegida.isEmpty()) {
+            return false;
+        }
+
+        Mesa mesa = elegida.get();
+        controller.configurarMesa(mesa.getIdMesa(), SesionUsuario.getUsuarioId());
+        return true;
     }
 
     /**

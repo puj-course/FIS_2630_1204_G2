@@ -551,17 +551,25 @@ final BigDecimal subtotalFinal = pedidoFacade.calcularSubtotal(pedido.values());
                 Alert alerta = new Alert(Alert.AlertType.INFORMATION);
                 alerta.setTitle("Pedido actualizado");
                 alerta.setHeaderText("Pedido registrado correctamente");
+                BigDecimal impuestos = pedidoActual.getImpuestos() != null
+                        ? pedidoActual.getImpuestos()
+                        : BigDecimal.ZERO;
+                BigDecimal total = pedidoActual.getTotal() != null
+                        ? pedidoActual.getTotal()
+                        : subtotalFinal.add(impuestos);
                 alerta.setContentText("Pedido: "
-                                + pedidoActual.getNumeroPedido()
-                                + "\nMesa: "
-                                + mesaId
-                                + "\nProductos: "
-                                + pedido.size()
-                                + "\nSubtotal: "
-                                + moneda.format(subtotalFinal)
-                                + "\nTotal: "
-                                + moneda.format(subtotalFinal)
-                                + "\n\nInventario descontado correctamente.");
+                        + pedidoActual.getNumeroPedido()
+                        + "\nMesa: "
+                        + mesaId
+                        + "\nProductos: "
+                        + pedido.size()
+                        + "\nSubtotal: "
+                        + moneda.format(subtotalFinal)
+                        + "\nImpuestos: "
+                        + moneda.format(impuestos)
+                        + "\nTotal: "
+                        + moneda.format(total)
+                        + "\n\nInventario descontado correctamente.");
                 alerta.showAndWait();
                 actualizarPedido();
             } catch (Exception ex) {

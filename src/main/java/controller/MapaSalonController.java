@@ -498,23 +498,21 @@ public class MapaSalonController {
         }
 
         try {
-            mesaService.quitarMesa(mesaPorRetirar.getIdMesa());
+            int idMesa = mesaSeleccionada.getIdMesa();
+            mesaRepository.quitarMesa(idMesa);
+
+            // Quitar del mapa de botones y del panel (cargarMesas también limpia,
+            // pero así no queda basura si algo falla a medias).
+            Button boton = botonesPorMesa.remove(idMesa);
+            if (boton != null) {
+                panelMesas.getChildren().remove(boton);
+            }
 
             mesaSeleccionada = null;
+            limpiarDetalleMesa();
 
-            // Recarga las mesas y actualiza el mapa y los contadores.
+            // Recarga desde BD: botones, posiciones y contadores al día.
             cargarMesas();
-
-            mostrarInformacion(
-                    "Mesa retirada",
-                    "La mesa se retiró correctamente."
-            );
-
-        } catch (MesaConPedidoActivoException e) {
-            mostrarError(e.getMessage());
-
-        } catch (MesaNotFoundException e) {
-            mostrarError(e.getMessage());
 
         } catch (SQLException e) {
             mostrarError(
