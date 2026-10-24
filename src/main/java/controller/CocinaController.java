@@ -129,7 +129,8 @@ public class CocinaController {
 
     private void avanzarEstado(ComandaCocina comanda) {
         try {
-            pedidoRepository.save(comanda.avanzar());
+            var pedido = comanda.avanzar();
+            pedidoRepository.actualizarEstado(pedido.getId(), pedido.getEstado());
             cargarTablero();
 
         } catch (SQLException e) {
