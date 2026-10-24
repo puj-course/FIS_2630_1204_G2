@@ -151,3 +151,9 @@ if fallos:
     print(f'{len(fallos)} problemas')
 else:
     print('sin diferencias')
+
+# Un verificador que termina en 0 con fallos no sirve de nada: rehacer.sh
+# corre con pipefail y asi el guion se para en el momento en que algo deja
+# de cuadrar, en vez de seguir y empaquetar lo que esta mal.
+if fallos:
+    sys.exit(1)

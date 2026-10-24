@@ -1,6 +1,9 @@
 import session.SesionUsuario;
 import javafx.application.Application;
 import controller.LoginController;
+import controller.MenuMeseroController;
+import entity.Mesa;
+import repository.MesaRepository;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -9,6 +12,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -16,8 +20,10 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
 import javafx.stage.Stage;
+import java.util.stream.Collectors;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Punto de entrada único de GastroFlow.
@@ -54,6 +60,9 @@ public class Main extends Application {
     private static final String ICONO_VACIO =
             "M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M12,20c-4.41,0-8-3.59-8-8s3.59-8,8-8"
           + "s8,3.59,8,8S16.41,20,12,20z M11,7h2v6h-2V7z M11,15h2v2h-2V15z";
+    private static final String ICONO_INVENTARIO =
+            "M20,2H4C2.9,2,2,2.9,2,4v3h20V4C22,2.9,21.1,2,20,2z "
+          + "M4,20c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2V9H4V20z M9,12h6v2H9V12z";
     private static final String ICONO_COCINA =
             "M11,9H9V2H7v7H5V2H3v7c0,2.12,1.66,3.84,3.75,3.97V22h2.5v-9.03C11.34,12.84,13,11.12,13,9V2h-2V9z";
 
@@ -67,6 +76,11 @@ public class Main extends Application {
                     "Estado de los platos según el inventario", "ADMINISTRADOR", ICONO_LISTA,
                     "GastroFlow · Disponibilidad de platos",
                     "/views/admin-disponibilidad.fxml", "/css/disponibilidad-menu.css", 1180, 720),
+            new Modulo("Inventario",
+                    "Existencias de ingredientes y niveles de stock bajo", "ADMINISTRADOR",
+                    ICONO_INVENTARIO,
+                    "GastroFlow · Inventario",
+                    "/views/inventario.fxml", null, 1180, 720),
             new Modulo("Menú y pedidos",
                     "Carta del restaurante y toma de pedidos", "MESERO", ICONO_MENU,
                     "GastroFlow · Menú y pedidos",
@@ -357,11 +371,24 @@ public class Main extends Application {
 
     private void abrirModulo(Modulo modulo) {
         try {
-            Parent raiz = FXMLLoader.load(Main.class.getResource(modulo.fxml()));
+            FXMLLoader loader = new FXMLLoader(Main.class.getResource(modulo.fxml()));
+            Parent raiz = loader.load();
+
+            // HU-146: el menú de pedidos necesita mesa + usuario antes de confirmar.
+            if ("/views/menu-mesero.fxml".equals(modulo.fxml())) {
+                MenuMeseroController controller = loader.getController();
+                if (!configurarMenuMeseroDesdeNavegacion(controller)) {
+                    // El usuario canceló la selección de mesa: no abrir la ventana.
+                    moduloAbierto = null;
+                    refrescarNavegacion();
+                    return;
+                }
+            }
 
             Scene escena = new Scene(raiz, modulo.ancho(), modulo.alto());
             if (modulo.css() != null) {
-                escena.getStylesheets().add(Main.class.getResource(modulo.css()).toExternalForm());
+                escena.getStylesheets().add(
+                        Main.class.getResource(modulo.css()).toExternalForm());
             }
 
             Stage ventana = new Stage();
@@ -387,6 +414,67 @@ public class Main extends Application {
             alerta.setContentText(describirCausa(e));
             alerta.showAndWait();
         }
+    }
+
+    /**
+     * HU-146: al abrir "Menú y pedidos" desde el menú principal no hay mesa de
+     * contexto. Se pide una mesa ocupada y se llama configurarMesa, igual que
+     * cuando se entra desde el mapa de salón.
+     *
+     * @return false si el usuario cancela o no hay mesas ocupadas
+     */
+    private boolean configurarMenuMeseroDesdeNavegacion(MenuMeseroController controller)
+            throws Exception {
+
+        if (!SesionUsuario.estaAutenticado()) {
+            Alert alerta = new Alert(Alert.AlertType.WARNING);
+            alerta.setTitle("Sesión requerida");
+            alerta.setHeaderText(null);
+            alerta.setContentText("Debe iniciar sesión como mesero para tomar pedidos.");
+            alerta.showAndWait();
+            return false;
+        }
+
+        MesaRepository mesaRepository = new MesaRepository();
+        List<Mesa> ocupadas = mesaRepository.obtenerTodas().stream()
+                .filter(m -> {
+                    String codigo = m.getCodigoEstado();
+                    if (codigo == null) {
+                        return false;
+                    }
+                    String n = codigo.trim().toUpperCase().replace(' ', '_');
+                    return "OCUPADA".equals(n);
+                })
+                .collect(Collectors.toList());
+
+        if (ocupadas.isEmpty()) {
+            Alert alerta = new Alert(Alert.AlertType.INFORMATION);
+            alerta.setTitle("Sin mesas ocupadas");
+            alerta.setHeaderText(null);
+            alerta.setContentText(
+                    "No hay mesas ocupadas. Ocupe una mesa desde el mapa de salón "
+                            + "antes de tomar un pedido.");
+            alerta.showAndWait();
+            return false;
+        }
+
+        ChoiceDialog<Mesa> dialog = new ChoiceDialog<>(ocupadas.get(0), ocupadas);
+        dialog.setTitle("Seleccionar mesa");
+        dialog.setHeaderText("Menú y pedidos");
+        dialog.setContentText("Mesa ocupada:");
+
+        // Texto legible en el combo (número / código).
+        dialog.getItems().setAll(ocupadas);
+        dialog.setSelectedItem(ocupadas.get(0));
+
+        Optional<Mesa> elegida = dialog.showAndWait();
+        if (elegida.isEmpty()) {
+            return false;
+        }
+
+        Mesa mesa = elegida.get();
+        controller.configurarMesa(mesa.getIdMesa(), SesionUsuario.getUsuarioId());
+        return true;
     }
 
     /**

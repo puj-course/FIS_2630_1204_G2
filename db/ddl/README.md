@@ -38,6 +38,8 @@ creadas en `../migrations/`.
 | `detalle_pedido_adicional.ddl` | `detalle_pedido_adicional` | HU-115 | Adicionales aplicados a una línea concreta del pedido. |
 | `plato_insumo.ddl` | `plato_insumo` | HU-115 · HU-134 | Fuente única oficial de recetas: relaciona cada plato con sus insumos y cantidades necesarias. |
 | `regla_descuento.ddl` | `regla_descuento` | HU-115 | Reglas de descuento aplicables al cobrar, por porcentaje o monto fijo. |
+| `proveedores.ddl` | `proveedores` | HU-137 | Catálogo de proveedores de insumos: nombre único y datos de contacto. |
+| `categoria_ingrediente.ddl` | `categoria_ingrediente` | HU-137 | Catálogo de categorías de insumo (distinto de `categorias` del menú). |
 
 ---
 
@@ -48,11 +50,12 @@ El orden importa: hay llaves foráneas entre las tablas. **La lista `TABLAS` de
 escrita para leer.
 
 ```
- 1. roles, tipos_documento, zonas, estados_mesa, unidades_medida, categorias  ← sin dependencias
+ 1. roles, tipos_documento, zonas, estados_mesa, unidades_medida, categorias,
+    proveedores, categoria_ingrediente     ← sin dependencias (HU-137: catálogos de insumo)
  2. usuarios                   ← roles, tipos_documento
  3. clientes                   ← tipos_documento, usuarios
  4. mesas                      ← zonas, estados_mesa
- 5. ingredientes               ← unidades_medida
+ 5. ingredientes               ← unidades_medida (+ FK a proveedores y categoria_ingrediente vía migración HU-137)
  6. lote_ingrediente           ← ingredientes (HU-138)
  7. productos                  ← categorias
  8. precios_producto           ← productos
@@ -63,7 +66,7 @@ escrita para leer.
 13. pagos                      ← pedidos, usuarios
 14. historial_estado_mesa      ← mesas, estados_mesa
 15. nota_mesa                  ← mesas
-16. reservas                   ← mesas
+16. reservas                   ← mesas (+ FK opcional a clientes vía migración HU-137)
 17. adicional
 18. asignacion_mesa            ← mesas, usuarios
 19. detalle_pedido_adicional   ← detalle_pedido, adicional
@@ -212,3 +215,10 @@ conexión. El `pom.xml` todavía lo excluye del build, junto con
 - Las tablas de HU-115 usan `id` como llave primaria, igual que `detalle_pedido`,
   porque es el nombre que esperan los repositorios que las consultan. El resto del
   esquema usa `<tabla>_id`. Son dos convenciones conviviendo.
+- HU-137 dejó las columnas de texto `ingredientes.proveedor` e
+    `ingredientes.categoria` para no romper el código que aún las lee. Cuando los
+    repositorios y pantallas usen solo `proveedor_id` y `categoria_ingrediente_id`,
+    esas columnas de texto podrán eliminarse en una Historia posterior.
+- `reservas.nombre_cliente` se conserva de forma permanente: permite reservas de
+  personas que no están en la tabla `clientes`. La columna `id_cliente` (nullable)
+  es la referencia al catálogo cuando sí existe el cliente registrado.

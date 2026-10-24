@@ -152,7 +152,7 @@ paso "creando las tablas"
 
 TABLAS=(
     # catalogos, sin dependencias
-    roles tipos_documento zonas estados_mesa unidades_medida categorias
+    roles tipos_documento zonas estados_mesa unidades_medida categorias proveedores categoria_ingrediente
     # dependen de los catalogos
     usuarios                  # roles, tipos_documento
     clientes                  # tipos_documento, usuarios

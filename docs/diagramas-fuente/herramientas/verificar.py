@@ -4,7 +4,7 @@ No usa los .json intermedios para lo que puede leer del .puml: compara lo
 dibujado contra clases.json / relaciones.json / esquema.json, que a su vez
 salen del parse del codigo.
 """
-import json, os, re, glob, collections
+import json, os, re, sys, glob, collections
 
 REPO = os.environ.get('GF_SRC', '/tmp/claude-0/-home-claude/'
                       'cf991e6c-a30f-5c5f-8ffa-56f3e8e08a43/scratchpad/gf293')
@@ -124,9 +124,31 @@ gen = [(t['nombre'], t['extends'].split('<')[0].strip()) for t in T
        if t['extends'] and t['extends'].split('<')[0].strip() not in POR]
 ok(all(f"{alias(h)} --|> {p}" in rel8 for h, p in gen),
    f'generalizacion a clases externas: {len(gen)} (--|>)')
-ok(not R['generalizacion'] and not R['realizacion'],
-   'no hay extends ni implements entre clases del proyecto, '
-   'asi que no se dibuja ninguna herencia interna')
+HER = [(g['hijo'], g['padre'], '--|>') for g in R['generalizacion']] + \
+      [(r['clase'], r['interfaz'], '..|>') for r in R['realizacion']]
+malh = []
+for h, p, fl in HER:
+    veces = sum(v.count(f'{alias(h)} {fl} {alias(p)}')
+                for k, v in CL.items() if '_rel_' in k)
+    if veces != 1:
+        malh.append(f'{h} {fl} {p}: dibujada {veces} veces en los mapas 08-14')
+    # la flecha equivocada seria tan grave como no dibujarla: extends y
+    # implements no son lo mismo en UML
+    otra = '..|>' if fl == '--|>' else '--|>'
+    if any(f'{alias(h)} {otra} {alias(p)}' in v
+           for k, v in CL.items() if '_rel_' in k):
+        malh.append(f'{h} -> {p}: dibujada con {otra}, el codigo dice {fl}')
+    # y al reves tampoco: quien implementa es el hijo, no la interfaz
+    if any(f'{alias(p)} {fl} {alias(h)}' in v
+           for k, v in CL.items() if '_rel_' in k):
+        malh.append(f'{h} -> {p}: la flecha esta invertida')
+ok(not malh,
+   f'las {len(HER)} herencias entre tipos del proyecto '
+   f"({len(R['generalizacion'])} extends con --|>, "
+   f"{len(R['realizacion'])} implements con ..|>) se dibujan una sola vez "
+   f'y en el sentido correcto')
+for x in malh[:10]:
+    print('      ', x)
 
 print('\n=== 5. multiplicidad ===')
 COLEC = ('List', 'ArrayList', 'LinkedList', 'Set', 'HashSet', 'LinkedHashSet',
@@ -166,7 +188,14 @@ ok(n_asoc == len(R['asociacion']),
    f'asociaciones: {n_asoc} dibujadas / {len(R["asociacion"])} en el codigo')
 ok(n_dep == len(R['dependencia']),
    f'dependencias: {n_dep} dibujadas / {len(R["dependencia"])} en el codigo')
-ok(n_gen == len(gen), f'generalizaciones: {n_gen} dibujadas / {len(gen)} en el codigo')
+n_real = len(re.findall(r'\.\.\|>', rel8))
+# --|> cubre las dos: la herencia a una clase de fuera y el extends interno
+n_gen_cod = len(gen) + len(R['generalizacion'])
+ok(n_gen == n_gen_cod,
+   f'generalizaciones: {n_gen} dibujadas / {n_gen_cod} en el codigo '
+   f'({len(gen)} a clases externas, {len(R["generalizacion"])} internas)')
+ok(n_real == len(R['realizacion']),
+   f'realizaciones: {n_real} dibujadas / {len(R["realizacion"])} en el codigo')
 
 print('\n=== 7. diagrama 15, pruebas ===')
 p9 = CL[BASE + '/puml_clases/15_pruebas.puml']
@@ -257,12 +286,13 @@ PERMITIDO = set('''startuml enduml skinparam backgroundColor shadowing defaultFo
  PackageBorderColor PackageFontStyle ClassAttributeIconSize hide empty members
  package class interface enum annotation hidden right down left direction
  circle allowmixing entity database component node artifact rectangle
+ descarga clone servicio externo
  ArrowThickness ArrowFontStyle ArrowFontColor PackageFontSize
  PackageTitleAlignment ClassBackgroundColor NoteBackgroundColor NoteBorderColor
  linetype ortho polyline dashed EntityFontSize ComponentBackgroundColor InterfaceBackgroundColor
  NodeFontSize NodeFontStyle ArtifactFontSize NodeBackgroundColor
  ArtifactBackgroundColor RectangleBorderColor RectangleBackgroundColor
- RectangleFontSize Helvetica size static abstract record anidada excluida
+ RectangleFontSize RectangleBorderThickness Helvetica size static abstract record anidada excluida
  referencias otros paquetes externa salta capa archivos clase clases nivel
  superior anidadas vacio vacios apoyo flujo transversales transversal
  Interfaz usuario resources Logica negocio service Acceso datos repository
@@ -386,8 +416,31 @@ ok(all(r in desp for r in reqs), f'los requisitos del README: {reqs}')
 svg = leer(BASE + '/puml/06_Despliegue.svg')
 ok('text-decoration' not in svg, 'ningun texto sale tachado en el SVG')
 disp = re.findall(r'node "([^"]+)" as \w+ <<device>>', desp)
-ok(len(disp) == 2 and any('GitHub' in d for d in disp),
-   f'un solo equipo ejecuta la aplicacion, mas GitHub: {disp}')
+ok(disp == ['Equipo'],
+   f'la aplicacion se ejecuta en un unico equipo: {disp}')
+# GitHub no puede dibujarse como una maquina de despliegue: es de donde se
+# descarga el codigo, y la instalacion pasa entera en el equipo
+fuera = re.findall(r'rectangle "([^"]+)" as (\w+) <<servicio externo>>', desp)
+ok(fuera == [('GitHub', 'github')],
+   f'GitHub va como servicio externo y no como nodo de despliegue: {fuera}')
+ok(re.search(r'a_repo \.\.> a_src', desp),
+   'el codigo baja del repositorio remoto al equipo (git clone)')
+# y tiene que ser la unica que cruza, para que no quede duda de hacia
+# donde va el codigo
+cruzan = [l for l in desp.split('\n')
+          if not l.startswith(' ')
+          and re.match(r'(github|equipo|a_repo|a_src)\b', l)
+          and re.search(r'[-.]{1,2}(up|down|left|right)?[-.]*>', l)]
+ok(len(cruzan) == 1 and cruzan[0].startswith('a_repo ..> a_src'),
+   f'una sola flecha cruza entre GitHub y el equipo, y apunta al equipo: '
+   f'{cruzan}')
+ok(not re.search(r'(runner|a_ci|a_pasos|a_pg_ci)\s*[-.]+(down|up|left|right)?'
+                 r'[-.]*>\s*(equipo|a_src|a_jar|jvm|pg|a_db)', desp),
+   'del runner de integracion continua no sale nada hacia el equipo')
+# y dentro de la nube no puede ejecutarse la aplicacion
+dentro = desp[desp.index('rectangle "GitHub"'):].split('\n}')[0]
+ok('javafx' not in dentro.lower() and 'gastroflow · ' not in dentro,
+   'en GitHub no se ejecuta la aplicacion ni vive su base de datos')
 
 
 print('\n=== 12. el diagrama de arquitectura ===')
@@ -505,3 +558,9 @@ ok(not mal, f'los saltos de capa llevan su numero real ({dict(cuenta)})')
 
 print('\n=== resultado ===')
 print(f'{len(fallos)} comprobaciones fallidas' if fallos else 'todo correcto')
+
+# Un verificador que termina en 0 con fallos no sirve de nada: rehacer.sh
+# corre con pipefail y asi el guion se para en el momento en que algo deja
+# de cuadrar, en vez de seguir y empaquetar lo que esta mal.
+if fallos:
+    sys.exit(1)

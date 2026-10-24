@@ -5,6 +5,7 @@ import dto.ItemPedido;
 import entity.Pedido;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -26,6 +27,7 @@ import java.util.Map;
  */
 public class PedidoFacade {
 
+    private static final BigDecimal TASA_IVA = new BigDecimal("0.19");
     private final PedidoService pedidoService;
     private final InventarioService inventarioService;
     private final DisponibilidadDAO disponibilidadDAO;
@@ -77,15 +79,24 @@ public class PedidoFacade {
                                 + "No se puede volver a confirmar para evitar un descuento duplicado.");
             }
 
-            pedido.setProductos(construirJson(items));
-            pedido.setSubtotal(subtotal);
-            pedido.setTotal(subtotal);
-            pedidoService.actualizarPedido(pedido);
+            String json = construirJson(items);
+            BigDecimal impuestos = subtotal
+                    .multiply(TASA_IVA)
+                    .setScale(2, RoundingMode.HALF_UP);
+
+            // El total lo calcula la base de datos respetando propina y descuento.
+            pedidoService.actualizarImportes(pedido.getId(), json, subtotal, impuestos);
 
             inventarioService.descontarIngredientes(pedido.getId(), lineas, usuarioId);
 
+            pedidoService.marcarInventarioDescontado(pedido.getId());
+
+            // Objeto en memoria coherente para la alerta del mesero.
+            pedido.setProductos(json);
+            pedido.setSubtotal(subtotal);
+            pedido.setImpuestos(impuestos);
+            pedido.setTotal(subtotal.add(impuestos));
             pedido.setInventarioDescontado(true);
-            pedidoService.actualizarPedido(pedido);
             return pedido;
 
         } catch (SQLException | RuntimeException e) {

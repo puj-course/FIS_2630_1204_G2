@@ -24,11 +24,15 @@
         <ScrollPane fitToWidth="true">
             <VBox spacing="18" styleClass="contenido">
 
-                <HBox spacing="10">
-                    <TextField fx:id="numeroPedidoField"
-                               promptText="Número de pedido"
-                               HBox.hgrow="ALWAYS"/>
-                    <Button fx:id="buscarPedidoButton" text="Buscar cuenta" onAction="#buscarPedido"/>
+                <!-- HU-144: el cajero elige la cuenta de una lista en vez de
+                     teclear el número de pedido. -->
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Cuenta" minWidth="60"/>
+                    <ComboBox fx:id="cuentaCombo"
+                              promptText="Seleccione un pedido"
+                              maxWidth="Infinity"
+                              HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="recargarButton" text="Actualizar" onAction="#recargarCuentas"/>
                 </HBox>
 
                 <GridPane hgap="18" vgap="14" styleClass="tarjeta">

@@ -15,6 +15,14 @@ public class Mesa {
 
     public Mesa() {}
 
+    @Override
+    public String toString() {
+        String id = (codigoMesa != null && !codigoMesa.isBlank())
+                ? codigoMesa
+                : String.valueOf(numeroMesa);
+        return "Mesa " + id;
+    }
+
     public int getIdMesa() { return idMesa; }
     public void setIdMesa(int idMesa) { this.idMesa = idMesa; }
 

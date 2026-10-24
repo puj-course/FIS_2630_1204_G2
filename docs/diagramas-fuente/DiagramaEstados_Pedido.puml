@@ -36,9 +36,9 @@ legend bottom
 <b>Transiciones</b>
 |=  |= desde |= a |= operacion |= condicion |
 | <b>T1</b> | inicio | PENDIENTE | PedidoService.crearPedido() | falla si: La mesa ... ya tiene una comanda activa |
-| <b>T2</b> | EN_PREPARACION | COMPLETADO | CocinaController.avanzarEstado() | estado == EN_PREPARACION |
-| <b>T3</b> | PENDIENTE | EN_PREPARACION | CocinaController.avanzarEstado() | estado != EN_PREPARACION |
-| <b>T4</b> | ASIGNADO_MESA | EN_PREPARACION | CocinaController.avanzarEstado() | estado != EN_PREPARACION |
+| <b>T2</b> | EN_PREPARACION | COMPLETADO | PedidoComandaAdapter.avanzar() | estado == EN_PREPARACION |
+| <b>T3</b> | PENDIENTE | EN_PREPARACION | PedidoComandaAdapter.avanzar() | estado != EN_PREPARACION |
+| <b>T4</b> | ASIGNADO_MESA | EN_PREPARACION | PedidoComandaAdapter.avanzar() | estado != EN_PREPARACION |
 | <b>T5</b> | cualquier estado activo | ENTREGADO | PedidoService.cerrarPedido() | estado no esta en {ENTREGADO, CANCELADO}; falla si: El pedido ... ya está en estado |
 | <b>T6</b> | cualquier estado activo | CANCELADO | PedidoService.cancelarPedido() | estado no esta en {ENTREGADO, CANCELADO}; falla si: El pedido ... ya está en estado |
 

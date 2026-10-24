@@ -120,26 +120,67 @@ pr = FUENTES['PedidoRepository']
 coc = cuerpo_metodo(pr, 'findPedidosParaCocina')
 EN_COCINA = re.findall(r'EstadoPedido\.(\w+)\.name\(\)', coc)
 
-# y solo pinta boton si el estado no es este
-cc = FUENTES['CocinaController']
-sin_boton = re.search(r'getEstado\(\)\s*!=\s*EstadoPedido\.(\w+)\)', cc)
-SIN_BOTON = sin_boton.group(1) if sin_boton else None
+# El tablero decide dos cosas: si la tarjeta lleva boton y a que estado pasa
+# al pulsarlo. Hasta el patron Adapter las dos reglas estaban en
+# CocinaController; ahora viven en PedidoComandaAdapter. Se buscan donde
+# esten, y si no aparecen se para en vez de seguir con None: un diagrama de
+# estados al que le faltan las transiciones de cocina es peor que ninguno.
+def buscar_regla(patron, candidatos, que):
+    for clase, metodo in candidatos:
+        if clase not in FUENTES:
+            continue
+        txt = cuerpo_metodo(FUENTES[clase], metodo) if metodo \
+            else FUENTES[clase]
+        m_ = re.search(patron, txt, re.S)
+        if m_:
+            return m_, f'{clase}.{metodo}()' if metodo else clase
+    raise SystemExit(
+        f'No se encontro {que} en ' + ', '.join(c for c, _ in candidatos)
+        + '. La regla se movio de sitio en el codigo: hay que actualizar '
+          'gen_estados_puml.py en lugar de dibujar un diagrama incompleto.')
+
+
+sin_boton, _ = buscar_regla(
+    r'getEstado\(\)\s*!=\s*EstadoPedido\.(\w+)',
+    [('PedidoComandaAdapter', 'puedeAvanzar'), ('CocinaController', None)],
+    'la regla de que tarjeta lleva boton')
+SIN_BOTON = sin_boton.group(1)
 CON_BOTON = [e for e in EN_COCINA if e != SIN_BOTON]
 
-# el if de avanzarEstado reparte el destino
-av = cuerpo_metodo(cc, 'avanzarEstado')
-m = re.search(r'if\s*\(\s*\w+\.getEstado\(\)\s*==\s*EstadoPedido\.(\w+)\s*\)\s*\{'
-              r'\s*\w+\.setEstado\(EstadoPedido\.(\w+)\);\s*\}\s*else\s*\{'
-              r'\s*\w+\.setEstado\(EstadoPedido\.(\w+)\);', av, re.S)
-COCINA_SI = (m.group(1), m.group(2)) if m else None     # EN_PREPARACION -> COMPLETADO
-COCINA_NO = m.group(3) if m else None                   # el resto -> EN_PREPARACION
+# el if que reparte el destino al pulsar el boton
+m, ORIGEN_AVANCE = buscar_regla(
+    r'if\s*\(\s*\w+\.getEstado\(\)\s*==\s*EstadoPedido\.(\w+)\s*\)\s*\{'
+    r'\s*\w+\.setEstado\(EstadoPedido\.(\w+)\);\s*\}\s*else\s*\{'
+    r'\s*\w+\.setEstado\(EstadoPedido\.(\w+)\);',
+    [('PedidoComandaAdapter', 'avanzar'),
+     ('CocinaController', 'avanzarEstado')],
+    'el reparto de estados del tablero de cocina')
+COCINA_SI = (m.group(1), m.group(2))    # EN_PREPARACION -> COMPLETADO
+COCINA_NO = m.group(3)                  # el resto -> EN_PREPARACION
 
-# quien escribe el estado sin pasar por PedidoService se salta la guarda
-# ESTADOS_YA_CERRADOS: eso merece la misma marca que en el diagrama de mesa
+# Quien escribe el estado sin pasar por PedidoService se salta la guarda
+# ESTADOS_YA_CERRADOS: eso merece la misma marca que en el diagrama de mesa.
+# Desde el patron Adapter, cambiar el estado y guardarlo ya no ocurren en la
+# misma clase: PedidoComandaAdapter.avanzar() lo cambia y CocinaController
+# hace el save con lo que devuelve. Por eso se mira tambien un salto mas
+# alla, en el metodo de quien llama. Sin esto el salto de capa dejaria de
+# marcarse en azul y el diagrama escondería un incumplimiento que sigue ahi.
+def guarda_el_llamador(clase, metodo):
+    for otra, txt in FUENTES.items():
+        if otra == clase:
+            continue
+        for m_ in re.finditer(rf'\.{re.escape(metodo)}\s*\(', txt):
+            if 'pedidoRepository.save(' in cuerpo_metodo(
+                    txt, metodo_en(txt, m_.start())):
+                return True
+    return False
+
+
 for a in asigna:
     cu = cuerpo_metodo(FUENTES[a['clase']], a['metodo'])
     a['sin_servicio'] = (a['clase'] != 'PedidoService'
-                         and 'pedidoRepository.save(' in cu)
+                         and ('pedidoRepository.save(' in cu
+                              or guarda_el_llamador(a['clase'], a['metodo'])))
 
 INICIAL = next((a for a in asigna if a['metodo'] == 'crearPedido'), None)
 
@@ -375,17 +416,17 @@ if INICIAL:
           '; '.join('falla si: ' + g
                     for g in guardas(INICIAL['clase'], INICIAL['metodo'])[0]))
 AZUL_P = '[#2563EB]'
-coc = next((a for a in asigna if a['clase'] == 'CocinaController'), None)
+# el color lo decide quien cambia el estado de verdad, que desde el Adapter
+# ya no es el controlador
+coc = next((a for a in asigna
+            if f"{a['clase']}.{a['metodo']}()" == ORIGEN_AVANCE), None)
 col_coc = AZUL_P if coc and coc['sin_servicio'] else ''
-if COCINA_SI:
-    T.add(f'P_{COCINA_SI[0]}', f'P_{COCINA_SI[1]}', COCINA_SI[0],
-          'CocinaController.avanzarEstado()', '', f'estado == {COCINA_SI[0]}',
-          col_coc)
-    for e in CON_BOTON:
-        if e != COCINA_SI[0] and e != COCINA_NO:
-            T.add(f'P_{e}', f'P_{COCINA_NO}', e,
-                  'CocinaController.avanzarEstado()', '',
-                  f'estado != {COCINA_SI[0]}', col_coc)
+T.add(f'P_{COCINA_SI[0]}', f'P_{COCINA_SI[1]}', COCINA_SI[0],
+      ORIGEN_AVANCE, '', f'estado == {COCINA_SI[0]}', col_coc)
+for e in CON_BOTON:
+    if e != COCINA_SI[0] and e != COCINA_NO:
+        T.add(f'P_{e}', f'P_{COCINA_NO}', e, ORIGEN_AVANCE, '',
+              f'estado != {COCINA_SI[0]}', col_coc)
 for a in asigna:
     if a['metodo'] in GUARDADOS:
         base = f'estado no esta en {{{", ".join(FINALES)}}}'
@@ -485,7 +526,8 @@ print(f'        asignados por el codigo: {sorted(ASIGNADOS)}')
 print(f'        nunca asignados: {sorted(set(EST_PEDIDO) - ASIGNADOS) or "ninguno"}')
 print(f'        metodos con guarda de cierre: {sorted(GUARDADOS)}')
 print(f'        cocina carga: {EN_COCINA}   sin boton desde: {SIN_BOTON}')
-print(f'        cocina: {COCINA_SI[0]} -> {COCINA_SI[1]}, el resto -> {COCINA_NO}')
+print(f'        cocina ({ORIGEN_AVANCE}): {COCINA_SI[0]} -> '
+      f'{COCINA_SI[1]}, el resto -> {COCINA_NO}')
 print(f'\nMESA    catalogo: {CAT_MESA}')
 print(f'        nunca asignados: {NUNCA_ASIGNADO or "ninguno"}')
 for t in trans:

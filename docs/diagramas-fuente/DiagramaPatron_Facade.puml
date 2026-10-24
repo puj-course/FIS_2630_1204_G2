@@ -1,0 +1,46 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 6
+skinparam nodesep 30
+skinparam ranksep 60
+skinparam ClassBorderColor #334155
+skinparam ClassBackgroundColor #FFFFFF
+skinparam ClassFontSize 14
+skinparam ClassAttributeFontSize 12
+skinparam ClassStereotypeFontSize 11
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 11
+hide circle
+class PedidoFacade <<Facade>> {
+  -pedidoService : PedidoService
+  -inventarioService : InventarioService
+  -disponibilidadDAO : DisponibilidadDAO
+  +PedidoFacade()
+  +PedidoFacade(pedidoService : PedidoService, inventarioService : InventarioService, disponibilidadDAO : DisponibilidadDAO)
+  +validarDisponibilidad(items : Collection<ItemPedido>) List<String>
+  +confirmarPedido(mesaId : long, usuarioId : long, items : Collection<ItemPedido>) Pedido
+  +calcularSubtotal(items : Collection<ItemPedido>) BigDecimal
+  -aLineas(items : Collection<ItemPedido>) Map<Long, Integer>
+  -construirJson(items : Collection<ItemPedido>) String
+}
+class PedidoService {
+  +obtenerPedidoActivo(mesaId : long) Optional<Pedido>
+  +obtenerOCrearPedido(mesaId : long, usuarioId : long) Pedido
+  +actualizarPedido(pedido : Pedido) Pedido
+  +cancelarPedido(pedidoId : long, codigoEstadoDestinoMesa : String) Pedido
+}
+class InventarioService {
+  +descontarIngredientes(pedidoId : long, productos : Map<Long, Integer>, usuarioId : long) void
+}
+class DisponibilidadDAO {
+  +faltantesDelPedido(lineas : Map<Long, Integer>) List<String>
+}
+class MenuMeseroController {
+}
+MenuMeseroController ..> PedidoFacade : «use»
+PedidoFacade --> PedidoService
+PedidoFacade --> InventarioService
+PedidoFacade --> DisponibilidadDAO
+@enduml

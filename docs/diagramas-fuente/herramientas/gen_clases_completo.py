@@ -140,9 +140,12 @@ GRUPOS = [
                                                  'util', 'ConexionBD', '(raiz)')),
 ]
 
-EXTERNOS = {}
-for g in R['generalizacion']:
-    pass
+# herencia entre tipos del propio proyecto: extends hacia otra clase del
+# repositorio (generalizacion) e implements de una interfaz del repositorio
+# (realizacion). La flecha es la de UML: linea continua para extends, linea
+# discontinua para implements.
+herencia = [(g['hijo'], g['padre'], '--|>') for g in R['generalizacion']] + \
+           [(r['clase'], r['interfaz'], '..|>') for r in R['realizacion']]
 # generalizaciones hacia tipos de fuera del proyecto (RuntimeException, Application)
 # generalizaciones hacia clases de fuera del proyecto. Se dibuja una caja por
 # clase padre (sin los argumentos genericos) y el argumento va en la flecha.
@@ -253,6 +256,12 @@ for archivo, titulo, filtro in GRUPOS:
         if h in nombres:
             rel.append(f"class {pp} <<externa>> #FFFFFF")
             rel.append(f"{h} --|> {pp}" + (f" : {arg}" if arg else ''))
+    # herencia interna: se dibuja en cuanto el grupo toca uno de los dos
+    # extremos, igual que las asociaciones; el otro entra como referencia
+    for h, pp, fl in herencia:
+        if h in nombres or pp in nombres:
+            ref(h); ref(pp)
+            rel.append(f'{h} {fl} {pp}')
 
     if referencias:
         L.append('package "referencias" <<otros paquetes>> #FAFAFA {')
@@ -336,11 +345,16 @@ for archivo, paquetes, destinos, con_gen in MAPAS:
     # de origen, para que cada una aparezca una sola vez
     gens = [g for g in gen_externas if POR[g[0]]['paquete'] in paquetes] \
         if con_gen else []
-    repartidas += len(asoc) + len(deps) + len(gens)
+    # la herencia interna se reparte por los paquetes de sus dos extremos,
+    # igual que una asociacion, para que caiga en un mapa y solo en uno
+    hers = [h for h in herencia if POR[h[0]]['paquete'] in paquetes
+            and POR[h[1]]['paquete'] in destinos]
+    repartidas += len(asoc) + len(deps) + len(gens) + len(hers)
 
     tocadas = {x for a in asoc for x in (a['origen'], a['destino'])} | \
               {x for d in deps for x in (d['origen'], d['destino'])} | \
-              {h for h, _p, _a in gens}
+              {h for h, _p, _a in gens} | \
+              {x for h, p, _f in hers for x in (h, p)}
     L = [CAB, 'hide members', 'hide circle',
          'skinparam linetype polyline', 'skinparam nodesep 25',
          'skinparam ranksep 70']
@@ -354,6 +368,8 @@ for archivo, paquetes, destinos, con_gen in MAPAS:
         alias_usados |= {_alias(d['origen']), _alias(d['destino'], d['origen'])}
     for h, _p, _a in gens:
         alias_usados.add(_alias(h))
+    for h, p, _f in hers:
+        alias_usados |= {_alias(h), _alias(p, h)}
     porpaq = collections.defaultdict(list)
     for t in T:
         if t['nombre'] in tocadas and \
@@ -390,6 +406,8 @@ for archivo, paquetes, destinos, con_gen in MAPAS:
         L.append(f'class {pext} <<externa>> #FFFFFF')
     for h, pext, arg in gens:
         L.append(f'{_alias(h)} --|> {pext}' + (f' : {arg}' if arg else ''))
+    for h, p, fl in hers:
+        L.append(f'{_alias(h)} {fl} {_alias(p, h)}')
     for a in asoc:
         L.append(asociacion(a, _alias(a['origen']),
                             _alias(a['destino'], a['origen'])))
@@ -398,9 +416,11 @@ for archivo, paquetes, destinos, con_gen in MAPAS:
                  f"{_alias(d['destino'], d['origen'])}")
     L.append('@enduml')
     open(f'{DIR}/{archivo}.puml', 'w', encoding='utf-8').write('\n'.join(L) + '\n')
-    resumen.append((archivo, len(tocadas), len(asoc) + len(deps) + len(gens)))
+    resumen.append((archivo, len(tocadas),
+                    len(asoc) + len(deps) + len(gens) + len(hers)))
 
-total = len(R['asociacion']) + len(R['dependencia']) + len(gen_externas)
+total = (len(R['asociacion']) + len(R['dependencia']) + len(gen_externas)
+         + len(herencia))
 assert repartidas == total, f'{repartidas} relaciones repartidas de {total}'
 
 print(f"{'diagrama':22} {'tipos':>6} {'relaciones':>11}")

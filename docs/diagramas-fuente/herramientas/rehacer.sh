@@ -17,6 +17,9 @@ AQUI="$(cd "$(dirname "$0")" && pwd)"
 export GF_SRC="$REPO"
 export GF_OUT="$AQUI"
 JAR="${PLANTUML_JAR:-/home/claude/pl/package/vendor/plantuml.jar}"
+# las carpetas de salida: sin esto el script solo corre donde ya existen,
+# y quien clone el repositorio no puede rehacer los diagramas
+mkdir -p "$AQUI/puml" "$AQUI/puml_clases" "$AQUI/puml_componentes"
 
 echo "== repositorio =="
 git -C "$REPO" log -1 --format='%h  %ad  %s' --date=short
@@ -31,7 +34,7 @@ python3 -I "$AQUI/extraer_llamadas.py" | head -2
 echo
 
 echo "== 2. generar los .puml =="
-for g in gen_arq_puml gen_bd_puml gen_paq_puml gen_desp_puml; do
+for g in gen_arq_puml gen_arq_ligero gen_bd_puml gen_paq_puml gen_desp_puml; do
     python3 -I "$AQUI/$g.py" > /dev/null
 done
 python3 -I "$AQUI/gen_clases_completo.py" | tail -3
@@ -82,6 +85,11 @@ echo "  $AQUI/GastroFlow_Diagramas_develop.zip"
 echo
 echo "== 6. documentacion para docs/ =="
 python3 -I "$AQUI/gen_docs.py" | tail -3
+# los patrones van antes del verificador de resumenes: asi sus imagenes
+# entran en la comprobacion de que ninguna imagen queda sin usar
+python3 -I "$AQUI/gen_patrones.py" | tail -3
+python3 -I "$AQUI/verificar_resumenes.py" "$REPO" "$AQUI" | tail -2
+python3 -I "$AQUI/verificar_patrones.py" "$AQUI" "$AQUI/docs_entrega" "$REPO" | tail -2
 rm -f "$AQUI/GastroFlow_docs.zip"
 ( cd "$AQUI/docs_entrega" && zip -rq ../GastroFlow_docs.zip . )
 echo "  $AQUI/GastroFlow_docs.zip"

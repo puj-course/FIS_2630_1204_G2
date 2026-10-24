@@ -388,6 +388,10 @@ public class MenuMeseroController {
         agregar.setMaxWidth(Double.MAX_VALUE);
         agregar.setDisable(!producto.isDisponible());
         agregar.setOnAction(e -> agregarProducto(producto));
+        // HU-142: el nombre y el precio se construian arriba y nunca se
+        // agregaban a la tarjeta, asi que el mesero veia la carta sin saber
+        // que plato era ni cuanto costaba.
+        card.getChildren().addAll(nombre, precio);
         // HU-39: la descripción ya venía del DAO pero no se mostraba.
         if (producto.getDescripcion() != null && !producto.getDescripcion().isBlank()) {
             Label descripcion = new Label(producto.getDescripcion());
@@ -550,17 +554,25 @@ final BigDecimal subtotalFinal = pedidoFacade.calcularSubtotal(pedido.values());
                 Alert alerta = new Alert(Alert.AlertType.INFORMATION);
                 alerta.setTitle("Pedido actualizado");
                 alerta.setHeaderText("Pedido registrado correctamente");
+                BigDecimal impuestos = pedidoActual.getImpuestos() != null
+                        ? pedidoActual.getImpuestos()
+                        : BigDecimal.ZERO;
+                BigDecimal total = pedidoActual.getTotal() != null
+                        ? pedidoActual.getTotal()
+                        : subtotalFinal.add(impuestos);
                 alerta.setContentText("Pedido: "
-                                + pedidoActual.getNumeroPedido()
-                                + "\nMesa: "
-                                + mesaId
-                                + "\nProductos: "
-                                + pedido.size()
-                                + "\nSubtotal: "
-                                + moneda.format(subtotalFinal)
-                                + "\nTotal: "
-                                + moneda.format(subtotalFinal)
-                                + "\n\nInventario descontado correctamente.");
+                        + pedidoActual.getNumeroPedido()
+                        + "\nMesa: "
+                        + mesaId
+                        + "\nProductos: "
+                        + pedido.size()
+                        + "\nSubtotal: "
+                        + moneda.format(subtotalFinal)
+                        + "\nImpuestos: "
+                        + moneda.format(impuestos)
+                        + "\nTotal: "
+                        + moneda.format(total)
+                        + "\n\nInventario descontado correctamente.");
                 alerta.showAndWait();
                 actualizarPedido();
             } catch (Exception ex) {

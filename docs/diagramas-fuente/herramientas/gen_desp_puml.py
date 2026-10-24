@@ -1,8 +1,9 @@
 """Diagrama de despliegue de GastroFlow en PlantUML.
 
 Un solo equipo ejecuta la aplicacion y la base de datos, porque
-ConexionBD apunta a localhost. GitHub entra como nodo porque el repositorio
-trae un flujo de integracion continua en .github/workflows/ci.yml.
+ConexionBD apunta a localhost. GitHub no es un nodo de despliegue: de ahi
+se descarga el codigo y el runner solo comprueba que compile, asi que se
+dibuja como una caja plana aparte y la instalacion ocurre entera en el equipo.
 Todos los datos salen del repositorio.
 """
 import os, re, glob, json
@@ -109,6 +110,30 @@ pg_req = next((r for r in requisitos if 'PostgreSQL' in r), 'PostgreSQL')
 setup_src = open(REPO + '/scripts/setup.sh', encoding='utf-8').read()
 opciones = sorted(set(re.findall(r'^\s*(--[a-z-]+)(?:\||\))', setup_src, re.M)))
 
+ci_art = ('.github/workflows/ci.yml\\n'
+          + '\\n'.join(usos)
+          + f'\\njava-version {java_v} · {distro}'
+          + f'\\non: push → {ramas(disparo_push)}'
+          + f'\\non: pull_request → {ramas(disparo_pr)}')
+pasos = 'steps\\n' + '\\n'.join(f'{i+1}. {n}' for i, n in enumerate(pasos_ci))
+L += [
+    'rectangle "GitHub" as github <<servicio externo>> #FFEDD5 {',
+    '  node "Repositorio remoto" as repo <<execution environment>> #FFFFFF {',
+    '    artifact "FIS_2630_1204_G2\\nmain · develop · features-*" as a_repo',
+    '  }',
+    f'  node "Runner {runner}" as runner <<execution environment>> #FFFFFF {{',
+    f'    artifact "{ci_art}" as a_ci',
+    f'    artifact "{pasos}" as a_pasos',
+    f'    artifact "services: postgres\\n{imagen.group(1) if imagen else "?"}'
+    f'\\nports {", ".join(puertos)}" as a_pg_ci',
+    '    a_ci -[hidden]right- a_pasos',
+    '    a_pasos -[hidden]right- a_pg_ci',
+    '  }',
+    '  repo -down-> runner : on: push · pull_request',
+    '}',
+]
+
+
 L += [
     'node "Equipo" as equipo <<device>> #DBEAFE {',
     # el clon y sus archivos viven en el disco, no dentro de la JVM
@@ -147,30 +172,13 @@ L += [
     '  a_setup ..> a_db : <<crea>> psql',
     f'  jvm -down-> pg : {url}',
     '}',
-]
-
-ci_art = ('.github/workflows/ci.yml\\n'
-          + '\\n'.join(usos)
-          + f'\\njava-version {java_v} · {distro}'
-          + f'\\non: push → {ramas(disparo_push)}'
-          + f'\\non: pull_request → {ramas(disparo_pr)}')
-pasos = 'steps\\n' + '\\n'.join(f'{i+1}. {n}' for i, n in enumerate(pasos_ci))
-L += [
-    'node "GitHub" as github <<device>> #FFEDD5 {',
-    '  node "Repositorio remoto" as repo <<execution environment>> #FFFFFF {',
-    '    artifact "FIS_2630_1204_G2" as a_repo',
-    '  }',
-    f'  node "Runner {runner}" as runner <<execution environment>> #FFFFFF {{',
-    f'    artifact "{ci_art}" as a_ci',
-    f'    artifact "{pasos}" as a_pasos',
-    f'    artifact "services: postgres\\n{imagen.group(1) if imagen else "?"}'
-    f'\\nports {", ".join(puertos)}" as a_pg_ci',
-    '    a_ci -[hidden]right- a_pasos',
-    '    a_pasos -[hidden]right- a_pg_ci',
-    '  }',
-    '  repo -down-> runner : on: push · pull_request',
-    '}',
-    'equipo -down-> github : <<HTTPS>> git push · pull request',
+    # Una sola flecha cruza entre GitHub y el equipo, y apunta al equipo:
+    # el codigo se descarga y se instala alli. De GitHub no sale ningun
+    # binario; el runner solo verifica que compile y que pasen las pruebas.
+    # La flecha de subida se quito porque competia con esta y confundia la
+    # direccion; que el equipo empuja a GitHub ya lo dice ci.yml con sus
+    # disparadores on: push y on: pull_request.
+    'a_repo ..> a_src : <<descarga>> git clone',
     '@enduml',
 ]
 
