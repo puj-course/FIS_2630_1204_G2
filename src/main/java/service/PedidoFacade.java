@@ -79,21 +79,24 @@ public class PedidoFacade {
                                 + "No se puede volver a confirmar para evitar un descuento duplicado.");
             }
 
-            pedido.setProductos(construirJson(items));
+            String json = construirJson(items);
             BigDecimal impuestos = subtotal
-                    .multiply(TASA_IVA)  // ej. new BigDecimal("0.19")
+                    .multiply(TASA_IVA)
                     .setScale(2, RoundingMode.HALF_UP);
-            BigDecimal total = subtotal.add(impuestos);
 
-            pedido.setSubtotal(subtotal);
-            pedido.setImpuestos(impuestos);
-            pedido.setTotal(total);
-            pedidoService.actualizarPedido(pedido);
+            // El total lo calcula la base de datos respetando propina y descuento.
+            pedidoService.actualizarImportes(pedido.getId(), json, subtotal, impuestos);
 
             inventarioService.descontarIngredientes(pedido.getId(), lineas, usuarioId);
 
+            pedidoService.marcarInventarioDescontado(pedido.getId());
+
+            // Objeto en memoria coherente para la alerta del mesero.
+            pedido.setProductos(json);
+            pedido.setSubtotal(subtotal);
+            pedido.setImpuestos(impuestos);
+            pedido.setTotal(subtotal.add(impuestos));
             pedido.setInventarioDescontado(true);
-            pedidoService.actualizarPedido(pedido);
             return pedido;
 
         } catch (SQLException | RuntimeException e) {
