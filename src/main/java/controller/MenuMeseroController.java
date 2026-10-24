@@ -389,6 +389,10 @@ public class MenuMeseroController {
         agregar.setMaxWidth(Double.MAX_VALUE);
         agregar.setDisable(!producto.isDisponible());
         agregar.setOnAction(e -> agregarProducto(producto));
+        // HU-142: el nombre y el precio se construian arriba y nunca se
+        // agregaban a la tarjeta, asi que el mesero veia la carta sin saber
+        // que plato era ni cuanto costaba.
+        card.getChildren().addAll(nombre, precio);
         // HU-39: la descripción ya venía del DAO pero no se mostraba.
         if (producto.getDescripcion() != null && !producto.getDescripcion().isBlank()) {
             Label descripcion = new Label(producto.getDescripcion());
