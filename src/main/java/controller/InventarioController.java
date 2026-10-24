@@ -87,8 +87,11 @@ public class InventarioController {
      */
     private void configurarTabla() {
 
+        // HU-143: Ingrediente expone getId(), no getIngredienteId(). Con el
+        // nombre anterior PropertyValueFactory no encontraba la propiedad, no
+        // fallaba, y dejaba la celda en blanco en todas las filas.
         columnaId.setCellValueFactory(
-                new PropertyValueFactory<>("ingredienteId")
+                new PropertyValueFactory<>("id")
         );
 
         columnaNombre.setCellValueFactory(
