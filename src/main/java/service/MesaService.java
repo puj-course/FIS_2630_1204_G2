@@ -86,4 +86,17 @@ public class MesaService {
                 .orElseThrow(() -> new MesaNotFoundException("Estado no encontrado: " + codigo));
     }
 
+    public void actualizarCantidadComensales(long mesaId, int nuevaCantidad) throws SQLException {
+        if (nuevaCantidad <= 0) {
+            throw new IllegalArgumentException("La cantidad de comensales debe ser mayor a cero.");
+        }
+
+        Mesa mesa = mesaRepository.findById((int) mesaId)
+            .orElseThrow(() -> new MesaNotFoundException("La mesa con ID " + mesaId + " no existe."));
+
+        if (nuevaCantidad > mesa.getCapacidad()) {
+            throw new IllegalArgumentException("La cantidad supera la capacidad máxima de la mesa (" + mesa.getCapacidad() + ").");
+        }
+        mesaRepository.actualizarComensales(mesaId, nuevaCantidad);
+    }
 }

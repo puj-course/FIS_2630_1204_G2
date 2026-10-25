@@ -71,6 +71,8 @@ public class PedidoService {
         mesaService.cambiarEstado(pedido.getMesaId(), destino, "CIERRE_PEDIDO");
         return cerrado;
     }
+
+
     /**
      * Anula una comanda.
      *

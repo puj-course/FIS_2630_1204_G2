@@ -2,15 +2,18 @@ package service;
 
 import dao.DisponibilidadDAO;
 import dto.ItemPedido;
+import entity.DetallePedido;
 import entity.Pedido;
+import ConexionBD.ConexionBD;
+import enums.EstadoPedido;
+import repository.PedidoRepository;
+import repository.DetallePedidoAdicionalRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Patrón Facade: una interfaz simple para un subsistema complicado.
@@ -31,6 +34,8 @@ public class PedidoFacade {
     private final PedidoService pedidoService;
     private final InventarioService inventarioService;
     private final DisponibilidadDAO disponibilidadDAO;
+    private final PedidoRepository pedidoRepository = new PedidoRepository();
+
 
     public PedidoFacade() {
         this(new PedidoService(), new InventarioService(), new DisponibilidadDAO());
@@ -61,57 +66,69 @@ public class PedidoFacade {
      *
      * @throws IllegalStateException si el inventario de ese pedido ya se descontó
      */
-    public Pedido confirmarPedido(long mesaId, long usuarioId, Collection<ItemPedido> items)
-            throws SQLException {
+    public Pedido confirmarPedido(long mesaId, long usuarioId, List<DetallePedido> detalles)
+            throws SQLException, Exception {
 
-        Map<Long, Integer> lineas = aLineas(items);
-        BigDecimal subtotal = calcularSubtotal(items);
+        BigDecimal subtotal = calcularSubtotal(detalles);
 
-        // Si no hay pedido activo, obtenerOCrearPedido va a crear uno nuevo.
-        boolean pedidoNuevo = pedidoService.obtenerPedidoActivo(mesaId).isEmpty();
-
-        Pedido pedido = pedidoService.obtenerOCrearPedido(mesaId, usuarioId);
-
-        try {
-            if (pedido.isInventarioDescontado()) {
-                throw new IllegalStateException(
-                        "El inventario de este pedido ya fue descontado. "
-                                + "No se puede volver a confirmar para evitar un descuento duplicado.");
-            }
-
-            String json = construirJson(items);
-            BigDecimal impuestos = subtotal
-                    .multiply(TASA_IVA)
-                    .setScale(2, RoundingMode.HALF_UP);
-
-            // El total lo calcula la base de datos respetando propina y descuento.
-            pedidoService.actualizarImportes(pedido.getId(), json, subtotal, impuestos);
-
-            inventarioService.descontarIngredientes(pedido.getId(), lineas, usuarioId);
-
-            pedidoService.marcarInventarioDescontado(pedido.getId());
-
-            // Objeto en memoria coherente para la alerta del mesero.
-            pedido.setProductos(json);
-            pedido.setSubtotal(subtotal);
-            pedido.setImpuestos(impuestos);
-            pedido.setTotal(subtotal.add(impuestos));
-            pedido.setInventarioDescontado(true);
-            return pedido;
-
-        } catch (SQLException | RuntimeException e) {
-            if (pedidoNuevo && pedido.getId() != null) {
-                try {
-                    pedidoService.cancelarPedido(pedido.getId(), "DISPONIBLE");
-                } catch (Exception errorCancelacion) {
-                    System.err.println("No se pudo cancelar el pedido creado: "
-                            + errorCancelacion.getMessage());
+        try (Connection conn = ConexionBD.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                // 1. Obtener o crear el pedido activo usando la conexión transaccional
+                Optional<Pedido> pedidoOpt = pedidoRepository.findActivoByMesaIdWithConn(conn, mesaId);
+                Pedido pedido;
+                if (pedidoOpt.isPresent()) {
+                    pedido = pedidoOpt.get();
+                } else {
+                    pedido = new Pedido();
+                    pedido.setMesaId(mesaId);
+                    pedido.setUsuarioId(usuarioId);
+                    pedido.setNumeroPedido("PED-" + System.currentTimeMillis());
+                    pedido.setEstado(EstadoPedido.PENDIENTE);
+                    pedido = pedidoRepository.saveWithConn(conn, pedido);
                 }
+
+                if (pedido.isInventarioDescontado()) {
+                    throw new IllegalStateException(
+                            "El inventario de este pedido ya fue descontado. "
+                                    + "No se puede volver a confirmar para evitar un descuento duplicado.");
+                }
+
+                // 2. Guardar los detalles en la tabla relacional detalle_pedido
+                for (DetallePedido detalle : detalles) {
+                    detalle.setPedidoId(pedido.getId());
+                }
+                detallePedidoRepository.guardarDetallesConConn(conn, detalles);
+
+                // 3. Mapear productos para el descuento de inventario
+                Map<Long, Integer> lineas = new HashMap<>();
+                for (DetallePedido detalle : detalles) {
+                    lineas.put(detalle.getProductoId(), detalle.getCantidad());
+                }
+
+                // 4. Actualizar totales del pedido
+                pedido.setSubtotal(subtotal);
+                pedido.setTotal(subtotal);
+                pedidoRepository.saveWithConn(conn, pedido);
+
+                // 5. Descontar ingredientes de forma transaccional
+                inventarioService.descontarIngredientesConConexion(conn, pedido.getId(), lineas, usuarioId);
+
+                // 6. Marcar inventario como descontado
+                pedido.setInventarioDescontado(true);
+                pedidoRepository.saveWithConn(conn, pedido);
+
+                // Confirmar transacción si todo finaliza correctamente
+                conn.commit();
+                return pedido;
+
+            } catch (SQLException | RuntimeException e) {
+                // Revertir cambios ante cualquier fallo para garantizar consistencia y retorno de stock
+                conn.rollback();
+                throw e;
             }
-            throw e;
         }
     }
-
     /** Total del pedido, para mostrarlo en pantalla. */
     public BigDecimal calcularSubtotal(Collection<ItemPedido> items) {
         BigDecimal subtotal = BigDecimal.ZERO;

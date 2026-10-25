@@ -1,11 +1,13 @@
 package repository;
 
 import ConexionBD.ConexionBD;
+import entity.DetallePedido;
 import entity.DetallePedidoAdicional;
 
 import java.sql.*;
+import java.util.List;
 
-public class DetallePedidoAdicionalRepository {
+public class DetallePedidoRepository {
 
     public DetallePedidoAdicional save(DetallePedidoAdicional d) throws SQLException {
         if (d.getId() == null) {
@@ -34,5 +36,25 @@ public class DetallePedidoAdicionalRepository {
             }
         }
         return d;
+    }
+
+    public void guardarDetallesConConn(Connection conn, List<DetallePedido> detalles) throws SQLException {
+        if (detalles == null || detalles.isEmpty()) {
+            return;
+        }
+
+        String sql = "INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            for (DetallePedido detalle : detalles) {
+                stmt.setLong(1, detalle.getPedidoId());
+                stmt.setLong(2, detalle.getProductoId());
+                stmt.setInt(3, detalle.getCantidad());
+                stmt.setBigDecimal(4, detalle.getPrecioUnitario());
+                stmt.setBigDecimal(5, detalle.getSubtotal());
+                stmt.addBatch();
+            }
+            stmt.executeBatch();
+        }
     }
 }
