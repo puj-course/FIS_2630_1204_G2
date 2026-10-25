@@ -48,6 +48,29 @@ public class PedidoRepository {
             }
         }
     }
+
+    //Para operaciones de pedido en estilo de transaccion
+    public Optional<Pedido> findActivoByMesaIdWithConn(Connection conn, long mesaId) throws SQLException {
+        String sql = "SELECT pedido_id, numero_pedido, mesa_id, usuario_id, " +
+                "productos, estado, fecha_pedido, subtotal, impuestos, total, " +
+                "inventario_descontado " +
+                "FROM pedidos " +
+                "WHERE mesa_id = ? " +
+                "AND estado NOT IN ('CANCELADO', 'ENTREGADO') " +
+                "ORDER BY pedido_id DESC " +
+                "LIMIT 1";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, mesaId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(map(rs));
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
     public Pedido save(Pedido p) throws SQLException {
         if (p.getId() == null) {
             String sql = "INSERT INTO pedidos " +
@@ -99,6 +122,52 @@ public class PedidoRepository {
 
         return p;
     }
+
+    //Para operaciones de pedido en estilo de transaccion
+    public Pedido saveWithConn(Connection conn, Pedido p) throws SQLException {
+        if (p.getId() == null) {
+            String sql = "INSERT INTO pedidos " +
+                    "(numero_pedido, mesa_id, usuario_id, productos, " +
+                    "estado, fecha_pedido, subtotal, impuestos, total, " +
+                    "inventario_descontado) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+                    "RETURNING pedido_id";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, p.getNumeroPedido());
+                stmt.setLong(2, p.getMesaId());
+                stmt.setLong(3, p.getUsuarioId());
+                stmt.setObject(4, crearJsonb(p.getProductos() != null ? p.getProductos() : "[]"));
+                stmt.setString(5, p.getEstado() != null ? p.getEstado().name() : EstadoPedido.PENDIENTE.name());
+                stmt.setTimestamp(6, Timestamp.valueOf(p.getFechaPedido() != null ? p.getFechaPedido() : java.time.LocalDateTime.now()));
+                stmt.setBigDecimal(7, p.getSubtotal() != null ? p.getSubtotal() : BigDecimal.ZERO);
+                stmt.setBigDecimal(8, p.getImpuestos() != null ? p.getImpuestos() : BigDecimal.ZERO);
+                stmt.setBigDecimal(9, p.getTotal() != null ? p.getTotal() : BigDecimal.ZERO);
+                stmt.setString(10, p.isInventarioDescontado() ? "S" : "N");
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        p.setId(rs.getLong(1));
+                    }
+                }
+            }
+        } else {
+            String sql = "UPDATE pedidos SET "
+                    + "numero_pedido = ?, mesa_id = ?, usuario_id = ?, "
+                    + "estado = ?, inventario_descontado = ? "
+                    + "WHERE pedido_id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, p.getNumeroPedido());
+                stmt.setLong(2, p.getMesaId());
+                stmt.setLong(3, p.getUsuarioId());
+                stmt.setString(4, p.getEstado() != null
+                        ? p.getEstado().name() : EstadoPedido.PENDIENTE.name());
+                stmt.setString(5, p.isInventarioDescontado() ? "S" : "N");
+                stmt.setLong(6, p.getId());
+                stmt.executeUpdate();
+            }
+        }
+        return p;
+    }
+
 public void actualizarEstado(long pedidoId, EstadoPedido estado) throws SQLException {
         String sql = "UPDATE pedidos SET estado = ?, fecha_actualizacion = CURRENT_TIMESTAMP "
                 + "WHERE pedido_id = ?";
