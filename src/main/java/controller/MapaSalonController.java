@@ -274,7 +274,6 @@ public class MapaSalonController {
         if (codigoMesa != null && !codigoMesa.trim().isEmpty()) {
             return codigoMesa.trim();
         }
-
         return String.valueOf(mesa.getNumeroMesa());
     }
 
@@ -536,6 +535,7 @@ public class MapaSalonController {
 
         solicitarAsignacionMesa(mesaSeleccionada);
     }
+
     @FXML
     private void liberarMesaSeleccionada() {
         if (mesaSeleccionada == null) {
@@ -747,28 +747,20 @@ public class MapaSalonController {
 
     private void guardarAsignacion(Mesa mesa, int cantidadComensales) {
         try {
-            boolean guardada = mesaRepository.asignarComensales(mesa.getIdMesa(), cantidadComensales);
-
-            if (!guardada) {
-                mostrarError(
-                        "No se guardo la asignacion: la mesa " + obtenerIdentificadorMesa(mesa)
-                                + " tiene capacidad maxima de " + mesa.getCapacidad() + " personas."
-                );
-                return;
-            }
-
+            /// Se utiliza el servicio para actualizar los comensales de forma independiente
+            mesaService.actualizarCantidadComensales(mesa.getIdMesa(), cantidadComensales);
             cargarMesas();
             mostrarInformacion(
-                    "Asignacion confirmada",
-                    "Mesa " + obtenerIdentificadorMesa(mesa) + " asignada para " + cantidadComensales + " comensales."
+                    "Comensales actualizados",
+                    "La cantidad de comensales para la mesa " + obtenerIdentificadorMesa(mesa)
+                            + " se actualizó a " + cantidadComensales + " correctamente."
             );
+        } catch (IllegalArgumentException e) {
+            mostrarError(e.getMessage());
         } catch (SQLException e) {
             e.printStackTrace();
             mostrarError(
-                    "Error al cargar mesas:\n\n"
-                            + e.getClass().getName()
-                            + "\n"
-                            + e.getMessage()
+                    "Error al actualizar comensales:\n\n" + e.getClass().getName() + "\n" + e.getMessage()
             );
         }
     }
@@ -838,9 +830,7 @@ public class MapaSalonController {
             );
 
             Parent raiz = loader.load();
-
             MenuMeseroController controller = loader.getController();
-
             controller.configurarMesa(
                     mesaSeleccionada.getIdMesa(),
                     SesionUsuario.getInstance().getUsuarioId() //cambio por singleton sesión usuario

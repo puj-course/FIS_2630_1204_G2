@@ -1,4 +1,5 @@
 package repository;
+
 import ConexionBD.ConexionBD;
 import entity.Mesa;
 import java.sql.Connection;
@@ -120,36 +121,20 @@ public class MesaRepository {
         if (tabla == null) {
             return null;
         }
-        String idMesaColumna = primeraColumnaExistente(
-                        conn,
-                        tabla,
-                        "id_mesa",
-                        "mesa_id"
+        String idMesaColumna = primeraColumnaExistente(conn, tabla, "id_mesa", "mesa_id"
                 );
         if (idMesaColumna == null) {
             return null;
         }
-        String idPedidoColumna = primeraColumnaExistente(
-                        conn,
-                        tabla,
-                        "pedido_id",
-                        "id_pedido",
-                        "id"
+        String idPedidoColumna = primeraColumnaExistente(conn, tabla, "pedido_id", "id_pedido", "id"
                 );
-        String estadoColumna = primeraColumnaExistente(
-                        conn,
-                        tabla,
-                        "estado",
-                        "codigo_estado",
-                        "estado_pedido"
+
+        String estadoColumna = primeraColumnaExistente(conn, tabla, "estado", "codigo_estado", "estado_pedido"
                 );
-        String totalColumna = primeraColumnaExistente(
-                        conn,
-                        tabla,
-                        "total",
-                        "valor_total",
-                        "monto_total"
+
+        String totalColumna = primeraColumnaExistente(conn, tabla, "total", "valor_total", "monto_total"
                 );
+
         if (idPedidoColumna == null) {
             return null;
         }
@@ -224,23 +209,12 @@ public class MesaRepository {
         if (idMesaColumna == null) {
             return null;
         }
-        String idMeseroPedido = primeraColumnaExistente(
-                        conn,
-                        tablaPedidos,
-                        "id_mesero",
-                        "mesero_id",
-                        "id_usuario",
-                        "usuario_id"
+        String idMeseroPedido = primeraColumnaExistente(conn, tablaPedidos, "id_mesero", "mesero_id", "id_usuario", "usuario_id"
                 );
-        String idMeseroTabla = primeraColumnaExistente(
-                        conn,
-                        tablaMeseros,
-                        "id_mesero",
-                        "mesero_id",
-                        "id_usuario",
-                        "usuario_id",
-                        "id"
+
+        String idMeseroTabla = primeraColumnaExistente(conn, tablaMeseros, "id_mesero", "mesero_id", "id_usuario", "usuario_id", "id"
                 );
+
         String nombreMesero = primeraColumnaExistente(
                         conn,
                         tablaMeseros,
@@ -347,8 +321,6 @@ public class MesaRepository {
     }
     /**
      * Comprueba si existe una columna.
-     */
-    /**
      * Comprueba si existe una columna.
      */
     private boolean existeColumna(Connection conn, String tabla, String columna) throws SQLException {
@@ -365,7 +337,6 @@ public class MesaRepository {
     }
     /**
      * Asigna una cantidad de comensales a una mesa.
-     *
      * La tabla actual no contiene una columna para guardar
      * cantidad_comensales, por lo que aquí únicamente se valida
      * la capacidad y se cambia el estado a OCUPADA.
@@ -398,27 +369,15 @@ public class MesaRepository {
         }
     }
 
-    public boolean actualizarCantidadComensales(int idMesa, int cantidadComensales) throws SQLException {
-
-        if (cantidadComensales <= 0) {throw new IllegalArgumentException("La cantidad de comensales debe ser mayor a cero.");
-        }
-
-        String sql =
-                "UPDATE mesas " +
-                        "SET cantidad_comensales = ? " +
-                        "WHERE id_mesa = ? " +
-                        "AND ? <= capacidad " +
-                        "AND UPPER((" +
-                        "    SELECT codigo_estado FROM estados_mesa " +
-                        "    WHERE id_estado_mesa = mesas.id_estado_mesa" +
-                        ")) = 'OCUPADA'";
+    public void actualizarComensales(long mesaId, int cantidadComensales) throws SQLException {
+        String sql = "UPDATE mesas SET cantidad_comensales = ? WHERE id = ?";
 
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, cantidadComensales);
-            stmt.setInt(2, idMesa);
-            stmt.setInt(3, cantidadComensales);
-            return stmt.executeUpdate() > 0;
+            stmt.setLong(2, mesaId);
+            stmt.executeUpdate();
         }
     }
 
