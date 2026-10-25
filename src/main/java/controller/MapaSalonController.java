@@ -33,6 +33,8 @@ import repository.MesaRepository;
 import service.MesaService;
 import exceptions.MesaConPedidoActivoException;
 import exceptions.MesaNotFoundException;
+import util.EstadoFormatterUtil;
+
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -199,7 +201,9 @@ public class MapaSalonController {
 
     private void actualizarBotonMesa(Button btn, Mesa mesa, int posicion) {
         EstadoMesaVisual estado = EstadoMesaVisual.desdeCodigo(mesa.getCodigoEstado());
-        String textoEstado = estado != null ? estado.etiqueta : "Estado no valido";
+
+        // Usar la función centralizada para garantizar la etiqueta uniforme en todos los módulos
+        String textoEstado = EstadoFormatterUtil.formatearEstadoMesa(mesa.getCodigoEstado());
 
         String colorTexto = estado != null ? "white" : "#B00020";
         btn.setText(null);
@@ -351,6 +355,9 @@ public class MapaSalonController {
     private void actualizarDetalleMesa(Mesa mesa) {
         EstadoMesaVisual estado = EstadoMesaVisual.desdeCodigo(mesa.getCodigoEstado());
         boolean ocupada = estado == EstadoMesaVisual.OCUPADA;
+
+        // Obtener la etiqueta uniforme mediante la utilidad centralizada
+        String etiquetaEstado = EstadoFormatterUtil.formatearEstadoMesa(mesa.getCodigoEstado());
 
         tituloDetalleMesa.setText("Detalle de Mesa " + obtenerIdentificadorMesa(mesa));
         detalleNumero.setText("Numero: " + mesa.getNumeroMesa());

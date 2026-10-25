@@ -7,7 +7,7 @@ import entity.Pedido;
 import ConexionBD.ConexionBD;
 import enums.EstadoPedido;
 import repository.PedidoRepository;
-import repository.DetallePedidoRepository;
+import repository.DetallePedidoAdicionalRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
