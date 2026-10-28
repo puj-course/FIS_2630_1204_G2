@@ -24,6 +24,18 @@ public class InventarioService {
      * El cálculo se realiza utilizando la receta oficial
      * almacenada en plato_insumo.
      */
+    public void descontarIngredientesConConexion(
+            Connection conn,
+            long pedidoId,
+            Map<Long, Integer> productos,
+            long usuarioId
+    ) throws SQLException {
+
+        if (productos == null || productos.isEmpty()) {
+            return;
+        }
+    }
+    
     public void descontarIngredientes(
             long pedidoId,
             Map<Long, Integer> productos,
