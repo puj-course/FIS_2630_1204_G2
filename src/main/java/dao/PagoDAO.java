@@ -5,6 +5,8 @@ import dto.CuentaPago;
 
 import java.math.BigDecimal;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class PagoDAO {
@@ -41,22 +43,71 @@ public class PagoDAO {
                     return Optional.empty();
                 }
 
-                Integer numeroMesa = rs.getObject("numero_mesa") == null
-                        ? null
-                        : rs.getInt("numero_mesa");
-
-                return Optional.of(new CuentaPago(
-                        rs.getLong("pedido_id"),
-                        rs.getString("numero_pedido"),
-                        numeroMesa,
-                        rs.getBigDecimal("subtotal"),
-                        rs.getBigDecimal("impuestos"),
-                        rs.getBigDecimal("descuento"),
-                        rs.getBigDecimal("propina"),
-                        rs.getBoolean("pagada")
-                ));
+                return Optional.of(mapear(rs));
             }
         }
+    }
+
+    /**
+     * HU-144: las cuentas que el cajero puede elegir en la lista desplegable.
+     *
+     * Devuelve todos los pedidos que no estan cancelados, pagados y sin pagar,
+     * con los pendientes primero y dentro de cada grupo del mas antiguo al mas
+     * reciente, que es el orden en que se cobran. Los ya pagados se siguen
+     * listando para poder consultarlos, igual que se podian consultar antes
+     * escribiendo su numero.
+     */
+    public List<CuentaPago> listarCuentas() throws SQLException {
+        String sql = """
+                SELECT
+                    p.pedido_id,
+                    p.numero_pedido,
+                    m.numero_mesa,
+                    p.subtotal,
+                    p.impuestos,
+                    p.descuento,
+                    p.propina,
+                    EXISTS (
+                        SELECT 1
+                        FROM pagos pg
+                        WHERE pg.pedido_id = p.pedido_id
+                          AND pg.estado = 'PAGADO'
+                    ) AS pagada
+                FROM pedidos p
+                LEFT JOIN mesas m ON m.id_mesa = p.mesa_id
+                WHERE p.estado <> 'CANCELADO'
+                ORDER BY pagada, p.fecha_pedido
+                """;
+
+        List<CuentaPago> cuentas = new ArrayList<>();
+
+        try (Connection connection = ConexionBD.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                cuentas.add(mapear(rs));
+            }
+        }
+
+        return cuentas;
+    }
+
+    private CuentaPago mapear(ResultSet rs) throws SQLException {
+        Integer numeroMesa = rs.getObject("numero_mesa") == null
+                ? null
+                : rs.getInt("numero_mesa");
+
+        return new CuentaPago(
+                rs.getLong("pedido_id"),
+                rs.getString("numero_pedido"),
+                numeroMesa,
+                rs.getBigDecimal("subtotal"),
+                rs.getBigDecimal("impuestos"),
+                rs.getBigDecimal("descuento"),
+                rs.getBigDecimal("propina"),
+                rs.getBoolean("pagada")
+        );
     }
 
     public void cerrarPago(CuentaPago cuenta,

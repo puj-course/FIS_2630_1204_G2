@@ -5,7 +5,7 @@ public final class SesionUsuario {
     private static final SesionUsuario INSTANCIA = new SesionUsuario();
 
     // Estado de la sesión: ahora es de instancia, ya no estático.
-    private  Integer usuarioId;
+    private static Integer usuarioId;
     private  String nombre;
     private  String rol;
 
@@ -28,7 +28,7 @@ public final class SesionUsuario {
         rol = null;
     }
 
-    public  boolean estaAutenticado() {
+    public static boolean estaAutenticado() {
         return usuarioId != null;
     }
 
@@ -36,7 +36,7 @@ public final class SesionUsuario {
         return rol != null && rol.equalsIgnoreCase("CAJERO");
     }
 
-    public  int getUsuarioId() {
+    public static int getUsuarioId() {
         if (usuarioId == null) {
             throw new IllegalStateException("No hay un usuario autenticado.");
         }

@@ -216,9 +216,7 @@ public class MenuMeseroController {
     /**
      * Convierte el JSON almacenado en pedidos.productos
      * nuevamente en ItemPedido.
-     *
      * El JSON que manejamos actualmente tiene esta estructura:
-     *
      * [
      *   {
      *     "producto_id":1,
@@ -312,6 +310,7 @@ public class MenuMeseroController {
     }
 
     /** Rellena el combo con las categorías del menú, conservando la selección actual. */
+
     private void actualizarCategorias() {
         String seleccionada = categoriaCombo.getValue();
 
@@ -389,6 +388,10 @@ public class MenuMeseroController {
         agregar.setMaxWidth(Double.MAX_VALUE);
         agregar.setDisable(!producto.isDisponible());
         agregar.setOnAction(e -> agregarProducto(producto));
+        // HU-142: el nombre y el precio se construian arriba y nunca se
+        // agregaban a la tarjeta, asi que el mesero veia la carta sin saber
+        // que plato era ni cuanto costaba.
+        card.getChildren().addAll(nombre, precio);
         // HU-39: la descripción ya venía del DAO pero no se mostraba.
         if (producto.getDescripcion() != null && !producto.getDescripcion().isBlank()) {
             Label descripcion = new Label(producto.getDescripcion());
@@ -551,17 +554,25 @@ final BigDecimal subtotalFinal = pedidoFacade.calcularSubtotal(pedido.values());
                 Alert alerta = new Alert(Alert.AlertType.INFORMATION);
                 alerta.setTitle("Pedido actualizado");
                 alerta.setHeaderText("Pedido registrado correctamente");
+                BigDecimal impuestos = pedidoActual.getImpuestos() != null
+                        ? pedidoActual.getImpuestos()
+                        : BigDecimal.ZERO;
+                BigDecimal total = pedidoActual.getTotal() != null
+                        ? pedidoActual.getTotal()
+                        : subtotalFinal.add(impuestos);
                 alerta.setContentText("Pedido: "
-                                + pedidoActual.getNumeroPedido()
-                                + "\nMesa: "
-                                + mesaId
-                                + "\nProductos: "
-                                + pedido.size()
-                                + "\nSubtotal: "
-                                + moneda.format(subtotalFinal)
-                                + "\nTotal: "
-                                + moneda.format(subtotalFinal)
-                                + "\n\nInventario descontado correctamente.");
+                        + pedidoActual.getNumeroPedido()
+                        + "\nMesa: "
+                        + mesaId
+                        + "\nProductos: "
+                        + pedido.size()
+                        + "\nSubtotal: "
+                        + moneda.format(subtotalFinal)
+                        + "\nImpuestos: "
+                        + moneda.format(impuestos)
+                        + "\nTotal: "
+                        + moneda.format(total)
+                        + "\n\nInventario descontado correctamente.");
                 alerta.showAndWait();
                 actualizarPedido();
             } catch (Exception ex) {
@@ -609,7 +620,8 @@ final BigDecimal subtotalFinal = pedidoFacade.calcularSubtotal(pedido.values());
         }
     }
     @FXML
-    private void cerrarPedido() {if (pedidoActual == null || pedidoActual.getId() == null) {
+    private void cerrarPedido() {
+        if (pedidoActual == null || pedidoActual.getId() == null) {
             Alert alerta = new Alert(Alert.AlertType.WARNING);
             alerta.setTitle("Cerrar pedido");
             alerta.setHeaderText("No hay un pedido guardado");
@@ -617,6 +629,7 @@ final BigDecimal subtotalFinal = pedidoFacade.calcularSubtotal(pedido.values());
             alerta.showAndWait();
             return;
         }
+
         Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
         confirmacion.setTitle("Cerrar pedido");
         confirmacion.setHeaderText("¿Deseas cerrar este pedido?");
@@ -624,11 +637,13 @@ final BigDecimal subtotalFinal = pedidoFacade.calcularSubtotal(pedido.values());
         Optional<ButtonType> resultado = confirmacion.showAndWait();
         if (resultado.isEmpty() || resultado.get() != ButtonType.OK) {return;
         }
+
         try {
-            pedidoService.cerrarPedido(pedidoActual.getId(), "DISPONIBLE");
+            pedidoService.cerrarPedido(pedidoActual.getId(), "EN_LIMPIEZA");
             pedidoActual = null;
             pedido.clear();
             actualizarPedido();
+
             Alert exito = new Alert(Alert.AlertType.INFORMATION);
             exito.setTitle("Pedido cerrado");
             exito.setHeaderText("Pedido cerrado correctamente");
@@ -638,7 +653,6 @@ final BigDecimal subtotalFinal = pedidoFacade.calcularSubtotal(pedido.values());
             mostrarError(ex);
         }
     }
-
 
     private void mostrarError(Throwable e) {
         Alert alert = new Alert(Alert.AlertType.ERROR);

@@ -33,6 +33,8 @@ import repository.MesaRepository;
 import service.MesaService;
 import exceptions.MesaConPedidoActivoException;
 import exceptions.MesaNotFoundException;
+import util.EstadoFormatterUtil;
+
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -199,7 +201,9 @@ public class MapaSalonController {
 
     private void actualizarBotonMesa(Button btn, Mesa mesa, int posicion) {
         EstadoMesaVisual estado = EstadoMesaVisual.desdeCodigo(mesa.getCodigoEstado());
-        String textoEstado = estado != null ? estado.etiqueta : "Estado no valido";
+
+        // Usar la función centralizada para garantizar la etiqueta uniforme en todos los módulos
+        String textoEstado = EstadoFormatterUtil.formatearEstadoMesa(mesa.getCodigoEstado());
 
         String colorTexto = estado != null ? "white" : "#B00020";
         btn.setText(null);
@@ -274,7 +278,6 @@ public class MapaSalonController {
         if (codigoMesa != null && !codigoMesa.trim().isEmpty()) {
             return codigoMesa.trim();
         }
-
         return String.valueOf(mesa.getNumeroMesa());
     }
 
@@ -352,6 +355,9 @@ public class MapaSalonController {
     private void actualizarDetalleMesa(Mesa mesa) {
         EstadoMesaVisual estado = EstadoMesaVisual.desdeCodigo(mesa.getCodigoEstado());
         boolean ocupada = estado == EstadoMesaVisual.OCUPADA;
+
+        // Obtener la etiqueta uniforme mediante la utilidad centralizada
+        String etiquetaEstado = EstadoFormatterUtil.formatearEstadoMesa(mesa.getCodigoEstado());
 
         tituloDetalleMesa.setText("Detalle de Mesa " + obtenerIdentificadorMesa(mesa));
         detalleNumero.setText("Numero: " + mesa.getNumeroMesa());
@@ -498,23 +504,21 @@ public class MapaSalonController {
         }
 
         try {
-            mesaService.quitarMesa(mesaPorRetirar.getIdMesa());
+            int idMesa = mesaSeleccionada.getIdMesa();
+            mesaRepository.quitarMesa(idMesa);
+
+            // Quitar del mapa de botones y del panel (cargarMesas también limpia,
+            // pero así no queda basura si algo falla a medias).
+            Button boton = botonesPorMesa.remove(idMesa);
+            if (boton != null) {
+                panelMesas.getChildren().remove(boton);
+            }
 
             mesaSeleccionada = null;
+            limpiarDetalleMesa();
 
-            // Recarga las mesas y actualiza el mapa y los contadores.
+            // Recarga desde BD: botones, posiciones y contadores al día.
             cargarMesas();
-
-            mostrarInformacion(
-                    "Mesa retirada",
-                    "La mesa se retiró correctamente."
-            );
-
-        } catch (MesaConPedidoActivoException e) {
-            mostrarError(e.getMessage());
-
-        } catch (MesaNotFoundException e) {
-            mostrarError(e.getMessage());
 
         } catch (SQLException e) {
             mostrarError(
@@ -538,6 +542,7 @@ public class MapaSalonController {
 
         solicitarAsignacionMesa(mesaSeleccionada);
     }
+
     @FXML
     private void liberarMesaSeleccionada() {
         if (mesaSeleccionada == null) {
@@ -749,28 +754,20 @@ public class MapaSalonController {
 
     private void guardarAsignacion(Mesa mesa, int cantidadComensales) {
         try {
-            boolean guardada = mesaRepository.asignarComensales(mesa.getIdMesa(), cantidadComensales);
-
-            if (!guardada) {
-                mostrarError(
-                        "No se guardo la asignacion: la mesa " + obtenerIdentificadorMesa(mesa)
-                                + " tiene capacidad maxima de " + mesa.getCapacidad() + " personas."
-                );
-                return;
-            }
-
+            /// Se utiliza el servicio para actualizar los comensales de forma independiente
+            mesaService.actualizarCantidadComensales(mesa.getIdMesa(), cantidadComensales);
             cargarMesas();
             mostrarInformacion(
-                    "Asignacion confirmada",
-                    "Mesa " + obtenerIdentificadorMesa(mesa) + " asignada para " + cantidadComensales + " comensales."
+                    "Comensales actualizados",
+                    "La cantidad de comensales para la mesa " + obtenerIdentificadorMesa(mesa)
+                            + " se actualizó a " + cantidadComensales + " correctamente."
             );
+        } catch (IllegalArgumentException e) {
+            mostrarError(e.getMessage());
         } catch (SQLException e) {
             e.printStackTrace();
             mostrarError(
-                    "Error al cargar mesas:\n\n"
-                            + e.getClass().getName()
-                            + "\n"
-                            + e.getMessage()
+                    "Error al actualizar comensales:\n\n" + e.getClass().getName() + "\n" + e.getMessage()
             );
         }
     }
@@ -840,9 +837,7 @@ public class MapaSalonController {
             );
 
             Parent raiz = loader.load();
-
             MenuMeseroController controller = loader.getController();
-
             controller.configurarMesa(
                     mesaSeleccionada.getIdMesa(),
                     SesionUsuario.getInstance().getUsuarioId() //cambio por singleton sesión usuario
