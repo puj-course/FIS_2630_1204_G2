@@ -7,7 +7,7 @@ import entity.Pedido;
 import ConexionBD.ConexionBD;
 import enums.EstadoPedido;
 import repository.PedidoRepository;
-import repository.DetallePedidoAdicionalRepository;
+import repository.DetallePedidoRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -35,7 +35,7 @@ public class PedidoFacade {
     private final InventarioService inventarioService;
     private final DisponibilidadDAO disponibilidadDAO;
     private final PedidoRepository pedidoRepository = new PedidoRepository();
-
+    private final DetallePedidoRepository detallePedidoRepository = new DetallePedidoRepository();
 
     public PedidoFacade() {
         this(new PedidoService(), new InventarioService(), new DisponibilidadDAO());
@@ -66,11 +66,12 @@ public class PedidoFacade {
      *
      * @throws IllegalStateException si el inventario de ese pedido ya se descontó
      */
-    public Pedido confirmarPedido(long mesaId, long usuarioId, List<DetallePedido> detalles)
+    public Pedido confirmarPedido(long mesaId, long usuarioId, Collection<ItemPedido> items)
             throws SQLException, Exception {
 
-        BigDecimal subtotal = calcularSubtotal(detalles);
-
+        BigDecimal subtotal = calcularSubtotal(items);
+        List<DetallePedido> detalles = aDetalles(items);
+                
         try (Connection conn = ConexionBD.getConnection()) {
             conn.setAutoCommit(false);
             try {
@@ -149,6 +150,19 @@ public class PedidoFacade {
         return lineas;
     }
 
+    private List<DetallePedido> aDetalles(Collection<ItemPedido> items) {
+    List<DetallePedido> detalles = new ArrayList<>();
+    for (ItemPedido item : items) {
+        DetallePedido d = new DetallePedido();
+        d.setProductoId(item.getProducto().getProductoId());
+        d.setCantidad(item.getCantidad());
+        d.setPrecioUnitario(item.getProducto().getPrecioVenta());
+        d.setSubtotal(item.getSubtotal());
+        detalles.add(d);
+    }
+    return detalles;
+}
+    
     private String construirJson(Collection<ItemPedido> items) {
         StringBuilder json = new StringBuilder("[");
         boolean primero = true;
