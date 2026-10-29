@@ -6,7 +6,7 @@ import exceptions.MesaNotFoundException;
 import exceptions.MesaOcupadaException;
 import exceptions.PedidoNoEditableException;
 import repository.PedidoRepository;
-
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Optional;
 import java.util.Set;
@@ -48,6 +48,14 @@ public class PedidoService {
     public Pedido actualizarPedido(Pedido pedido) throws SQLException {
         return pedidoRepository.save(pedido);
     }
+    public void actualizarImportes(long pedidoId, String productosJson,
+                                   BigDecimal subtotal, BigDecimal impuestos) throws SQLException {
+        pedidoRepository.actualizarImportes(pedidoId, productosJson, subtotal, impuestos);
+    }
+
+    public void marcarInventarioDescontado(long pedidoId) throws SQLException {
+        pedidoRepository.marcarInventarioDescontado(pedidoId);
+    }
     public Pedido cerrarPedido(long pedidoId, String codigoEstadoDestinoMesa) throws SQLException {
         Pedido pedido = pedidoRepository.findById(pedidoId).orElseThrow(() -> new MesaNotFoundException("Pedido no encontrado con id " + pedidoId));
         if (ESTADOS_YA_CERRADOS.contains(pedido.getEstado())) {
@@ -57,11 +65,14 @@ public class PedidoService {
                             + pedido.getEstado());
         }
         pedido.setEstado(EstadoPedido.ENTREGADO);
-        Pedido cerrado = pedidoRepository.save(pedido);
+        pedidoRepository.actualizarEstado(pedidoId, EstadoPedido.ENTREGADO);
+        Pedido cerrado = pedido;
         String destino = codigoEstadoDestinoMesa != null ? codigoEstadoDestinoMesa : "LIBRE";
         mesaService.cambiarEstado(pedido.getMesaId(), destino, "CIERRE_PEDIDO");
         return cerrado;
     }
+
+
     /**
      * Anula una comanda.
      *
@@ -97,7 +108,8 @@ public class PedidoService {
          * Finalmente cambiamos el estado de la comanda.
          */
         pedido.setEstado(EstadoPedido.CANCELADO);
-        Pedido cancelado = pedidoRepository.save(pedido);
+        pedidoRepository.actualizarEstado(pedidoId, EstadoPedido.CANCELADO);
+        Pedido cancelado = pedido;
         /*
          * Liberamos la mesa.
          */

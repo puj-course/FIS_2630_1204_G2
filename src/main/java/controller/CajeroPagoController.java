@@ -10,16 +10,18 @@ import session.SesionUsuario;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.util.StringConverter;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.text.NumberFormat;
+import java.util.List;
 import java.util.Locale;
 
 public class CajeroPagoController {
 
-    @FXML private TextField numeroPedidoField;
+    @FXML private ComboBox<CuentaPago> cuentaCombo;
     @FXML private Label cajeroLabel;
     @FXML private Label estadoCuentaLabel;
     @FXML private Label pedidoLabel;
@@ -35,7 +37,7 @@ public class CajeroPagoController {
     @FXML private Label descuentoResumenLabel;
     @FXML private Label propinaResumenLabel;
     @FXML private Label totalLabel;
-    @FXML private Button buscarPedidoButton;
+    @FXML private Button recargarButton;
     @FXML private Button eliminarDescuentoButton;
     @FXML private Button eliminarPropinaButton;
     @FXML private Button cerrarPagoButton;
@@ -49,6 +51,35 @@ public class CajeroPagoController {
     @FXML
     public void initialize() {
         // se implementa el patrón Strategy para calcular las formas en que se calcula y el cajero pueda elegir
+
+        // HU-144: la lista muestra algo que el cajero pueda reconocer de un
+        // vistazo (mesa, numero y total), no el codigo a secas.
+        cuentaCombo.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(CuentaPago cuenta) {
+                if (cuenta == null) {
+                    return "";
+                }
+                String mesa = cuenta.getNumeroMesa() == null
+                        ? "Sin mesa"
+                        : "Mesa " + cuenta.getNumeroMesa();
+                return mesa + " · " + cuenta.getNumeroPedido()
+                        + " · " + moneda.format(cuenta.calcularTotal())
+                        + (cuenta.isPagada() ? " (pagada)" : "");
+            }
+
+            @Override
+            public CuentaPago fromString(String texto) {
+                return null;   // la lista no es editable
+            }
+        });
+        cuentaCombo.valueProperty().addListener((obs, anterior, seleccionada) -> {
+            if (seleccionada == null) {
+                return;        // lo dispara recargar la lista, no el cajero
+            }
+            cuentaActual = seleccionada;
+            mostrarCuenta();
+        });
 
         tipoDescuentoCombo.getItems().addAll(new DescuentoMontoFijo(), new DescuentoPorcentaje());
         tipoDescuentoCombo.getSelectionModel().selectFirst();
@@ -73,34 +104,34 @@ public class CajeroPagoController {
         } else {
             cajeroLabel.setText(SesionUsuario.getInstance().getNombre()); //cambio por singleton inicio sesión
             bloquearPantalla(false);
+            recargarCuentas();
         }
     }
 
+    /**
+     * HU-144: recarga las cuentas de la lista desplegable.
+     *
+     * Se llama al abrir la pantalla, con el boton "Actualizar" y despues de
+     * cerrar un pago, para que la cuenta recien cobrada aparezca ya marcada
+     * como pagada.
+     */
     @FXML
-    private void buscarPedido() {
-        String numeroPedido = numeroPedidoField.getText() == null
-                ? ""
-                : numeroPedidoField.getText().trim();
-
-        if (numeroPedido.isBlank()) {
-            mostrarAlerta(Alert.AlertType.WARNING, "Pedido requerido", "Ingrese el número del pedido.");
-            return;
-        }
-
+    private void recargarCuentas() {
         try {
-            var resultado = pagoDAO.buscarCuenta(numeroPedido);
+            List<CuentaPago> cuentas = pagoDAO.listarCuentas();
+            cuentaCombo.getItems().setAll(cuentas);
+            cuentaCombo.getSelectionModel().clearSelection();
+            limpiarCuenta();
 
-            if (resultado.isEmpty()) {
-                limpiarCuenta();
-                mostrarAlerta(Alert.AlertType.WARNING, "Pedido no encontrado", "No se encontró una cuenta activa con ese número de pedido.");
-                return;
+            if (cuentas.isEmpty()) {
+                cuentaCombo.setPromptText("No hay cuentas para cobrar");
+            } else {
+                cuentaCombo.setPromptText("Seleccione un pedido");
             }
 
-            cuentaActual = resultado.get();
-            mostrarCuenta();
-
         } catch (SQLException e) {
-            mostrarAlerta(Alert.AlertType.ERROR, "Error de base de datos", e.getMessage());
+            mostrarAlerta(Alert.AlertType.ERROR, "No se pudieron cargar las cuentas",
+                    "No se pudo consultar la lista de pedidos. " + e.getMessage());
         }
     }
 
@@ -236,8 +267,7 @@ public class CajeroPagoController {
                     "El pago se cerró correctamente por " + moneda.format(cuentaActual.calcularTotal()) + "."
             );
 
-            numeroPedidoField.clear();
-            limpiarCuenta();
+            recargarCuentas();
 
         } catch (SQLException e) {
             mostrarAlerta(Alert.AlertType.ERROR, "No se pudo cerrar el pago", e.getMessage());
@@ -296,8 +326,8 @@ public class CajeroPagoController {
     }
 
     private void bloquearPantalla(boolean bloqueada) {
-        numeroPedidoField.setDisable(bloqueada);
-        buscarPedidoButton.setDisable(bloqueada);
+        cuentaCombo.setDisable(bloqueada);
+        recargarButton.setDisable(bloqueada);
         if (bloqueada) {
             setEdicionCuenta(false);
         }
