@@ -105,20 +105,24 @@ public class PedidoRepository {
         } else {
             String sql = "UPDATE pedidos SET "
                     + "numero_pedido = ?, mesa_id = ?, usuario_id = ?, "
-                    + "estado = ?, inventario_descontado = ? "
+                    + "productos = ?, estado = ?, inventario_descontado = ?, "
+                    + "fecha_actualizacion = CURRENT_TIMESTAMP "
                     + "WHERE pedido_id = ?";
+
             try (Connection conn = ConexionBD.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
+
                 stmt.setString(1, p.getNumeroPedido());
                 stmt.setLong(2, p.getMesaId());
                 stmt.setLong(3, p.getUsuarioId());
-                stmt.setString(4, p.getEstado() != null
-                        ? p.getEstado().name() : EstadoPedido.PENDIENTE.name());
-                stmt.setString(5, p.isInventarioDescontado() ? "S" : "N");
-                stmt.setLong(6, p.getId());
-                stmt.executeUpdate();            
+                stmt.setObject(4, crearJsonb(p.getProductos() != null ? p.getProductos() : "[]"));
+                stmt.setString(5, p.getEstado() != null ? p.getEstado().name() : EstadoPedido.PENDIENTE.name());
+                stmt.setString(6, p.isInventarioDescontado() ? "S" : "N");
+                stmt.setLong(7, p.getId());
+                stmt.executeUpdate();
             }
         }
+
 
         return p;
     }

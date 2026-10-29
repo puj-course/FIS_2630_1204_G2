@@ -639,7 +639,7 @@ final BigDecimal subtotalFinal = pedidoFacade.calcularSubtotal(pedido.values());
         }
 
         try {
-            pedidoService.cerrarPedido(pedidoActual.getId(), "EN_LIMPIEZA");
+            pedidoService.cerrarPedido(pedidoActual.getId(), "DISPONIBLE");
             pedidoActual = null;
             pedido.clear();
             actualizarPedido();
