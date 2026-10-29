@@ -76,6 +76,51 @@ public class MesaService {
         }
     }
 
+    /**
+     * Cambia el estado de una mesa usando una transacción administrada
+     * por el servicio que realiza la operación principal.
+     *
+     * No confirma ni revierte la transacción: eso le corresponde al llamador.
+     */
+    public void cambiarEstado(
+            Connection conn,
+            long mesaId,
+            String codigoEstadoNuevo,
+            String motivo
+    ) throws SQLException {
+
+        Mesa mesaActual = mesaRepository.findById(conn, (int) mesaId)
+                .orElseThrow(() ->
+                        new MesaNotFoundException(
+                                "Mesa no encontrada con id " + mesaId
+                        )
+                );
+
+        EstadoMesa nuevo = estadoMesaRepository
+                .findByCodigoEstado(conn, codigoEstadoNuevo)
+                .orElseThrow(() ->
+                        new MesaNotFoundException(
+                                "Estado no encontrado: " + codigoEstadoNuevo
+                        )
+                );
+
+        mesaRepository.cambiarEstadoMesa(
+                conn,
+                (int) mesaId,
+                codigoEstadoNuevo
+        );
+
+        HistorialEstadoMesa historial = new HistorialEstadoMesa();
+        historial.setMesaId(mesaId);
+        historial.setEstadoAnteriorId(
+                (long) mesaActual.getIdEstadoMesa()
+        );
+        historial.setEstadoNuevoId(nuevo.getId());
+        historial.setMotivo(motivo);
+
+        historialEstadoMesaRepository.save(conn, historial);
+    }
+
     public Zona obtenerZona(long zonaId) throws SQLException {
         return zonaRepository.findById(zonaId)
                 .orElseThrow(() -> new MesaNotFoundException("Zona no encontrada con id " + zonaId));
