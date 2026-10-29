@@ -216,8 +216,8 @@ class PedidoModuloFuncionalTest {
 
         Pedido cerrado = servicio.cerrarPedido(pedido.getId(), null);
 
-        assertEquals(EstadoPedido.COMPLETADO, cerrado.getEstado(), "estado devuelto");
-        assertEquals("COMPLETADO", estadoEnBaseDeDatos(pedido.getId()), "estado en la base");
+        assertEquals(EstadoPedido.ENTREGADO, cerrado.getEstado(), "estado devuelto");
+        assertEquals("ENTREGADO", estadoEnBaseDeDatos(pedido.getId()), "estado en la base");
     }
 
     @Test
@@ -229,7 +229,7 @@ class PedidoModuloFuncionalTest {
 
         servicio.cerrarPedido(pedido.getId(), null);
 
-        assertEquals("LIBRE", estadoDeMesa(idMesaUno), "la mesa no se libero");
+        assertEquals("DISPONIBLE", estadoDeMesa(idMesaUno), "la mesa no se libero");
         assertEquals(1, filasDeHistorial(idMesaUno, "CIERRE_PEDIDO"),
                 "debia haber un registro CIERRE_PEDIDO en el historial");
     }
@@ -243,9 +243,9 @@ class PedidoModuloFuncionalTest {
 
         assertThrows(PedidoNoEditableException.class,
                 () -> servicio.cerrarPedido(pedido.getId(), null),
-                "un pedido COMPLETADO se dejo cerrar de nuevo");
+                "un pedido ENTREGADO se dejo cerrar de nuevo");
 
-        assertEquals("COMPLETADO", estadoEnBaseDeDatos(pedido.getId()));
+        assertEquals("ENTREGADO", estadoEnBaseDeDatos(pedido.getId()));
     }
 
     @Test

@@ -9,7 +9,7 @@ public class ConexionBD {
     // 1. Configuración de parámetros de conexión a PostgreSQL
     private static final String URL = "jdbc:postgresql://localhost:5432/GastroFlow_DB";
     private static final String USER = "postgres";
-    private static final String PASSWORD = "123456789"; // <-- Cambia por tu contraseña real
+    private static final String PASSWORD = "genialix1609"; // <-- Cambia por tu contraseña real
 
     /**
      * Obten un objeto Connection activo a la base de datos gastroflow.
