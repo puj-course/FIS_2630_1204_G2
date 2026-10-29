@@ -2,7 +2,8 @@ package dao;
 
 import ConexionBD.ConexionBD;
 import dto.CuentaPago;
-
+import repository.MesaRepository;
+import java.sql.Connection;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
@@ -10,6 +11,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class PagoDAO {
+
+    private final MesaRepository mesaRepository = new MesaRepository();
 
     public Optional<CuentaPago> buscarCuenta(String numeroPedido) throws SQLException {
         String sql = """
@@ -110,12 +113,9 @@ public class PagoDAO {
         );
     }
 
-    public void cerrarPago(CuentaPago cuenta,
-                            int cajeroId,
-                            String motivoDescuento) throws SQLException {
+    public void cerrarPago(CuentaPago cuenta, int cajeroId, String motivoDescuento) throws SQLException {
 
         validarValores(cuenta, motivoDescuento);
-
         String validarCajero = """
                 SELECT 1
                 FROM usuarios u
@@ -130,11 +130,11 @@ public class PagoDAO {
         // plato, y cobrar con el subtotal viejo deja plata sin cobrar y la fila
         // de pedidos incoherente.
         String bloquearPedido = """
-                SELECT estado, subtotal, impuestos
-                FROM pedidos
-                WHERE pedido_id = ?
-                FOR UPDATE
-                """;
+        SELECT estado, subtotal, impuestos, mesa_id
+        FROM pedidos
+        WHERE pedido_id = ?
+        FOR UPDATE
+        """;
 
         String verificarPago = """
                 SELECT pago_id
@@ -146,13 +146,14 @@ public class PagoDAO {
                 """;
 
         String actualizarPedido = """
-                UPDATE pedidos
-                SET descuento = ?,
-                    propina = ?,
-                    total = ?,
-                    fecha_actualizacion = CURRENT_TIMESTAMP
-                WHERE pedido_id = ?
-                """;
+        UPDATE pedidos
+        SET descuento = ?,
+            propina = ?,
+            total = ?,
+            estado = 'PAGADO',
+            fecha_actualizacion = CURRENT_TIMESTAMP
+        WHERE pedido_id = ?
+        """;
 
         String insertarPago = """
                 INSERT INTO pagos (
@@ -189,6 +190,7 @@ public class PagoDAO {
                     }
                 }
 
+// Registrar el pago.
                 try (PreparedStatement insert = connection.prepareStatement(insertarPago)) {
                     insert.setLong(1, cuenta.getPedidoId());
                     insert.setInt(2, cajeroId);
@@ -207,6 +209,30 @@ public class PagoDAO {
                     insert.executeUpdate();
                 }
 
+// Consultar la mesa asociada al pedido.
+                String consultarMesa = """
+        SELECT mesa_id
+        FROM pedidos
+        WHERE pedido_id = ?
+        """;
+
+                try (PreparedStatement ps = connection.prepareStatement(consultarMesa)) {
+                    ps.setLong(1, cuenta.getPedidoId());
+
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            long mesaId = rs.getLong("mesa_id");
+
+                            if (!rs.wasNull()) {
+                                mesaRepository.cambiarEstadoMesa(
+                                        connection,
+                                        Math.toIntExact(mesaId),
+                                        "DISPONIBLE"
+                                );
+                            }
+                        }
+                    }
+                }
                 connection.commit();
 
             } catch (SQLException e) {
@@ -266,10 +292,21 @@ public class PagoDAO {
                 if (!rs.next()) {
                     throw new SQLException("El pedido ya no existe.");
                 }
-                if ("CANCELADO".equalsIgnoreCase(rs.getString("estado"))) {
+                String estado = rs.getString("estado");
+
+                if ("CANCELADO".equalsIgnoreCase(estado)) {
                     throw new SQLException("No se puede pagar un pedido cancelado.");
                 }
 
+                if ("PAGADO".equalsIgnoreCase(estado)) {
+                    throw new SQLException("Esta cuenta ya fue pagada.");
+                }
+                if ("CANCELADO".equalsIgnoreCase(rs.getString("estado"))) {
+                    throw new SQLException("No se puede pagar un pedido cancelado.");
+                }
+                if ("PAGADO".equalsIgnoreCase(rs.getString("estado"))) {
+                    throw new SQLException("Esta cuenta ya fue pagada.");
+                }
                 BigDecimal subtotalActual = rs.getBigDecimal("subtotal");
                 BigDecimal impuestosActual = rs.getBigDecimal("impuestos");
 
