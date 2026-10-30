@@ -449,8 +449,31 @@ public class MapaSalonController {
             return;
         }
 
+        TextInputDialog dialogCap = new TextInputDialog("2");
+        dialogCap.setTitle("Capacidad");
+        dialogCap.setHeaderText("Mesa " + numeroMesa);
+        dialogCap.setContentText("Capacidad (personas):");
+
+        Optional<String> resCap = dialogCap.showAndWait();
+        if (resCap.isEmpty()) {
+            return;
+        }
+
+        final int capacidad;
         try {
-            mesaService.registrarMesa(numeroMesa);
+            capacidad = Integer.parseInt(resCap.get().trim());
+        } catch (NumberFormatException e) {
+            mostrarError("La capacidad debe ser un número entero válido.");
+            return;
+        }
+
+        if (capacidad < 1 || capacidad > 100) {
+            mostrarError("La capacidad debe estar entre 1 y 100.");
+            return;
+        }
+
+        try {
+            mesaService.registrarMesa(numeroMesa, capacidad);
             cargarMesas();
 
             Alert exito = new Alert(Alert.AlertType.INFORMATION);
@@ -458,7 +481,7 @@ public class MapaSalonController {
             exito.setHeaderText("Mesa agregada correctamente");
             exito.setContentText(
                     "La mesa " + numeroMesa
-                            + " se agregó al mapa del salón."
+                            + " (capacidad " + capacidad + ") se agregó al mapa del salón."
             );
             exito.showAndWait();
 
@@ -476,6 +499,37 @@ public class MapaSalonController {
         } catch (IllegalArgumentException e) {
             mostrarError(e.getMessage());
         }
+    }
+
+    @FXML
+    private void cambiarCapacidadMesaSeleccionada() {
+        if (mesaSeleccionada == null) {
+            mostrarError("Seleccione una mesa primero.");
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog(
+                String.valueOf(mesaSeleccionada.getCapacidad()));
+        dialog.setTitle("Capacidad");
+        dialog.setHeaderText("Mesa " + mesaSeleccionada.getNumeroMesa());
+        dialog.setContentText("Nueva capacidad:");
+
+        dialog.showAndWait().ifPresent(txt -> {
+            try {
+                int capacidad = Integer.parseInt(txt.trim());
+                mesaService.cambiarCapacidad(mesaSeleccionada.getIdMesa(), capacidad);
+                cargarMesas();
+                mesaSeleccionada = mesaRepository.findById(mesaSeleccionada.getIdMesa())
+                        .orElse(mesaSeleccionada);
+                actualizarDetalleMesa(mesaSeleccionada);
+            } catch (NumberFormatException e) {
+                mostrarError("Ingrese un número válido.");
+            } catch (IllegalArgumentException e) {
+                mostrarError(e.getMessage());
+            } catch (SQLException e) {
+                mostrarError("Error al cambiar capacidad: " + e.getMessage());
+            }
+        });
     }
 
 
