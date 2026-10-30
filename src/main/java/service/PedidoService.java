@@ -13,7 +13,13 @@ import java.util.Set;
 
 public class PedidoService {
 
+    /*
+     * HU-156: COMPLETADO entra en la lista. Cocina marca ese estado cuando la
+     * comanda ya esta lista, de modo que anularla despues devolvia al stock
+     * ingredientes que ya se habian cocinado.
+     */
     private static final Set<EstadoPedido> ESTADOS_YA_CERRADOS = Set.of(
+            EstadoPedido.COMPLETADO,
             EstadoPedido.ENTREGADO,
             EstadoPedido.CANCELADO
     );
