@@ -22,14 +22,21 @@ public class MesaService {
     private final EstadoMesaRepository estadoMesaRepository = new EstadoMesaRepository();
     private final HistorialEstadoMesaRepository historialEstadoMesaRepository = new HistorialEstadoMesaRepository();
 
-    public void registrarMesa(int numeroMesa) throws SQLException {
+    public void registrarMesa(int numeroMesa, int capacidad) throws SQLException {
         if (numeroMesa < 1 || numeroMesa > 9999) {
-            throw new IllegalArgumentException(
-                    "El número de mesa debe estar entre 1 y 9999."
-            );
+            throw new IllegalArgumentException("El número de mesa debe estar entre 1 y 9999.");
         }
+        if (capacidad <= 0) {
+            throw new IllegalArgumentException("La capacidad debe ser mayor que cero.");
+        }
+        mesaRepository.agregarMesa(numeroMesa, capacidad);
+    }
 
-        mesaRepository.agregarMesa(numeroMesa);
+    public void cambiarCapacidad(int idMesa, int capacidad) throws SQLException {
+        if (capacidad <= 0) {
+            throw new IllegalArgumentException("La capacidad debe ser mayor que cero.");
+        }
+        mesaRepository.cambiarCapacidadMesa(idMesa, capacidad);
     }
 
     public List<Mesa> listarMesas() throws SQLException {
