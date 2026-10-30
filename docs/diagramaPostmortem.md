@@ -2,8 +2,6 @@
 
 ![Retrospectiva Starfish del milestone Definición arquitectónica y gestión funcional](Imagenes/DiagramaPostmortem_Starfish.png)
 
-**Por qué está.** Cierra el seguimiento postmortem de la milestone (HU-169). La retrospectiva Starfish.
-
 ## Continuar
 
 - Revisar el código entre compañeros antes de integrar.
