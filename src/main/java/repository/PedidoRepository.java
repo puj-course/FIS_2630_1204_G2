@@ -105,7 +105,9 @@ public class PedidoRepository {
         } else {
             String sql = "UPDATE pedidos SET "
                     + "numero_pedido = ?, mesa_id = ?, usuario_id = ?, "
-                    + "productos = ?, estado = ?, inventario_descontado = ?, "
+                    + "productos = ?, estado = ?, "
+                    + "subtotal = ?, impuestos = ?, total = ?, "
+                    + "inventario_descontado = ?, "
                     + "fecha_actualizacion = CURRENT_TIMESTAMP "
                     + "WHERE pedido_id = ?";
 
@@ -117,8 +119,11 @@ public class PedidoRepository {
                 stmt.setLong(3, p.getUsuarioId());
                 stmt.setObject(4, crearJsonb(p.getProductos() != null ? p.getProductos() : "[]"));
                 stmt.setString(5, p.getEstado() != null ? p.getEstado().name() : EstadoPedido.PENDIENTE.name());
-                stmt.setString(6, p.isInventarioDescontado() ? "S" : "N");
-                stmt.setLong(7, p.getId());
+                stmt.setBigDecimal(6, p.getSubtotal() != null ? p.getSubtotal() : BigDecimal.ZERO);
+                stmt.setBigDecimal(7, p.getImpuestos() != null ? p.getImpuestos() : BigDecimal.ZERO);
+                stmt.setBigDecimal(8, p.getTotal() != null ? p.getTotal() : BigDecimal.ZERO);
+                stmt.setString(9, p.isInventarioDescontado() ? "S" : "N");
+                stmt.setLong(10, p.getId());
                 stmt.executeUpdate();
             }
         }
@@ -154,18 +159,32 @@ public class PedidoRepository {
                 }
             }
         } else {
+            // HU-154: esta es la rama que usa PedidoFacade al confirmar. Escribia
+            // solo la cabecera, asi que los productos y los importes se quedaban
+            // con lo que puso el INSERT ('[]' y ceros). Se alinea con la de save.
             String sql = "UPDATE pedidos SET "
                     + "numero_pedido = ?, mesa_id = ?, usuario_id = ?, "
-                    + "estado = ?, inventario_descontado = ? "
+                    + "productos = ?, estado = ?, "
+                    + "subtotal = ?, impuestos = ?, total = ?, "
+                    + "inventario_descontado = ?, "
+                    + "fecha_actualizacion = CURRENT_TIMESTAMP "
                     + "WHERE pedido_id = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, p.getNumeroPedido());
                 stmt.setLong(2, p.getMesaId());
                 stmt.setLong(3, p.getUsuarioId());
-                stmt.setString(4, p.getEstado() != null
+                stmt.setObject(4, crearJsonb(p.getProductos() != null
+                        ? p.getProductos() : "[]"));
+                stmt.setString(5, p.getEstado() != null
                         ? p.getEstado().name() : EstadoPedido.PENDIENTE.name());
-                stmt.setString(5, p.isInventarioDescontado() ? "S" : "N");
-                stmt.setLong(6, p.getId());
+                stmt.setBigDecimal(6, p.getSubtotal() != null
+                        ? p.getSubtotal() : BigDecimal.ZERO);
+                stmt.setBigDecimal(7, p.getImpuestos() != null
+                        ? p.getImpuestos() : BigDecimal.ZERO);
+                stmt.setBigDecimal(8, p.getTotal() != null
+                        ? p.getTotal() : BigDecimal.ZERO);
+                stmt.setString(9, p.isInventarioDescontado() ? "S" : "N");
+                stmt.setLong(10, p.getId());
                 stmt.executeUpdate();
             }
         }
