@@ -229,7 +229,7 @@ class PedidoModuloFuncionalTest {
 
         servicio.cerrarPedido(pedido.getId(), null);
 
-        assertEquals("LIBRE", estadoDeMesa(idMesaUno), "la mesa no se libero");
+        assertEquals("DISPONIBLE", estadoDeMesa(idMesaUno), "la mesa no se libero");
         assertEquals(1, filasDeHistorial(idMesaUno, "CIERRE_PEDIDO"),
                 "debia haber un registro CIERRE_PEDIDO en el historial");
     }

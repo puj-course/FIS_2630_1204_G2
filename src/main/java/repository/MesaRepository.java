@@ -370,7 +370,10 @@ public class MesaRepository {
     }
 
     public void actualizarComensales(long mesaId, int cantidadComensales) throws SQLException {
-        String sql = "UPDATE mesas SET cantidad_comensales = ? WHERE id = ?";
+        // HU-155: la clave primaria de mesas es id_mesa. Con "id" el UPDATE
+        // fallaba siempre con "column \"id\" does not exist" y la cantidad
+        // de comensales nunca llegaba a guardarse.
+        String sql = "UPDATE mesas SET cantidad_comensales = ? WHERE id_mesa = ?";
 
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

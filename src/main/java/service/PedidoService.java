@@ -13,7 +13,13 @@ import java.util.Set;
 
 public class PedidoService {
 
+    /*
+     * HU-156: COMPLETADO entra en la lista. Cocina marca ese estado cuando la
+     * comanda ya esta lista, de modo que anularla despues devolvia al stock
+     * ingredientes que ya se habian cocinado.
+     */
     private static final Set<EstadoPedido> ESTADOS_YA_CERRADOS = Set.of(
+            EstadoPedido.COMPLETADO,
             EstadoPedido.ENTREGADO,
             EstadoPedido.CANCELADO
     );
@@ -57,19 +63,37 @@ public class PedidoService {
         pedidoRepository.marcarInventarioDescontado(pedidoId);
     }
     public Pedido cerrarPedido(long pedidoId, String codigoEstadoDestinoMesa) throws SQLException {
-        Pedido pedido = pedidoRepository.findById(pedidoId).orElseThrow(() -> new MesaNotFoundException("Pedido no encontrado con id " + pedidoId));
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new MesaNotFoundException(
+                        "Pedido no encontrado con id " + pedidoId
+                ));
+
         if (ESTADOS_YA_CERRADOS.contains(pedido.getEstado())) {
-            throw new PedidoNoEditableException("El pedido "
-                            + pedido.getNumeroPedido()
-                            + " ya está en estado "
-                            + pedido.getEstado());
+            throw new PedidoNoEditableException(
+                    "El pedido " + pedido.getNumeroPedido()
+                            + " ya está en estado " + pedido.getEstado()
+            );
         }
+
+        String destino = codigoEstadoDestinoMesa != null
+                ? codigoEstadoDestinoMesa
+                : "DISPONIBLE";
+
+        // Primero se libera la mesa y se registra el cambio de estado.
+        mesaService.cambiarEstado(
+                pedido.getMesaId(),
+                destino,
+                "CIERRE_PEDIDO"
+        );
+
+        // Después se marca el pedido como entregado.
+        pedidoRepository.actualizarEstado(
+                pedidoId,
+                EstadoPedido.ENTREGADO
+        );
+
         pedido.setEstado(EstadoPedido.ENTREGADO);
-        pedidoRepository.actualizarEstado(pedidoId, EstadoPedido.ENTREGADO);
-        Pedido cerrado = pedido;
-        String destino = codigoEstadoDestinoMesa != null ? codigoEstadoDestinoMesa : "LIBRE";
-        mesaService.cambiarEstado(pedido.getMesaId(), destino, "CIERRE_PEDIDO");
-        return cerrado;
+        return pedido;
     }
 
 
