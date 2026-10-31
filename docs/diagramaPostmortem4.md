@@ -2,7 +2,7 @@
 
 ## Diagrama de estrella de mar
 
-![Diagrama de estrella de mar del milestone Control del estado y asignación de mesas](Imagenes/DiagramaPostmortem_Starfish_4.png)
+![Diagrama de estrella de mar del milestone Control del estado y asignación de mesas](Imagenes/DiagramaPostMortem_Starfish_4.png)
 
 ## Contexto
 
