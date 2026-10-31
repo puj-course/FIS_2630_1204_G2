@@ -288,6 +288,10 @@ public class CajeroPagoController {
                 normalizado = normalizado.replace(",", ".");
             }
 
+            if (normalizado.matches(".*[eE].*")) {
+                return null;
+            }
+
             BigDecimal valor = new BigDecimal(normalizado);
             return valor.signum() < 0 ? null : valor.setScale(2, RoundingMode.HALF_UP);
 

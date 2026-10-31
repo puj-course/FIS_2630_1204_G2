@@ -210,7 +210,7 @@ class PedidoModuloFuncionalTest {
 
     @Test
     @Order(7)
-    @DisplayName("CP-07 · Al cerrar el pedido queda COMPLETADO")
+    @DisplayName("CP-07 · Al cerrar el pedido queda ENTREGADO")
     void cerrarPedido() throws SQLException {
         Pedido pedido = servicio.crearPedido(idMesaUno, idUsuario);
 

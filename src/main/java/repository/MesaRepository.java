@@ -427,42 +427,78 @@ public class MesaRepository {
     /**
      * Agrega una nueva mesa.
      */
-    public void agregarMesa(int numeroMesa) throws SQLException {
-        String sqlExiste =
-                "SELECT 1 FROM mesas " +
-                        "WHERE numero_mesa = ? " +
-                        "AND id_zona = ? " +
-                        "AND is_active = 1 " +
-                        "LIMIT 1";
+    public void agregarMesa(int numeroMesa, int capacidad) throws SQLException {
+        if (capacidad <= 0) {
+            throw new IllegalArgumentException("La capacidad debe ser mayor que cero.");
+        }
+
+        String sqlActiva =
+                "SELECT 1 FROM mesas "
+                        + "WHERE numero_mesa = ? AND id_zona = ? AND is_active = 1 LIMIT 1";
+
+        String sqlInactiva =
+                "SELECT id_mesa FROM mesas "
+                        + "WHERE numero_mesa = ? AND id_zona = ? AND is_active = 0 "
+                        + "ORDER BY id_mesa DESC LIMIT 1";
+
+        String sqlReactivar =
+                "UPDATE mesas SET "
+                        + "is_active = 1, "
+                        + "capacidad = ?, "
+                        + "codigo_mesa = ?, "
+                        + "id_estado_mesa = 1 "
+                        + "WHERE id_mesa = ?";
+
+        String sqlInsertar =
+                "INSERT INTO mesas "
+                        + "(numero_mesa, codigo_mesa, capacidad, id_zona, id_estado_mesa, is_active) "
+                        + "VALUES (?, ?, ?, ?, 1, 1)";
+
+        String codigo = generarCodigoMesa(ZONA_POR_DEFECTO, numeroMesa);
 
         try (Connection conn = ConexionBD.getConnection()) {
-            try (PreparedStatement stmt = conn.prepareStatement(sqlExiste)) {
+            // 1) Ya activa → error
+            try (PreparedStatement stmt = conn.prepareStatement(sqlActiva)) {
                 stmt.setInt(1, numeroMesa);
                 stmt.setInt(2, ZONA_POR_DEFECTO);
-
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
                         throw new SQLException(
                                 "Ya existe una mesa activa con el número "
                                         + numeroMesa + " en esta zona.",
-                                "23505"
-                        );
+                                "23505");
                     }
                 }
             }
 
-            String sqlInsertar =
-                    "INSERT INTO mesas " +
-                            "(numero_mesa, codigo_mesa, capacidad, id_zona, id_estado_mesa) " +
-                            "VALUES (?, ?, 2, ?, 1)";
+            // 2) Inactiva → REACTIVAR (no solo return)
+            try (PreparedStatement stmt = conn.prepareStatement(sqlInactiva)) {
+                stmt.setInt(1, numeroMesa);
+                stmt.setInt(2, ZONA_POR_DEFECTO);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        int idMesa = rs.getInt("id_mesa");
+                        try (PreparedStatement up = conn.prepareStatement(sqlReactivar)) {
+                            up.setInt(1, capacidad);
+                            up.setString(2, codigo);
+                            up.setInt(3, idMesa);
+                            int filas = up.executeUpdate();
+                            if (filas == 0) {
+                                throw new SQLException(
+                                        "No se pudo reactivar la mesa " + numeroMesa);
+                            }
+                        }
+                        return;
+                    }
+                }
+            }
 
+            // 3) No existe → insertar
             try (PreparedStatement stmt = conn.prepareStatement(sqlInsertar)) {
                 stmt.setInt(1, numeroMesa);
-                stmt.setString(
-                        2,
-                        generarCodigoMesa(ZONA_POR_DEFECTO, numeroMesa)
-                );
-                stmt.setInt(3, ZONA_POR_DEFECTO);
+                stmt.setString(2, codigo);
+                stmt.setInt(3, capacidad);
+                stmt.setInt(4, ZONA_POR_DEFECTO);
                 stmt.executeUpdate();
             }
         }
