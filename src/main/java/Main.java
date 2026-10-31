@@ -211,6 +211,14 @@ public class Main extends Application {
         cerrarSesion.setOnAction(e -> {
             SesionUsuario.getInstance().cerrarSesion(); //cambio por patrón singleton de sesion usuario
             moduloAbierto = null;
+
+            // Cerrar todas las ventanas abiertas excepto la principal
+            new java.util.ArrayList<>(javafx.stage.Window.getWindows()).forEach(w -> {
+                if (w != ventana) {
+                    w.hide();
+                }
+            });
+
             mostrarLogin();
         });
 
