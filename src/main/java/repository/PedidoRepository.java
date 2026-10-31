@@ -103,24 +103,43 @@ public class PedidoRepository {
                 }
             }
         } else {
-            String sql = "UPDATE pedidos SET "
-                    + "numero_pedido = ?, mesa_id = ?, usuario_id = ?, "
-                    + "estado = ?, inventario_descontado = ? "
-                    + "WHERE pedido_id = ?";
-            try (Connection conn = ConexionBD.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, p.getNumeroPedido());
-                stmt.setLong(2, p.getMesaId());
-                stmt.setLong(3, p.getUsuarioId());
-                stmt.setString(4, p.getEstado() != null
-                        ? p.getEstado().name() : EstadoPedido.PENDIENTE.name());
-                stmt.setString(5, p.isInventarioDescontado() ? "S" : "N");
-                stmt.setLong(6, p.getId());
-                stmt.executeUpdate();            
-            }
-        }
+        String sql = "UPDATE pedidos SET "
+                + "numero_pedido = ?, "
+                + "mesa_id = ?, "
+                + "usuario_id = ?, "
+                + "productos = ?, "
+                + "estado = ?, "
+                + "subtotal = ?, "
+                + "impuestos = ?, "
+                + "total = ?, "
+                + "inventario_descontado = ? "
+                + "WHERE pedido_id = ?";
 
-        return p;
+        try (Connection conn = ConexionBD.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, p.getNumeroPedido());
+            stmt.setLong(2, p.getMesaId());
+            stmt.setLong(3, p.getUsuarioId());
+            stmt.setObject(4, crearJsonb(
+                    p.getProductos() != null ? p.getProductos() : "[]"));
+            stmt.setString(5, p.getEstado() != null
+                    ? p.getEstado().name()
+                    : EstadoPedido.PENDIENTE.name());
+            stmt.setBigDecimal(6, p.getSubtotal() != null
+                    ? p.getSubtotal() : BigDecimal.ZERO);
+            stmt.setBigDecimal(7, p.getImpuestos() != null
+                    ? p.getImpuestos() : BigDecimal.ZERO);
+            stmt.setBigDecimal(8, p.getTotal() != null
+                    ? p.getTotal() : BigDecimal.ZERO);
+            stmt.setString(9, p.isInventarioDescontado() ? "S" : "N");
+            stmt.setLong(10, p.getId());
+
+            stmt.executeUpdate();
+        }
+    }
+
+return p;
     }
 
     //Para operaciones de pedido en estilo de transaccion
