@@ -185,7 +185,7 @@ public class MenuMeseroController {
             }
 
             pedidoActual = resultado.get();
-            System.out.println(">>> PEDIDO ACTIVO ENCONTRADO: " + pedidoActual.getNumeroPedido());
+            System.out.println(">>> PEDIDO ACTIVO ENCONTRADO: " + pedidoActual.getId());
             System.out.println(">>> PRODUCTOS GUARDADOS: " + pedidoActual.getProductos());
 
             try {

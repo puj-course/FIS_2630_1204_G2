@@ -9,12 +9,16 @@ import java.time.LocalDateTime;
 public class Pedido {
 
     private Long id;
+    private String numeroPedido;
     private Long mesaId;
     private Long clienteId;
     private Long usuarioId;
     private String productos = "[]";
     private EstadoPedido estado = EstadoPedido.PENDIENTE;
     private LocalDateTime fechaPedido = LocalDateTime.now();
+    private BigDecimal subtotal = BigDecimal.ZERO;
+    private BigDecimal impuestos = BigDecimal.ZERO;
+    private BigDecimal total = BigDecimal.ZERO;
     private String observaciones;
 
     /*
@@ -35,6 +39,9 @@ public class Pedido {
     public void setId(Long id) {
         this.id = id;
     }
+
+    public String getNumeroPedido() {return numeroPedido;}
+    public void setNumeroPedido(String numeroPedido) {this.numeroPedido = numeroPedido;}
 
     public Long getMesaId() {
         return mesaId;
@@ -78,6 +85,14 @@ public class Pedido {
         this.fechaPedido = fechaPedido;
     }
 
+    public BigDecimal getSubtotal() {return subtotal;}
+    public void setSubtotal(BigDecimal subtotal) {this.subtotal = subtotal;}
+
+    public BigDecimal getTotal() {return total;}
+    public void setTotal(BigDecimal total) {
+        this.total = total;
+    }
+
     public boolean isInventarioDescontado() {
         return inventarioDescontado;
     }
@@ -91,4 +106,7 @@ public class Pedido {
     public void setObservacioness() {
         this.observaciones = observaciones;
     }
+
+    public BigDecimal getImpuestos() {return impuestos;}
+    public void setImpuestos(BigDecimal impuestos) {this.impuestos = impuestos != null ? impuestos : BigDecimal.ZERO;}
 }
