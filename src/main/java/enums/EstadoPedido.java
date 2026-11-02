@@ -7,5 +7,12 @@ public enum EstadoPedido {
     PAGADO,
     COMPLETADO,
     ENTREGADO,
-    CANCELADO
+    CANCELADO;
+
+    public static boolean esEstadoCierre(EstadoPedido estado) {
+        if (estado == null) {
+            return false;
+        }
+        return estado == COMPLETADO || estado == ENTREGADO || estado == CANCELADO;
+    }
 }

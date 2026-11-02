@@ -28,13 +28,13 @@ public class PedidoRepository {
         }
         return Optional.empty();
     }
-    public boolean existsByMesaIdAndEstadoNot(long mesaId, EstadoPedido estadoExcluido) throws SQLException {
 
+    public boolean existsByMesaIdAndEstadoNot(long mesaId, EstadoPedido estadoExcluido) throws SQLException {
         String sql =
                 "SELECT 1 FROM pedidos " +
                         "WHERE mesa_id = ? " +
                         "AND estado <> ? " +
-                        "AND estado NOT IN (?, ?) " +
+                        "AND estado NOT IN (?, ?, ?) " +
                         "LIMIT 1";
 
         try (Connection conn = ConexionBD.getConnection();
@@ -43,6 +43,7 @@ public class PedidoRepository {
             stmt.setString(2, estadoExcluido.name());
             stmt.setString(3, EstadoPedido.COMPLETADO.name());
             stmt.setString(4, EstadoPedido.ENTREGADO.name());
+            stmt.setString(5, EstadoPedido.CANCELADO.name());
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();
             }
@@ -56,7 +57,7 @@ public class PedidoRepository {
                 "inventario_descontado " +
                 "FROM pedidos " +
                 "WHERE mesa_id = ? " +
-                "AND estado NOT IN ('CANCELADO', 'ENTREGADO') " +
+                "AND estado NOT IN ('CANCELADO', 'ENTREGADO', 'COMPLETADO') " +
                 "ORDER BY pedido_id DESC " +
                 "LIMIT 1";
 
@@ -455,6 +456,4 @@ public void actualizarEstado(long pedidoId, EstadoPedido estado) throws SQLExcep
 
         return normalizado.equals("S");
     }
-
-
 }

@@ -204,6 +204,7 @@ public class MapaSalonController {
 
         // Usar la función centralizada para garantizar la etiqueta uniforme en todos los módulos
         String textoEstado = EstadoFormatterUtil.formatearEstadoMesa(mesa.getCodigoEstado());
+        btn.setText(textoEstado);
 
         String colorTexto = estado != null ? "white" : "#B00020";
         btn.setText(null);
@@ -356,12 +357,11 @@ public class MapaSalonController {
         EstadoMesaVisual estado = EstadoMesaVisual.desdeCodigo(mesa.getCodigoEstado());
         boolean ocupada = estado == EstadoMesaVisual.OCUPADA;
 
-        // Obtener la etiqueta uniforme mediante la utilidad centralizada
         String etiquetaEstado = EstadoFormatterUtil.formatearEstadoMesa(mesa.getCodigoEstado());
-
         tituloDetalleMesa.setText("Detalle de Mesa " + obtenerIdentificadorMesa(mesa));
         detalleNumero.setText("Numero: " + mesa.getNumeroMesa());
-        detalleEstado.setText("Estado: " + (estado != null ? estado.etiqueta : "Estado no valido"));
+
+        detalleEstado.setText("Estado: " + etiquetaEstado);
         detalleCapacidad.setText("Capacidad maxima: " + mesa.getCapacidad() + " personas");
         detalleComensales.setText("Comensales: " + textoComensales(mesa, ocupada));
         detallePedido.setText("Pedido activo: " + textoOpcional(mesa.getPedidoActivo(), "Sin pedido activo"));
