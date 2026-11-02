@@ -35,9 +35,9 @@ INSERT INTO usuarios (codigo_empleado, id_tipo_documento, numero_documento,
                       nombre, apellido, correo, password_hash, id_rol,
                       is_on_shift, is_active, created_by)
 SELECT v.codigo,
-       (SELECT id_tipo_documento FROM tipos_documento WHERE codigo = 'CC'),
+       (SELECT t.id_tipo_documento FROM tipos_documento AS t WHERE t.codigo = 'CC'),
        v.documento, v.nombre, v.apellido, v.correo, v.hash,
-       (SELECT id_rol FROM roles WHERE nombre_rol = v.rol),
+       (SELECT r.id_rol FROM roles AS r WHERE r.nombre_rol = v.rol),
        0, 1, 'hu095'
 FROM (VALUES
         ('ADM-001', '1001', 'Ana',   'Restrepo', 'ana.restrepo@gastroflow.local',

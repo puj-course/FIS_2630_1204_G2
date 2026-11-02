@@ -1,0 +1,144 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 35
+skinparam ranksep 60
+skinparam padding 3
+skinparam ClassFontSize 13
+skinparam ClassAttributeFontSize 11
+skinparam ClassStereotypeFontSize 10
+skinparam ClassBorderColor #334155
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ClassAttributeIconSize 0
+hide empty members
+
+hide members
+hide circle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 70
+package "service" #DCFCE7 {
+  class "AdicionalService" as service_AdicionalService
+  class "AsignacionMesaService" as service_AsignacionMesaService
+  class "AutenticacionService" as service_AutenticacionService
+  class "DisponibilidadService" as service_DisponibilidadService
+  class "EntradaInventarioService" as service_EntradaInventarioService
+  class "InventarioService" as service_InventarioService
+  class "MesaService" as service_MesaService
+  class "PagoService" as service_PagoService
+  class "PedidoFacade" as service_PedidoFacade
+  class "PedidoService" as service_PedidoService
+  class "ReglaDescuentoService" as service_ReglaDescuentoService
+  class "ReservaService" as service_ReservaService
+  service_AdicionalService -[hidden]right- service_AsignacionMesaService
+  service_AsignacionMesaService -[hidden]right- service_AutenticacionService
+  service_AdicionalService -[hidden]down- service_DisponibilidadService
+  service_DisponibilidadService -[hidden]right- service_EntradaInventarioService
+  service_AsignacionMesaService -[hidden]down- service_EntradaInventarioService
+  service_EntradaInventarioService -[hidden]right- service_InventarioService
+  service_AutenticacionService -[hidden]down- service_InventarioService
+  service_DisponibilidadService -[hidden]down- service_MesaService
+  service_MesaService -[hidden]right- service_PagoService
+  service_EntradaInventarioService -[hidden]down- service_PagoService
+  service_PagoService -[hidden]right- service_PedidoFacade
+  service_InventarioService -[hidden]down- service_PedidoFacade
+  service_MesaService -[hidden]down- service_PedidoService
+  service_PedidoService -[hidden]right- service_ReglaDescuentoService
+  service_PagoService -[hidden]down- service_ReglaDescuentoService
+  service_ReglaDescuentoService -[hidden]right- service_ReservaService
+  service_PedidoFacade -[hidden]down- service_ReservaService
+}
+package "dao" #DCFCE7 {
+  class "DisponibilidadDAO" as dao_DisponibilidadDAO
+  class "PagoDAO" as dao_PagoDAO
+  class "ProductoDAO" as dao_ProductoDAO
+}
+package "repository" #FFEDD5 {
+  class "AdicionalRepository" as repository_AdicionalRepository
+  class "AsignacionMesaRepository" as repository_AsignacionMesaRepository
+  class "DetallePedidoAdicionalRepository" as repository_DetallePedidoAdicionalRepository
+  class "EntradaInventarioRepository" as repository_EntradaInventarioRepository
+  class "EstadoMesaRepository" as repository_EstadoMesaRepository
+  class "HistorialEstadoMesaRepository" as repository_HistorialEstadoMesaRepository
+  class "IngredienteReceta" as repository_IngredienteReceta
+  class "InventarioRepository" as repository_InventarioRepository
+  class "MesaRepository" as repository_MesaRepository
+  class "MovimientoPedido" as repository_MovimientoPedido
+  interface "PagoRepository" as repository_PagoRepository
+  class "PedidoRepository" as repository_PedidoRepository
+  class "PlatoInsumoRepository" as repository_PlatoInsumoRepository
+  class "ReglaDescuentoRepository" as repository_ReglaDescuentoRepository
+  class "ReservaRepository" as repository_ReservaRepository
+  class "UsuarioRepository" as repository_UsuarioRepository
+  class "ZonaRepository" as repository_ZonaRepository
+  repository_AdicionalRepository -[hidden]right- repository_AsignacionMesaRepository
+  repository_AsignacionMesaRepository -[hidden]right- repository_DetallePedidoAdicionalRepository
+  repository_AdicionalRepository -[hidden]down- repository_EntradaInventarioRepository
+  repository_EntradaInventarioRepository -[hidden]right- repository_EstadoMesaRepository
+  repository_AsignacionMesaRepository -[hidden]down- repository_EstadoMesaRepository
+  repository_EstadoMesaRepository -[hidden]right- repository_HistorialEstadoMesaRepository
+  repository_DetallePedidoAdicionalRepository -[hidden]down- repository_HistorialEstadoMesaRepository
+  repository_EntradaInventarioRepository -[hidden]down- repository_IngredienteReceta
+  repository_IngredienteReceta -[hidden]right- repository_InventarioRepository
+  repository_EstadoMesaRepository -[hidden]down- repository_InventarioRepository
+  repository_InventarioRepository -[hidden]right- repository_MesaRepository
+  repository_HistorialEstadoMesaRepository -[hidden]down- repository_MesaRepository
+  repository_IngredienteReceta -[hidden]down- repository_MovimientoPedido
+  repository_MovimientoPedido -[hidden]right- repository_PagoRepository
+  repository_InventarioRepository -[hidden]down- repository_PagoRepository
+  repository_PagoRepository -[hidden]right- repository_PedidoRepository
+  repository_MesaRepository -[hidden]down- repository_PedidoRepository
+  repository_MovimientoPedido -[hidden]down- repository_PlatoInsumoRepository
+  repository_PlatoInsumoRepository -[hidden]right- repository_ReglaDescuentoRepository
+  repository_PagoRepository -[hidden]down- repository_ReglaDescuentoRepository
+  repository_ReglaDescuentoRepository -[hidden]right- repository_ReservaRepository
+  repository_PedidoRepository -[hidden]down- repository_ReservaRepository
+  repository_PlatoInsumoRepository -[hidden]down- repository_UsuarioRepository
+  repository_UsuarioRepository -[hidden]right- repository_ZonaRepository
+  repository_ReglaDescuentoRepository -[hidden]down- repository_ZonaRepository
+}
+package "ConexionBD" #F1F5F9 {
+  class "ConexionBD" as ConexionBD_ConexionBD
+}
+service_AdicionalService -[hidden]down- dao_DisponibilidadDAO
+dao_DisponibilidadDAO -[hidden]down- repository_AdicionalRepository
+repository_AdicionalRepository -[hidden]down- ConexionBD_ConexionBD
+dao_ProductoDAO "1" *-[#047857]-> "1 disponibilidadDAO" dao_DisponibilidadDAO
+service_AdicionalService "1" *-[#C2410C]-> "1 adicionalRepository" repository_AdicionalRepository
+service_AdicionalService "1" *-[#C2410C]-> "1 detallePedidoAdicionalRepository" repository_DetallePedidoAdicionalRepository
+service_AsignacionMesaService "1" *-[#C2410C]-> "1 asignacionMesaRepository" repository_AsignacionMesaRepository
+service_AutenticacionService o-[#C2410C]-> "1 usuarioRepository" repository_UsuarioRepository
+service_DisponibilidadService "1" *-[#C2410C]-> "1 platoInsumoRepo" repository_PlatoInsumoRepository
+service_EntradaInventarioService "1" *-[#C2410C]-> "1 repo" repository_EntradaInventarioRepository
+service_InventarioService "1" *-[#C2410C]-> "1 inventarioRepository" repository_InventarioRepository
+service_MesaService "1" *-[#C2410C]-> "1 mesaRepository" repository_MesaRepository
+service_MesaService "1" *-[#C2410C]-> "1 zonaRepository" repository_ZonaRepository
+service_MesaService "1" *-[#C2410C]-> "1 estadoMesaRepository" repository_EstadoMesaRepository
+service_MesaService "1" *-[#C2410C]-> "1 historialEstadoMesaRepository" repository_HistorialEstadoMesaRepository
+service_PagoService o-[#C2410C]-> "1 pagoRepository" repository_PagoRepository
+service_PagoService o-[#C2410C]-> "1 pedidoRepository" repository_PedidoRepository
+service_PedidoFacade o-[#047857]-> "1 pedidoService" service_PedidoService
+service_PedidoFacade o-[#047857]-> "1 inventarioService" service_InventarioService
+service_PedidoFacade o-[#047857]-> "1 disponibilidadDAO" dao_DisponibilidadDAO
+service_PedidoService "1" *-[#C2410C]-> "1 pedidoRepository" repository_PedidoRepository
+service_PedidoService "1" *-[#047857]-> "1 mesaService" service_MesaService
+service_PedidoService "1" *-[#047857]-> "1 inventarioService" service_InventarioService
+service_ReglaDescuentoService "1" *-[#C2410C]-> "1 repo" repository_ReglaDescuentoRepository
+service_ReservaService "1" *-[#C2410C]-> "1 reservaRepository" repository_ReservaRepository
+service_ReservaService "1" *-[#C2410C]-> "1 pedidoRepository" repository_PedidoRepository
+service_ReservaService "1" *-[#047857]-> "1 mesaService" service_MesaService
+dao_DisponibilidadDAO -[#475569,dashed]-> ConexionBD_ConexionBD
+dao_PagoDAO -[#475569,dashed]-> ConexionBD_ConexionBD
+dao_ProductoDAO -[#475569,dashed]-> ConexionBD_ConexionBD
+service_DisponibilidadService -[#475569,dashed]-> ConexionBD_ConexionBD
+service_EntradaInventarioService -[#475569,dashed]-> ConexionBD_ConexionBD
+service_InventarioService -[#475569,dashed]-> ConexionBD_ConexionBD
+service_InventarioService -[#C2410C,dashed]-> repository_IngredienteReceta
+service_InventarioService -[#C2410C,dashed]-> repository_MovimientoPedido
+service_MesaService -[#475569,dashed]-> ConexionBD_ConexionBD
+@enduml

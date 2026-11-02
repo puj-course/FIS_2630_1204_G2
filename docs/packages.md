@@ -1,6 +1,4 @@
 # Alineación de paquetes Java
- 
-**Rama de trabajo:** personal → Pull Request hacia `develop`
 
 ---
 

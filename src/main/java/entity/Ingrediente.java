@@ -65,6 +65,17 @@ public class Ingrediente {
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+    public boolean estaActivo() {
+        return "ACTIVO".equalsIgnoreCase(estado);
+    }
+
+    public boolean tieneStockBajo() {
+        if (stockActual == null || stockMinimo == null) {
+            return false;
+        }
+
+        return stockActual.compareTo(stockMinimo) <= 0;
+    }
 
     public LocalDateTime getFechaCreacion() { return fechaCreacion; }
     public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
@@ -73,4 +84,8 @@ public class Ingrediente {
     public void setFechaActualizacion(LocalDateTime fechaActualizacion) { this.fechaActualizacion = fechaActualizacion; }
 
     public boolean isActivo() { return ESTADO_ACTIVO.equals(estado); }
+    @Override
+    public String toString() {
+        return nombre;
+    }
 }

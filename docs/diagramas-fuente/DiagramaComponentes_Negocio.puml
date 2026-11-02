@@ -1,0 +1,209 @@
+@startuml
+allowmixing
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 30
+skinparam ranksep 60
+skinparam ArrowColor #475569
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentFontSize 12
+skinparam InterfaceBackgroundColor #FFFFFF
+skinparam InterfaceFontSize 11
+skinparam ArtifactBackgroundColor #FFFFFF
+skinparam ArtifactFontSize 11
+skinparam DatabaseBackgroundColor #FFFFFF
+
+package "Logica de negocio · service" #DCFCE7 {
+  component "**AdicionalService**" as AdicionalService
+  component "**AsignacionMesaService**" as AsignacionMesaService
+  component "**AutenticacionService**" as AutenticacionService
+  component "**DisponibilidadService**" as DisponibilidadService
+  component "**EntradaInventarioService**" as EntradaInventarioService
+  component "**InventarioService**" as InventarioService
+  component "**MesaService**" as MesaService
+  component "**PagoService**\n<size:9>excluida en pom.xml</size>" as PagoService
+  component "**PedidoFacade**" as PedidoFacade
+  component "**PedidoService**" as PedidoService
+  component "**ReglaDescuentoService**" as ReglaDescuentoService
+  component "**ReservaService**" as ReservaService
+  AdicionalService -[hidden]right- AsignacionMesaService
+  AsignacionMesaService -[hidden]right- AutenticacionService
+  AutenticacionService -[hidden]right- DisponibilidadService
+  AdicionalService -[hidden]down- EntradaInventarioService
+  EntradaInventarioService -[hidden]right- InventarioService
+  AsignacionMesaService -[hidden]down- InventarioService
+  InventarioService -[hidden]right- MesaService
+  AutenticacionService -[hidden]down- MesaService
+  MesaService -[hidden]right- PagoService
+  DisponibilidadService -[hidden]down- PagoService
+  EntradaInventarioService -[hidden]down- PedidoFacade
+  PedidoFacade -[hidden]right- PedidoService
+  InventarioService -[hidden]down- PedidoService
+  PedidoService -[hidden]right- ReglaDescuentoService
+  MesaService -[hidden]down- ReglaDescuentoService
+  ReglaDescuentoService -[hidden]right- ReservaService
+  PagoService -[hidden]down- ReservaService
+}
+interface "AdicionalRepository\n<size:9>findAllActivos()</size>\n<size:9>findById(long)</size>" as I_AdicionalRepository
+interface "AsignacionMesaRepository\n<size:9>findActivaByMesaId(long)</size>\n<size:9>save(AsignacionMesa)</size>" as I_AsignacionMesaRepository
+interface "AutenticacionService\n<size:9>iniciarSesion(String, String)</size>\n<size:9>mensajeDe(Resultado)</size>" as I_AutenticacionService
+interface "ConexionBD\n<size:9>getConnection()</size>" as I_ConexionBD
+interface "DetallePedidoAdicionalRepository\n<size:9>save(DetallePedidoAdicional)</size>" as I_DetallePedidoAdicionalRepository
+interface "DisponibilidadDAO\n<size:9>estaDisponible(long)</size>\n<size:9>estaDisponible(long, int)</size>\n<size:9>faltantesDelPedido(Map)</size>\n<size:9>listarProductos()</size>\n<size:9>recalcularTodos()</size>" as I_DisponibilidadDAO
+interface "EntradaInventarioRepository\n<size:9>guardar(EntradaInventario)</size>" as I_EntradaInventarioRepository
+interface "EstadoMesaRepository\n<size:9>findByCodigoEstado(String)</size>" as I_EstadoMesaRepository
+interface "HistorialEstadoMesaRepository\n<size:9>save(HistorialEstadoMesa)</size>\n<size:9>save(Connection, HistorialEstadoMesa)</size>" as I_HistorialEstadoMesaRepository
+interface "InventarioRepository\n<size:9>descontarStock(Connection, long, BigDecimal)</size>\n<size:9>devolverStock(Connection, long, BigDecimal)</size>\n<size:9>existeReversionPorPedido(Connection, long)</size>\n<size:9>obtenerNombreIngrediente(Connection, long)</size>\n<size:9>obtenerReceta(Connection, long)</size>\n<size:9>obtenerSalidasPorPedido(Connection, long)</size>\n<size:9>obtenerStockForUpdate(Connection, long)</size>\n<size:9>registrarEntradaIngrediente(Connection, long, BigDecimal, String, long)</size>\n<size:9>registrarSalidaIngrediente(Connection, long, BigDecimal, String, long)</size>" as I_InventarioRepository
+interface "InventarioService\n<size:9>descontarIngredientes(long, Map, long)</size>\n<size:9>revertirDescuento(long, long)</size>" as I_InventarioService
+interface "MesaRepository\n<size:9>agregarMesa(int)</size>\n<size:9>asignarComensales(int, int)</size>\n<size:9>cambiarEstadoMesa(Connection, int, String)</size>\n<size:9>findById(int)</size>\n<size:9>findById(Connection, int)</size>\n<size:9>liberarMesa(int)</size>\n<size:9>obtenerTodas()</size>\n<size:9>quitarMesa(int)</size>" as I_MesaRepository
+interface "MesaService\n<size:9>cambiarEstado(long, String, String)</size>" as I_MesaService
+interface "PagoRepository\n<size:9>findByPedidoId(Long)</size>" as I_PagoRepository
+interface "PedidoFacade\n<size:9>calcularSubtotal(Collection)</size>\n<size:9>confirmarPedido(long, long, Collection)</size>\n<size:9>validarDisponibilidad(Collection)</size>" as I_PedidoFacade
+interface "PedidoRepository\n<size:9>existsByMesaIdAndEstadoNot(long, EstadoPedido)</size>\n<size:9>findActivoByMesaId(long)</size>\n<size:9>findById(long)</size>\n<size:9>findPedidosParaCocina()</size>\n<size:9>save(Pedido)</size>" as I_PedidoRepository
+interface "PedidoService\n<size:9>actualizarPedido(Pedido)</size>\n<size:9>cancelarPedido(long, String)</size>\n<size:9>cerrarPedido(long, String)</size>\n<size:9>obtenerOCrearPedido(long, long)</size>\n<size:9>obtenerPedidoActivo(long)</size>" as I_PedidoService
+interface "PlatoInsumoRepository\n<size:9>obtenerPorPlato(int)</size>" as I_PlatoInsumoRepository
+interface "ReglaDescuentoRepository\n<size:9>guardar(ReglaDescuento)</size>" as I_ReglaDescuentoRepository
+interface "ReservaRepository\n<size:9>cancelar(int, LocalDateTime)</size>\n<size:9>findById(int)</size>\n<size:9>obtenerMesasReservadas()</size>\n<size:9>obtenerReservasDelTurnoActual()</size>" as I_ReservaRepository
+interface "SesionUsuario\n<size:9>cerrarSesion()</size>\n<size:9>esCajero()</size>\n<size:9>estaAutenticado()</size>\n<size:9>getInstance()</size>\n<size:9>getNombre()</size>\n<size:9>getRol()</size>\n<size:9>getUsuarioId()</size>\n<size:9>iniciarSesion(int, String, String)</size>" as I_SesionUsuario
+interface "UsuarioRepository\n<size:9>actualizarPasswordHash(int, String)</size>\n<size:9>buscarPorIdentificador(String)</size>" as I_UsuarioRepository
+interface "ZonaRepository\n<size:9>findById(long)</size>" as I_ZonaRepository
+package "fuera del subsistema" #FAFAFA {
+  component "**AdicionalRepository**\n<size:9>repository</size>" as AdicionalRepository #FFEDD5
+  component "**AsignacionMesaRepository**\n<size:9>repository</size>" as AsignacionMesaRepository #FFEDD5
+  component "**ConexionBD**\n<size:9>ConexionBD</size>" as ConexionBD #F1F5F9
+  component "**DetallePedidoAdicionalRepository**\n<size:9>repository</size>" as DetallePedidoAdicionalRepository #FFEDD5
+  component "**DisponibilidadDAO**\n<size:9>dao</size>" as DisponibilidadDAO #FFEDD5
+  component "**EntradaInventarioRepository**\n<size:9>repository</size>" as EntradaInventarioRepository #FFEDD5
+  component "**EstadoMesaRepository**\n<size:9>repository</size>" as EstadoMesaRepository #FFEDD5
+  component "**HistorialEstadoMesaRepository**\n<size:9>repository</size>" as HistorialEstadoMesaRepository #FFEDD5
+  component "**InventarioRepository**\n<size:9>repository</size>" as InventarioRepository #FFEDD5
+  component "**MesaRepository**\n<size:9>repository</size>" as MesaRepository #FFEDD5
+  component "**PagoRepository**\n<size:9>repository</size>\n<size:9>excluida en pom.xml</size>" as PagoRepository #FFEDD5
+  component "**PedidoRepository**\n<size:9>repository</size>" as PedidoRepository #FFEDD5
+  component "**PlatoInsumoRepository**\n<size:9>repository</size>" as PlatoInsumoRepository #FFEDD5
+  component "**ReglaDescuentoRepository**\n<size:9>repository</size>" as ReglaDescuentoRepository #FFEDD5
+  component "**ReservaRepository**\n<size:9>repository</size>" as ReservaRepository #FFEDD5
+  component "**SesionUsuario**\n<size:9>session</size>" as SesionUsuario #F3E8FF
+  component "**UsuarioRepository**\n<size:9>repository</size>" as UsuarioRepository #FFEDD5
+  component "**ZonaRepository**\n<size:9>repository</size>" as ZonaRepository #FFEDD5
+  AdicionalRepository -[hidden]right- AsignacionMesaRepository
+  AsignacionMesaRepository -[hidden]right- ConexionBD
+  ConexionBD -[hidden]right- DetallePedidoAdicionalRepository
+  DetallePedidoAdicionalRepository -[hidden]right- DisponibilidadDAO
+  AdicionalRepository -[hidden]down- EntradaInventarioRepository
+  EntradaInventarioRepository -[hidden]right- EstadoMesaRepository
+  AsignacionMesaRepository -[hidden]down- EstadoMesaRepository
+  EstadoMesaRepository -[hidden]right- HistorialEstadoMesaRepository
+  ConexionBD -[hidden]down- HistorialEstadoMesaRepository
+  HistorialEstadoMesaRepository -[hidden]right- InventarioRepository
+  DetallePedidoAdicionalRepository -[hidden]down- InventarioRepository
+  InventarioRepository -[hidden]right- MesaRepository
+  DisponibilidadDAO -[hidden]down- MesaRepository
+  EntradaInventarioRepository -[hidden]down- PagoRepository
+  PagoRepository -[hidden]right- PedidoRepository
+  EstadoMesaRepository -[hidden]down- PedidoRepository
+  PedidoRepository -[hidden]right- PlatoInsumoRepository
+  HistorialEstadoMesaRepository -[hidden]down- PlatoInsumoRepository
+  PlatoInsumoRepository -[hidden]right- ReglaDescuentoRepository
+  InventarioRepository -[hidden]down- ReglaDescuentoRepository
+  ReglaDescuentoRepository -[hidden]right- ReservaRepository
+  MesaRepository -[hidden]down- ReservaRepository
+  PagoRepository -[hidden]down- SesionUsuario
+  SesionUsuario -[hidden]right- UsuarioRepository
+  PedidoRepository -[hidden]down- UsuarioRepository
+  UsuarioRepository -[hidden]right- ZonaRepository
+  PlatoInsumoRepository -[hidden]down- ZonaRepository
+}
+I_AdicionalRepository -[hidden]right- I_AsignacionMesaRepository
+I_AsignacionMesaRepository -[hidden]right- I_AutenticacionService
+I_AutenticacionService -[hidden]right- I_ConexionBD
+I_ConexionBD -[hidden]right- I_DetallePedidoAdicionalRepository
+I_AdicionalRepository -[hidden]down- I_DisponibilidadDAO
+I_DisponibilidadDAO -[hidden]right- I_EntradaInventarioRepository
+I_AsignacionMesaRepository -[hidden]down- I_EntradaInventarioRepository
+I_EntradaInventarioRepository -[hidden]right- I_EstadoMesaRepository
+I_AutenticacionService -[hidden]down- I_EstadoMesaRepository
+I_EstadoMesaRepository -[hidden]right- I_HistorialEstadoMesaRepository
+I_ConexionBD -[hidden]down- I_HistorialEstadoMesaRepository
+I_HistorialEstadoMesaRepository -[hidden]right- I_InventarioRepository
+I_DetallePedidoAdicionalRepository -[hidden]down- I_InventarioRepository
+I_DisponibilidadDAO -[hidden]down- I_InventarioService
+I_InventarioService -[hidden]right- I_MesaRepository
+I_EntradaInventarioRepository -[hidden]down- I_MesaRepository
+I_MesaRepository -[hidden]right- I_MesaService
+I_EstadoMesaRepository -[hidden]down- I_MesaService
+I_MesaService -[hidden]right- I_PagoRepository
+I_HistorialEstadoMesaRepository -[hidden]down- I_PagoRepository
+I_PagoRepository -[hidden]right- I_PedidoFacade
+I_InventarioRepository -[hidden]down- I_PedidoFacade
+I_InventarioService -[hidden]down- I_PedidoRepository
+I_PedidoRepository -[hidden]right- I_PedidoService
+I_MesaRepository -[hidden]down- I_PedidoService
+I_PedidoService -[hidden]right- I_PlatoInsumoRepository
+I_MesaService -[hidden]down- I_PlatoInsumoRepository
+I_PlatoInsumoRepository -[hidden]right- I_ReglaDescuentoRepository
+I_PagoRepository -[hidden]down- I_ReglaDescuentoRepository
+I_ReglaDescuentoRepository -[hidden]right- I_ReservaRepository
+I_PedidoFacade -[hidden]down- I_ReservaRepository
+I_PedidoRepository -[hidden]down- I_SesionUsuario
+I_SesionUsuario -[hidden]right- I_UsuarioRepository
+I_PedidoService -[hidden]down- I_UsuarioRepository
+I_UsuarioRepository -[hidden]right- I_ZonaRepository
+I_PlatoInsumoRepository -[hidden]down- I_ZonaRepository
+AdicionalRepository -up- I_AdicionalRepository
+AsignacionMesaRepository -up- I_AsignacionMesaRepository
+AutenticacionService -up- I_AutenticacionService
+ConexionBD -up- I_ConexionBD
+DetallePedidoAdicionalRepository -up- I_DetallePedidoAdicionalRepository
+DisponibilidadDAO -up- I_DisponibilidadDAO
+EntradaInventarioRepository -up- I_EntradaInventarioRepository
+EstadoMesaRepository -up- I_EstadoMesaRepository
+HistorialEstadoMesaRepository -up- I_HistorialEstadoMesaRepository
+InventarioRepository -up- I_InventarioRepository
+InventarioService -up- I_InventarioService
+MesaRepository -up- I_MesaRepository
+MesaService -up- I_MesaService
+PagoRepository -up- I_PagoRepository
+PedidoFacade -up- I_PedidoFacade
+PedidoRepository -up- I_PedidoRepository
+PedidoService -up- I_PedidoService
+PlatoInsumoRepository -up- I_PlatoInsumoRepository
+ReglaDescuentoRepository -up- I_ReglaDescuentoRepository
+ReservaRepository -up- I_ReservaRepository
+SesionUsuario -up- I_SesionUsuario
+UsuarioRepository -up- I_UsuarioRepository
+ZonaRepository -up- I_ZonaRepository
+AdicionalService ..> I_AdicionalRepository : <<use>> 2
+AdicionalService ..> I_DetallePedidoAdicionalRepository : <<use>> 1
+AsignacionMesaService ..> I_AsignacionMesaRepository : <<use>> 2
+AutenticacionService ..> I_SesionUsuario : <<use>> 2
+AutenticacionService ..> I_UsuarioRepository : <<use>> 2
+DisponibilidadService ..> I_ConexionBD : <<use>> 1
+DisponibilidadService ..> I_PlatoInsumoRepository : <<use>> 1
+EntradaInventarioService ..> I_ConexionBD : <<use>> 1
+EntradaInventarioService ..> I_EntradaInventarioRepository : <<use>> 1
+InventarioService ..> I_ConexionBD : <<use>> 1
+InventarioService ..> I_InventarioRepository : <<use>> 9
+MesaService ..> I_ConexionBD : <<use>> 1
+MesaService ..> I_EstadoMesaRepository : <<use>> 1
+MesaService ..> I_HistorialEstadoMesaRepository : <<use>> 1
+MesaService ..> I_MesaRepository : <<use>> 5
+MesaService ..> I_ZonaRepository : <<use>> 1
+PagoService ..> I_PagoRepository : <<use>> 1
+PagoService ..> I_PedidoRepository : <<use>> 2
+PedidoFacade ..> I_DisponibilidadDAO : <<use>> 1
+PedidoFacade ..> I_InventarioService : <<use>> 1
+PedidoFacade ..> I_PedidoService : <<use>> 4
+PedidoService ..> I_InventarioService : <<use>> 1
+PedidoService ..> I_MesaService : <<use>> 1
+PedidoService ..> I_PedidoRepository : <<use>> 4
+ReglaDescuentoService ..> I_ReglaDescuentoRepository : <<use>> 1
+ReservaService ..> I_MesaService : <<use>> 1
+ReservaService ..> I_PedidoRepository : <<use>> 1
+ReservaService ..> I_ReservaRepository : <<use>> 4
+@enduml

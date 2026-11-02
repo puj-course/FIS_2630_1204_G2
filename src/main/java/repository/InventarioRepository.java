@@ -64,7 +64,7 @@ public class InventarioRepository {
     }
 
     /**
-     * Obtiene la receta almacenada en productos.ingredientes.
+     * Obtiene la receta almacenada en plato_insumo.
      */
     public List<IngredienteReceta> obtenerReceta(
             Connection conn,
@@ -72,126 +72,42 @@ public class InventarioRepository {
     ) throws SQLException {
 
         String sql =
-                "SELECT ingredientes " +
-                        "FROM productos " +
-                        "WHERE producto_id = ?";
+                "SELECT p.producto_id, " +
+                        "pi.insumo_id AS ingrediente_id, " +
+                        "pi.cantidad_necesaria AS cantidad " +
+                        "FROM productos p " +
+                        "LEFT JOIN plato_insumo pi " +
+                        "ON pi.plato_id = p.producto_id " +
+                        "WHERE p.producto_id = ? " +
+                        "ORDER BY pi.insumo_id";
 
-        List<IngredienteReceta> receta =
-                new ArrayList<>();
+        List<IngredienteReceta> receta = new ArrayList<>();
 
-        try (PreparedStatement stmt =
-                     conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setLong(1, productoId);
 
-            try (ResultSet rs =
-                         stmt.executeQuery()) {
+            try (ResultSet rs = stmt.executeQuery()) {
 
                 if (!rs.next()) {
-
                     throw new SQLException(
-                            "No existe el producto con ID "
-                                    + productoId
+                            "No existe el producto con ID " + productoId
                     );
                 }
 
-                String json =
-                        rs.getString("ingredientes");
+                do {
+                    long ingredienteId = rs.getLong("ingrediente_id");
 
-                if (json == null
-                        || json.isBlank()
-                        || json.equals("[]")) {
-
-                    return receta;
-                }
-
-                String contenido =
-                        json.trim();
-
-                if (contenido.startsWith("[")
-                        && contenido.endsWith("]")) {
-
-                    contenido =
-                            contenido.substring(
-                                    1,
-                                    contenido.length() - 1
-                            );
-                }
-
-                if (contenido.isBlank()) {
-                    return receta;
-                }
-
-                String[] elementos =
-                        contenido.split(
-                                "\\},\\s*\\{"
-                        );
-
-                for (String elemento :
-                        elementos) {
-
-                    String limpio =
-                            elemento
-                                    .replace("{", "")
-                                    .replace("}", "")
-                                    .replace("\"", "")
-                                    .trim();
-
-                    Long ingredienteId = null;
-                    BigDecimal cantidad = null;
-
-                    String[] propiedades =
-                            limpio.split(",");
-
-                    for (String propiedad :
-                            propiedades) {
-
-                        String[] partes =
-                                propiedad.split(
-                                        ":",
-                                        2
-                                );
-
-                        if (partes.length != 2) {
-                            continue;
-                        }
-
-                        String clave =
-                                partes[0].trim();
-
-                        String valor =
-                                partes[1].trim();
-
-                        if ("ingrediente_id".equals(clave)) {
-
-                            ingredienteId =
-                                    Long.parseLong(
-                                            valor
-                                    );
-                        }
-
-                        if ("cantidad".equals(clave)) {
-
-                            cantidad =
-                                    new BigDecimal(
-                                            valor
-                                    );
-                        }
+                    if (rs.wasNull()) {
+                        // El producto existe, pero no tiene receta.
+                        continue;
                     }
 
-                    if (ingredienteId == null
-                            || cantidad == null) {
+                    BigDecimal cantidad =
+                            rs.getBigDecimal("cantidad");
 
-                        throw new SQLException(
-                                "La receta del producto "
-                                        + productoId
-                                        + " contiene un ingrediente inválido."
-                        );
-                    }
-
-                    if (cantidad.compareTo(
-                            BigDecimal.ZERO
-                    ) <= 0) {
+                    if (cantidad == null
+                            || cantidad.compareTo(BigDecimal.ZERO) <= 0) {
 
                         throw new SQLException(
                                 "La cantidad de receta del ingrediente "
@@ -206,7 +122,8 @@ public class InventarioRepository {
                                     cantidad
                             )
                     );
-                }
+
+                } while (rs.next());
             }
         }
 

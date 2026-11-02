@@ -156,6 +156,9 @@ que dice el PR sea lo que hace el código.
 El cuerpo del PR lleva `Closes #NN` con el número del issue, para que se cierre
 solo al fusionar.
 
+### Integración continua
+
+Todo pull request dirigido a `develop` debe tener el flujo de GitHub Actions definido en `.github/workflows/ci.yml` en estado satisfactorio antes de ser aprobado. Si la compilación o alguna prueba automatizada falla, el autor debe corregir el problema y esperar a que el flujo vuelva a ejecutarse correctamente. Las pruebas de integración con PostgreSQL no deben omitirse para conseguir un resultado exitoso.
 ---
 
 ## 5. Conflictos y archivos eliminados

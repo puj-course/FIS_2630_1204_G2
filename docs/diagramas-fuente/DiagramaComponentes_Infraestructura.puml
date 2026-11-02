@@ -1,0 +1,150 @@
+@startuml
+allowmixing
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 30
+skinparam ranksep 60
+skinparam ArrowColor #475569
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentFontSize 12
+skinparam InterfaceBackgroundColor #FFFFFF
+skinparam InterfaceFontSize 11
+skinparam ArtifactBackgroundColor #FFFFFF
+skinparam ArtifactFontSize 11
+skinparam DatabaseBackgroundColor #FFFFFF
+
+package "ConexionBD · session · util" #F1F5F9 {
+  component "**ConexionBD**" as ConexionBD
+  component "**SesionUsuario**" as SesionUsuario
+  component "**TextoBusqueda**" as TextoBusqueda
+  ConexionBD -[hidden]right- SesionUsuario
+  SesionUsuario -[hidden]right- TextoBusqueda
+}
+interface "ConexionBD\n<size:9>getConnection()</size>" as I_ConexionBD
+interface "SesionUsuario\n<size:9>cerrarSesion()</size>\n<size:9>esCajero()</size>\n<size:9>estaAutenticado()</size>\n<size:9>getInstance()</size>\n<size:9>getNombre()</size>\n<size:9>getRol()</size>\n<size:9>getUsuarioId()</size>\n<size:9>iniciarSesion(int, String, String)</size>" as I_SesionUsuario
+interface "TextoBusqueda\n<size:9>coincide(String, String, String)</size>" as I_TextoBusqueda
+I_ConexionBD -[hidden]right- I_SesionUsuario
+I_SesionUsuario -[hidden]right- I_TextoBusqueda
+ConexionBD -up- I_ConexionBD
+SesionUsuario -up- I_SesionUsuario
+TextoBusqueda -up- I_TextoBusqueda
+package "componentes que lo consumen" #FAFAFA {
+  component "**AdicionalRepository**\n<size:9>repository</size>" as AdicionalRepository #FFEDD5
+  component "**AlertaInventarioRepository**\n<size:9>repository</size>" as AlertaInventarioRepository #FFEDD5
+  component "**AsignacionMesaRepository**\n<size:9>repository</size>" as AsignacionMesaRepository #FFEDD5
+  component "**AutenticacionService**\n<size:9>service</size>" as AutenticacionService #DCFCE7
+  component "**CajeroPagoController**\n<size:9>controller</size>" as CajeroPagoController #DBEAFE
+  component "**ClienteRepository**\n<size:9>repository</size>" as ClienteRepository #FFEDD5
+  component "**DetallePedidoAdicionalRepository**\n<size:9>repository</size>" as DetallePedidoAdicionalRepository #FFEDD5
+  component "**DisponibilidadDAO**\n<size:9>dao</size>" as DisponibilidadDAO #FFEDD5
+  component "**DisponibilidadService**\n<size:9>service</size>" as DisponibilidadService #DCFCE7
+  component "**EntradaInventarioRepository**\n<size:9>repository</size>" as EntradaInventarioRepository #FFEDD5
+  component "**EntradaInventarioService**\n<size:9>service</size>" as EntradaInventarioService #DCFCE7
+  component "**EstadoMesaRepository**\n<size:9>repository</size>" as EstadoMesaRepository #FFEDD5
+  component "**HistorialEstadoMesaRepository**\n<size:9>repository</size>" as HistorialEstadoMesaRepository #FFEDD5
+  component "**IngredienteRepository**\n<size:9>repository</size>" as IngredienteRepository #FFEDD5
+  component "**InventarioService**\n<size:9>service</size>" as InventarioService #DCFCE7
+  component "**Main**\n<size:9>(raiz)</size>" as Main #DBEAFE
+  component "**MapaSalonController**\n<size:9>controller</size>" as MapaSalonController #DBEAFE
+  component "**MenuMeseroController**\n<size:9>controller</size>" as MenuMeseroController #DBEAFE
+  component "**MesaRepository**\n<size:9>repository</size>" as MesaRepository #FFEDD5
+  component "**MesaService**\n<size:9>service</size>" as MesaService #DCFCE7
+  component "**MovimientoInventarioRepository**\n<size:9>repository</size>" as MovimientoInventarioRepository #FFEDD5
+  component "**NotaMesaRepository**\n<size:9>repository</size>" as NotaMesaRepository #FFEDD5
+  component "**PagoDAO**\n<size:9>dao</size>" as PagoDAO #FFEDD5
+  component "**PedidoRepository**\n<size:9>repository</size>" as PedidoRepository #FFEDD5
+  component "**PlatoInsumoRepository**\n<size:9>repository</size>" as PlatoInsumoRepository #FFEDD5
+  component "**PlatoRepository**\n<size:9>repository</size>" as PlatoRepository #FFEDD5
+  component "**ProductoDAO**\n<size:9>dao</size>" as ProductoDAO #FFEDD5
+  component "**ReglaDescuentoRepository**\n<size:9>repository</size>" as ReglaDescuentoRepository #FFEDD5
+  component "**ReservaRepository**\n<size:9>repository</size>" as ReservaRepository #FFEDD5
+  component "**UsuarioRepository**\n<size:9>repository</size>" as UsuarioRepository #FFEDD5
+  component "**ZonaRepository**\n<size:9>repository</size>" as ZonaRepository #FFEDD5
+  AdicionalRepository -[hidden]right- AlertaInventarioRepository
+  AlertaInventarioRepository -[hidden]right- AsignacionMesaRepository
+  AsignacionMesaRepository -[hidden]right- AutenticacionService
+  AutenticacionService -[hidden]right- CajeroPagoController
+  CajeroPagoController -[hidden]right- ClienteRepository
+  AdicionalRepository -[hidden]down- DetallePedidoAdicionalRepository
+  DetallePedidoAdicionalRepository -[hidden]right- DisponibilidadDAO
+  AlertaInventarioRepository -[hidden]down- DisponibilidadDAO
+  DisponibilidadDAO -[hidden]right- DisponibilidadService
+  AsignacionMesaRepository -[hidden]down- DisponibilidadService
+  DisponibilidadService -[hidden]right- EntradaInventarioRepository
+  AutenticacionService -[hidden]down- EntradaInventarioRepository
+  EntradaInventarioRepository -[hidden]right- EntradaInventarioService
+  CajeroPagoController -[hidden]down- EntradaInventarioService
+  EntradaInventarioService -[hidden]right- EstadoMesaRepository
+  ClienteRepository -[hidden]down- EstadoMesaRepository
+  DetallePedidoAdicionalRepository -[hidden]down- HistorialEstadoMesaRepository
+  HistorialEstadoMesaRepository -[hidden]right- IngredienteRepository
+  DisponibilidadDAO -[hidden]down- IngredienteRepository
+  IngredienteRepository -[hidden]right- InventarioService
+  DisponibilidadService -[hidden]down- InventarioService
+  InventarioService -[hidden]right- Main
+  EntradaInventarioRepository -[hidden]down- Main
+  Main -[hidden]right- MapaSalonController
+  EntradaInventarioService -[hidden]down- MapaSalonController
+  MapaSalonController -[hidden]right- MenuMeseroController
+  EstadoMesaRepository -[hidden]down- MenuMeseroController
+  HistorialEstadoMesaRepository -[hidden]down- MesaRepository
+  MesaRepository -[hidden]right- MesaService
+  IngredienteRepository -[hidden]down- MesaService
+  MesaService -[hidden]right- MovimientoInventarioRepository
+  InventarioService -[hidden]down- MovimientoInventarioRepository
+  MovimientoInventarioRepository -[hidden]right- NotaMesaRepository
+  Main -[hidden]down- NotaMesaRepository
+  NotaMesaRepository -[hidden]right- PagoDAO
+  MapaSalonController -[hidden]down- PagoDAO
+  PagoDAO -[hidden]right- PedidoRepository
+  MenuMeseroController -[hidden]down- PedidoRepository
+  MesaRepository -[hidden]down- PlatoInsumoRepository
+  PlatoInsumoRepository -[hidden]right- PlatoRepository
+  MesaService -[hidden]down- PlatoRepository
+  PlatoRepository -[hidden]right- ProductoDAO
+  MovimientoInventarioRepository -[hidden]down- ProductoDAO
+  ProductoDAO -[hidden]right- ReglaDescuentoRepository
+  NotaMesaRepository -[hidden]down- ReglaDescuentoRepository
+  ReglaDescuentoRepository -[hidden]right- ReservaRepository
+  PagoDAO -[hidden]down- ReservaRepository
+  ReservaRepository -[hidden]right- UsuarioRepository
+  PedidoRepository -[hidden]down- UsuarioRepository
+  PlatoInsumoRepository -[hidden]down- ZonaRepository
+}
+AdicionalRepository ..> I_ConexionBD : <<use>> 1
+AlertaInventarioRepository ..> I_ConexionBD : <<use>> 1
+AsignacionMesaRepository ..> I_ConexionBD : <<use>> 1
+AutenticacionService ..> I_SesionUsuario : <<use>> 2
+CajeroPagoController ..> I_SesionUsuario : <<use>> 5
+ClienteRepository ..> I_ConexionBD : <<use>> 1
+DetallePedidoAdicionalRepository ..> I_ConexionBD : <<use>> 1
+DisponibilidadDAO ..> I_ConexionBD : <<use>> 1
+DisponibilidadService ..> I_ConexionBD : <<use>> 1
+EntradaInventarioRepository ..> I_ConexionBD : <<use>> 1
+EntradaInventarioService ..> I_ConexionBD : <<use>> 1
+EstadoMesaRepository ..> I_ConexionBD : <<use>> 1
+HistorialEstadoMesaRepository ..> I_ConexionBD : <<use>> 1
+IngredienteRepository ..> I_ConexionBD : <<use>> 1
+InventarioService ..> I_ConexionBD : <<use>> 1
+Main ..> I_SesionUsuario : <<use>> 5
+MapaSalonController ..> I_SesionUsuario : <<use>> 3
+MenuMeseroController ..> I_TextoBusqueda : <<use>> 1
+MesaRepository ..> I_ConexionBD : <<use>> 1
+MesaService ..> I_ConexionBD : <<use>> 1
+MovimientoInventarioRepository ..> I_ConexionBD : <<use>> 1
+NotaMesaRepository ..> I_ConexionBD : <<use>> 1
+PagoDAO ..> I_ConexionBD : <<use>> 1
+PedidoRepository ..> I_ConexionBD : <<use>> 1
+PlatoInsumoRepository ..> I_ConexionBD : <<use>> 1
+PlatoRepository ..> I_ConexionBD : <<use>> 1
+ProductoDAO ..> I_ConexionBD : <<use>> 1
+ReglaDescuentoRepository ..> I_ConexionBD : <<use>> 1
+ReservaRepository ..> I_ConexionBD : <<use>> 1
+UsuarioRepository ..> I_ConexionBD : <<use>> 1
+ZonaRepository ..> I_ConexionBD : <<use>> 1
+@enduml

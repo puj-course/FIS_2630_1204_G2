@@ -1,0 +1,217 @@
+@startuml
+allowmixing
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 45
+skinparam ranksep 85
+skinparam padding 6
+skinparam ArrowColor #1E293B
+skinparam ArrowThickness 1.6
+skinparam ArrowFontSize 11
+skinparam ArrowFontStyle bold
+skinparam ArrowFontColor #1E293B
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam PackageFontSize 14
+skinparam PackageTitleAlignment left
+skinparam ClassBorderColor #334155
+skinparam ClassFontSize 14
+skinparam ClassAttributeIconSize 0
+skinparam ClassAttributeFontSize 12
+skinparam ClassStereotypeFontSize 11
+package "Modelo y apoyo" as modelo <<transversal>> #F3E8FF {
+  class "entity" as m0 <<23 clases>> #FFFFFF {
+    Adicional
+    AlertaInventario
+    AsignacionMesa
+    Cliente
+    DetallePedido
+    DetallePedidoAdicional
+    EntradaInventario
+    EstadoMesa
+    HistorialEstadoMesa
+    Ingrediente
+    Mesa
+    Mesero
+    MovimientoInventario
+    NotaMesa
+    Pago
+    Pedido
+    Plato
+    PlatoInsumo
+    Producto
+    ReglaDescuento
+    Reserva
+    UsuarioAutenticable
+    Zona
+  }
+  class "exceptions" as m1 <<9 clases>> #FFFFFF {
+    AdicionalNoDisponibleException
+    AsignacionActivaException
+    CapacidadExcedidaException
+    MesaNotFoundException
+    MesaOcupadaException
+    PedidoNoEditableException
+    ReservaNoCancelableException
+    ReservaNotFoundException
+    StockInsuficienteException
+  }
+  class "dto" as m2 <<4 clases>> #FFFFFF {
+    CuentaPago
+    IngredienteStockDTO
+    ItemPedido
+    ProductoDisponibilidad
+  }
+  class "enums" as m3 <<6 clases>> #FFFFFF {
+    EstadoMesa
+    EstadoPedido
+    EstadoReserva
+    MetodoPago
+    TipoDescuento
+    TipoMovimiento
+  }
+  class "session" as m4 <<1 clase>> #FFFFFF {
+    SesionUsuario
+  }
+  class "util" as m5 <<1 clase>> #FFFFFF {
+    TextoBusqueda
+  }
+  class "database" as m6 <<1 .java · 1 de 0 bytes>> #FFFFFF {
+  }
+  m0 -[hidden]right- m1
+  m1 -[hidden]right- m2
+  m2 -[hidden]right- m3
+  m3 -[hidden]right- m4
+  m4 -[hidden]right- m5
+  m5 -[hidden]right- m6
+}
+package "Capa de presentacion" as presentacion <<controller + resources>> #DBEAFE {
+  class "Main" as p1 <<javafx.application.Application>> #FFFFFF {
+  }
+  class "resources/views" as p2 <<7 archivos>> #FFFFFF {
+    MapaSalon.fxml
+    admin-disponibilidad.fxml
+    cajero-pago-view.fxml
+    cocina-view.fxml
+    inventario.fxml
+    login.fxml
+    menu-mesero.fxml
+  }
+  class "resources/css" as p3 <<5 archivos>> #FFFFFF {
+    cajero-pago.css
+    cocina.css
+    disponibilidad-menu.css
+    login.css
+    navegacion.css
+  }
+  class "controller" as p4 <<7 clases>> #FFFFFF {
+    CajeroPagoController
+    CocinaController
+    DisponibilidadAdminController
+    InventarioController
+    LoginController
+    MapaSalonController
+    MenuMeseroController
+  }
+  class "resources" as p5 <<2 archivos>> #FFFFFF {
+    application.properties
+    static/login.html
+  }
+  p1 -[hidden]right- p2
+  p2 -[hidden]right- p3
+  p3 -[hidden]right- p4
+  p4 -[hidden]right- p5
+}
+package "Capa de logica de negocio" as negocio <<service>> #DCFCE7 {
+  class "service" as n1 <<12 clases>> #FFFFFF {
+    AdicionalService
+    AsignacionMesaService
+    AutenticacionService
+    DisponibilidadService
+    EntradaInventarioService
+    InventarioService
+    MesaService
+    PagoService
+    PedidoFacade
+    PedidoService
+    ReglaDescuentoService
+    ReservaService
+  }
+}
+package "Capa de acceso a datos" as datos <<repository + dao · JDBC>> #FFEDD5 {
+  class "repository" as d1 <<23 clases>> #FFFFFF {
+    AdicionalRepository
+    AlertaInventarioRepository
+    AsignacionMesaRepository
+    ClienteRepository
+    DetallePedidoAdicionalRepository
+    DetallePedidoRepository
+    EntradaInventarioRepository
+    EstadoMesaRepository
+    HistorialEstadoMesaRepository
+    IngredienteRepository
+    InventarioRepository
+    MesaRepository
+    MeseroRepository
+    MovimientoInventarioRepository
+    NotaMesaRepository
+    PagoRepository
+    PedidoRepository
+    PlatoInsumoRepository
+    PlatoRepository
+    ReglaDescuentoRepository
+    ReservaRepository
+    UsuarioRepository
+    ZonaRepository
+  }
+  class "dao" as d2 <<3 clases>> #FFFFFF {
+    DisponibilidadDAO
+    PagoDAO
+    ProductoDAO
+  }
+  d1 -[hidden]right- d2
+}
+package "ConexionBD" as conexion <<1 clase>> #F1F5F9 {
+  class "ConexionBD" as c1 <<org.postgresql>> #FFFFFF {
+    + getConnection() : Connection
+  }
+}
+package "Dependencias" as libs <<pom.xml>> #FEF9C3 {
+  class "compile" as l0 <<maven.compiler.release 21>> #FFFFFF {
+    org.openjfx:javafx-controls:21.0.5   (presentacion)
+    org.openjfx:javafx-fxml:21.0.5   (presentacion)
+    org.postgresql:postgresql:42.7.5   (datos)
+    org.mindrot:jbcrypt:0.4   (negocio)
+  }
+  class "test" as l1 <<scope test>> #FFFFFF {
+    org.junit.jupiter:junit-jupiter:5.11.4   (pruebas)
+  }
+  l0 -[hidden]right- l1
+}
+package "src/test/java" as pruebas <<JUnit>> #FEF9C3 {
+  class "test" as t1 <<10 clases en 7 archivos>> #FFFFFF {
+    dto/CuentaPagoTest
+    dto/ItemPedidoTest
+    repository/ChoquesNombreTablaTest
+    repository/DisponibilidadHu134Test
+    repository/MesaModuloFuncionalTest
+    repository/PedidoModuloFuncionalTest
+    util/TextoBusquedaTest
+  }
+}
+database "PostgreSQL\ngastroflow · 27 tablas\ndb/ddl · db/migrations · db/functions" as bd #DCFCE7
+presentacion -down-> negocio : <<use>>
+negocio -down-> datos : <<use>>
+datos -down-> conexion : <<use>>
+conexion -down-> bd : JDBC
+presentacion -[#B91C1C]..> datos : <<use>> salta capa · 7
+negocio -[#B91C1C]..> conexion : <<use>> salta capa · 4
+presentacion -up[#7E22CE]..> modelo : <<use>>
+negocio -up[#7E22CE]..> modelo : <<use>>
+datos -up[#7E22CE]..> modelo : <<use>>
+pruebas -[#047857]..> conexion : <<use>> · 1
+pruebas -[#047857]..> datos : <<use>> · 4
+pruebas -[#047857]..> negocio : <<use>> · 2
+@enduml

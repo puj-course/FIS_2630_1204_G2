@@ -1,0 +1,80 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 35
+skinparam ranksep 60
+skinparam padding 3
+skinparam ClassFontSize 13
+skinparam ClassAttributeFontSize 11
+skinparam ClassStereotypeFontSize 10
+skinparam ClassBorderColor #334155
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ClassAttributeIconSize 0
+hide empty members
+
+hide members
+hide circle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 70
+package "entity" #F3E8FF {
+  class "MovimientoInventario" as entity_MovimientoInventario
+  class "Pago" as entity_Pago
+  class "Pedido" as entity_Pedido
+  class "Producto" as entity_Producto
+}
+package "dto" #FEF9C3 {
+  class "ItemPedido" as dto_ItemPedido
+}
+package "enums" #FEF9C3 {
+  enum "EstadoPedido" as enums_EstadoPedido
+  enum "MetodoPago" as enums_MetodoPago
+  enum "TipoMovimiento" as enums_TipoMovimiento
+}
+package "exceptions" #FEF9C3 {
+  class "AdicionalNoDisponibleException" as exceptions_AdicionalNoDisponibleException
+  class "AsignacionActivaException" as exceptions_AsignacionActivaException
+  class "CapacidadExcedidaException" as exceptions_CapacidadExcedidaException
+  class "MesaNotFoundException" as exceptions_MesaNotFoundException
+  class "MesaOcupadaException" as exceptions_MesaOcupadaException
+  class "PedidoNoEditableException" as exceptions_PedidoNoEditableException
+  class "ReservaNoCancelableException" as exceptions_ReservaNoCancelableException
+  class "ReservaNotFoundException" as exceptions_ReservaNotFoundException
+  class "StockInsuficienteException" as exceptions_StockInsuficienteException
+  exceptions_AdicionalNoDisponibleException -[hidden]right- exceptions_AsignacionActivaException
+  exceptions_AsignacionActivaException -[hidden]right- exceptions_CapacidadExcedidaException
+  exceptions_AdicionalNoDisponibleException -[hidden]down- exceptions_MesaNotFoundException
+  exceptions_MesaNotFoundException -[hidden]right- exceptions_MesaOcupadaException
+  exceptions_AsignacionActivaException -[hidden]down- exceptions_MesaOcupadaException
+  exceptions_MesaOcupadaException -[hidden]right- exceptions_PedidoNoEditableException
+  exceptions_CapacidadExcedidaException -[hidden]down- exceptions_PedidoNoEditableException
+  exceptions_MesaNotFoundException -[hidden]down- exceptions_ReservaNoCancelableException
+  exceptions_ReservaNoCancelableException -[hidden]right- exceptions_ReservaNotFoundException
+  exceptions_MesaOcupadaException -[hidden]down- exceptions_ReservaNotFoundException
+  exceptions_ReservaNotFoundException -[hidden]right- exceptions_StockInsuficienteException
+  exceptions_PedidoNoEditableException -[hidden]down- exceptions_StockInsuficienteException
+}
+entity_MovimientoInventario -[hidden]down- dto_ItemPedido
+dto_ItemPedido -[hidden]down- enums_EstadoPedido
+enums_EstadoPedido -[hidden]down- exceptions_AdicionalNoDisponibleException
+class RuntimeException <<externa>> #FFFFFF
+exceptions_AdicionalNoDisponibleException --|> RuntimeException
+exceptions_AsignacionActivaException --|> RuntimeException
+exceptions_CapacidadExcedidaException --|> RuntimeException
+exceptions_MesaNotFoundException --|> RuntimeException
+exceptions_MesaOcupadaException --|> RuntimeException
+exceptions_PedidoNoEditableException --|> RuntimeException
+exceptions_ReservaNoCancelableException --|> RuntimeException
+exceptions_ReservaNotFoundException --|> RuntimeException
+exceptions_StockInsuficienteException --|> RuntimeException
+dto_ItemPedido o-[#7E22CE]-> "1 producto" entity_Producto
+entity_MovimientoInventario -[#A16207]-> "1 tipoMovimiento" enums_TipoMovimiento
+entity_Pago -[#7E22CE]-> "1 pedido" entity_Pedido
+entity_Pago -[#A16207]-> "1 metodo" enums_MetodoPago
+entity_Pedido -[#A16207]-> "1 estado" enums_EstadoPedido
+@enduml

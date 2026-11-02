@@ -1,0 +1,336 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 35
+skinparam ranksep 60
+skinparam padding 3
+skinparam ClassFontSize 13
+skinparam ClassAttributeFontSize 11
+skinparam ClassStereotypeFontSize 10
+skinparam ClassBorderColor #334155
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ClassAttributeIconSize 0
+hide empty members
+
+package "entity · Pago–Zona" {
+  class Pago <<excluida en pom.xml>> #F3E8FF {
+    - id : Long
+    - pedido : Pedido
+    - metodo : MetodoPago
+    - monto : BigDecimal
+    - createdAt : LocalDateTime
+    --
+    + Pago()
+    + getId() : Long
+    + getPedido() : Pedido
+    + setPedido(pedido : Pedido) : void
+    + getMetodo() : MetodoPago
+    + setMetodo(metodo : MetodoPago) : void
+    + getMonto() : BigDecimal
+    + setMonto(monto : BigDecimal) : void
+    + getCreatedAt() : LocalDateTime
+  }
+  class Pedido #F3E8FF {
+    - id : Long
+    - numeroPedido : String
+    - mesaId : Long
+    - usuarioId : Long
+    - productos : String
+    - estado : EstadoPedido
+    - fechaPedido : LocalDateTime
+    - subtotal : BigDecimal
+    - total : BigDecimal
+    - inventarioDescontado : boolean
+    --
+    + Pedido()
+    + getId() : Long
+    + setId(id : Long) : void
+    + getNumeroPedido() : String
+    + setNumeroPedido(numeroPedido : String) : void
+    + getMesaId() : Long
+    + setMesaId(mesaId : Long) : void
+    + getUsuarioId() : Long
+    + setUsuarioId(usuarioId : Long) : void
+    + getProductos() : String
+    + setProductos(productos : String) : void
+    + getEstado() : EstadoPedido
+    + setEstado(estado : EstadoPedido) : void
+    + getFechaPedido() : LocalDateTime
+    + setFechaPedido(fechaPedido : LocalDateTime) : void
+    + getSubtotal() : BigDecimal
+    + setSubtotal(subtotal : BigDecimal) : void
+    + getTotal() : BigDecimal
+    + setTotal(total : BigDecimal) : void
+    + isInventarioDescontado() : boolean
+    + setInventarioDescontado(inventarioDescontado : boolean) : void
+  }
+  class Plato #F3E8FF {
+    - productoId : long
+    - codigo : String
+    - nombre : String
+    - descripcion : String
+    - categoria : String
+    - precioVenta : double
+    - costo : double
+    - stockActual : double
+    - stockMinimo : double
+    - stockMaximo : double
+    - estado : String
+    --
+    + Plato()
+    + Plato(codigo : String, nombre : String, descripcion : String, categoria : String, precioVenta : double, costo : double)
+    + getProductoId() : long
+    + setProductoId(productoId : long) : void
+    + getCodigo() : String
+    + setCodigo(codigo : String) : void
+    + getNombre() : String
+    + setNombre(nombre : String) : void
+    + getDescripcion() : String
+    + setDescripcion(descripcion : String) : void
+    + getCategoria() : String
+    + setCategoria(categoria : String) : void
+    + getPrecioVenta() : double
+    + setPrecioVenta(precioVenta : double) : void
+    + getCosto() : double
+    + setCosto(costo : double) : void
+    + getStockActual() : double
+    + setStockActual(stockActual : double) : void
+    + getStockMinimo() : double
+    + setStockMinimo(stockMinimo : double) : void
+    + getStockMaximo() : double
+    + setStockMaximo(stockMaximo : double) : void
+    + getEstado() : String
+    + setEstado(estado : String) : void
+  }
+  class PlatoInsumo #F3E8FF {
+    - id : int
+    - platoId : int
+    - insumoId : int
+    - cantidadNecesaria : int
+    --
+    + PlatoInsumo()
+    + PlatoInsumo(platoId : int, insumoId : int, cantidadNecesaria : int)
+    + getId() : int
+    + setId(id : int) : void
+    + getPlatoId() : int
+    + setPlatoId(platoId : int) : void
+    + getInsumoId() : int
+    + setInsumoId(insumoId : int) : void
+    + getCantidadNecesaria() : int
+    + setCantidadNecesaria(cantidadNecesaria : int) : void
+  }
+  class Producto #F3E8FF {
+    - productoId : long
+    - codigo : String
+    - nombre : String
+    - descripcion : String
+    - categoria : String
+    - precioVenta : BigDecimal
+    - estado : String
+    --
+    + Producto(productoId : long, codigo : String, nombre : String, descripcion : String, categoria : String, precioVenta : BigDecimal, estado : String)
+    + getProductoId() : long
+    + getCodigo() : String
+    + getNombre() : String
+    + getDescripcion() : String
+    + getCategoria() : String
+    + getPrecioVenta() : BigDecimal
+    + getEstado() : String
+    + isDisponible() : boolean
+  }
+  class ReglaDescuento #F3E8FF {
+    - id : int
+    - tipoCambio : String
+    - valor : double
+    - esPorcentaje : boolean
+    --
+    + ReglaDescuento()
+    + ReglaDescuento(tipoCambio : String, valor : double, esPorcentaje : boolean)
+    + getId() : int
+    + setId(id : int) : void
+    + getTipoCambio() : String
+    + setTipoCambio(tipoCambio : String) : void
+    + getValor() : double
+    + setValor(valor : double) : void
+    + isEsPorcentaje() : boolean
+    + setEsPorcentaje(esPorcentaje : boolean) : void
+  }
+  class Reserva #F3E8FF {
+    - idReserva : int
+    - idMesa : int
+    - numeroMesa : int
+    - nombreZona : String
+    - fechaHoraReserva : LocalDateTime
+    - nombreCliente : String
+    - cantidadPersonas : int
+    - activa : boolean
+    - fechaCancelacion : LocalDateTime
+    --
+    + Reserva()
+    + getIdReserva() : int
+    + setIdReserva(idReserva : int) : void
+    + getIdMesa() : int
+    + setIdMesa(idMesa : int) : void
+    + getNumeroMesa() : int
+    + setNumeroMesa(numeroMesa : int) : void
+    + getNombreZona() : String
+    + setNombreZona(nombreZona : String) : void
+    + getFechaHoraReserva() : LocalDateTime
+    + setFechaHoraReserva(fechaHoraReserva : LocalDateTime) : void
+    + getNombreCliente() : String
+    + setNombreCliente(nombreCliente : String) : void
+    + getCantidadPersonas() : int
+    + setCantidadPersonas(cantidadPersonas : int) : void
+    + isActiva() : boolean
+    + setActiva(activa : boolean) : void
+    + getFechaCancelacion() : LocalDateTime
+    + setFechaCancelacion(fechaCancelacion : LocalDateTime) : void
+  }
+  class UsuarioAutenticable <<record>> #F3E8FF {
+    - idUsuario : int
+    - codigoEmpleado : String
+    - nombreCompleto : String
+    - nombre_rol : String
+    - passwordHash : String
+    - activo : boolean
+  }
+  class Zona #F3E8FF {
+    - id : Long
+    - nombreZona : String
+    - descripcion : String
+    - isActive : Integer
+    --
+    + Zona()
+    + getId() : Long
+    + setId(id : Long) : void
+    + getNombreZona() : String
+    + setNombreZona(nombreZona : String) : void
+    + getDescripcion() : String
+    + setDescripcion(descripcion : String) : void
+    + getIsActive() : Integer
+    + setIsActive(isActive : Integer) : void
+  }
+  Pago -[hidden]right- Pedido
+  Pedido -[hidden]right- Plato
+  Pago -[hidden]down- PlatoInsumo
+  PlatoInsumo -[hidden]right- Producto
+  Pedido -[hidden]down- Producto
+  Producto -[hidden]right- ReglaDescuento
+  Plato -[hidden]down- ReglaDescuento
+  PlatoInsumo -[hidden]down- Reserva
+  Reserva -[hidden]right- UsuarioAutenticable
+  Producto -[hidden]down- UsuarioAutenticable
+  UsuarioAutenticable -[hidden]right- Zona
+  ReglaDescuento -[hidden]down- Zona
+}
+package "referencias" <<otros paquetes>> #FAFAFA {
+  class AutenticacionService <<service>> #DCFCE7 {
+  }
+  class CocinaController <<controller>> #DBEAFE {
+  }
+  class DisponibilidadService <<service>> #DCFCE7 {
+  }
+  enum EstadoPedido <<enums>> #FEF9C3 {
+  }
+  class ItemPedido <<dto>> #FEF9C3 {
+  }
+  class MenuMeseroController <<controller>> #DBEAFE {
+  }
+  class MesaService <<service>> #DCFCE7 {
+  }
+  enum MetodoPago <<enums>> #FEF9C3 {
+  }
+  interface PagoRepository <<repository>> #FFEDD5 {
+  }
+  class PagoService <<service>> #DCFCE7 {
+  }
+  class PedidoFacade <<service>> #DCFCE7 {
+  }
+  class PedidoRepository <<repository>> #FFEDD5 {
+  }
+  class PedidoService <<service>> #DCFCE7 {
+  }
+  class PlatoInsumoRepository <<repository>> #FFEDD5 {
+  }
+  class PlatoRepository <<repository>> #FFEDD5 {
+  }
+  class ProductoDAO <<dao>> #DCFCE7 {
+  }
+  class ReglaDescuentoRepository <<repository>> #FFEDD5 {
+  }
+  class ReglaDescuentoService <<service>> #DCFCE7 {
+  }
+  class ReservaRepository <<repository>> #FFEDD5 {
+  }
+  class ReservaService <<service>> #DCFCE7 {
+  }
+  class UsuarioRepository <<repository>> #FFEDD5 {
+  }
+  class ZonaRepository <<repository>> #FFEDD5 {
+  }
+  AutenticacionService -[hidden]right- CocinaController
+  CocinaController -[hidden]right- DisponibilidadService
+  DisponibilidadService -[hidden]right- EstadoPedido
+  AutenticacionService -[hidden]down- ItemPedido
+  ItemPedido -[hidden]right- MenuMeseroController
+  CocinaController -[hidden]down- MenuMeseroController
+  MenuMeseroController -[hidden]right- MesaService
+  DisponibilidadService -[hidden]down- MesaService
+  MesaService -[hidden]right- MetodoPago
+  EstadoPedido -[hidden]down- MetodoPago
+  ItemPedido -[hidden]down- PagoRepository
+  PagoRepository -[hidden]right- PagoService
+  MenuMeseroController -[hidden]down- PagoService
+  PagoService -[hidden]right- PedidoFacade
+  MesaService -[hidden]down- PedidoFacade
+  PedidoFacade -[hidden]right- PedidoRepository
+  MetodoPago -[hidden]down- PedidoRepository
+  PagoRepository -[hidden]down- PedidoService
+  PedidoService -[hidden]right- PlatoInsumoRepository
+  PagoService -[hidden]down- PlatoInsumoRepository
+  PlatoInsumoRepository -[hidden]right- PlatoRepository
+  PedidoFacade -[hidden]down- PlatoRepository
+  PlatoRepository -[hidden]right- ProductoDAO
+  PedidoRepository -[hidden]down- ProductoDAO
+  PedidoService -[hidden]down- ReglaDescuentoRepository
+  ReglaDescuentoRepository -[hidden]right- ReglaDescuentoService
+  PlatoInsumoRepository -[hidden]down- ReglaDescuentoService
+  ReglaDescuentoService -[hidden]right- ReservaRepository
+  PlatoRepository -[hidden]down- ReservaRepository
+  ReservaRepository -[hidden]right- ReservaService
+  ProductoDAO -[hidden]down- ReservaService
+  ReglaDescuentoRepository -[hidden]down- UsuarioRepository
+  UsuarioRepository -[hidden]right- ZonaRepository
+  ReglaDescuentoService -[hidden]down- ZonaRepository
+}
+AutenticacionService -[#7E22CE,dashed]-> UsuarioAutenticable
+CocinaController -[#7E22CE,dashed]-> Pedido
+DisponibilidadService -[#7E22CE,dashed]-> PlatoInsumo
+ItemPedido o-[#7E22CE]-> "1 producto" Producto
+MenuMeseroController -[#7E22CE]-> "* menuCompleto" Producto
+MenuMeseroController -[#7E22CE]-> "1 pedidoActual" Pedido
+MesaService -[#7E22CE,dashed]-> Zona
+Pago -[#7E22CE]-> "1 pedido" Pedido
+Pago -[#A16207]-> "1 metodo" MetodoPago
+PagoRepository -[#7E22CE,dashed]-> Pago
+PagoService -[#7E22CE,dashed]-> Pago
+PagoService -[#7E22CE,dashed]-> Pedido
+Pedido -[#A16207]-> "1 estado" EstadoPedido
+PedidoFacade -[#7E22CE,dashed]-> Pedido
+PedidoRepository -[#7E22CE,dashed]-> Pedido
+PedidoService -[#7E22CE,dashed]-> Pedido
+PlatoInsumoRepository -[#7E22CE,dashed]-> PlatoInsumo
+PlatoRepository -[#7E22CE,dashed]-> Plato
+ProductoDAO -[#7E22CE,dashed]-> Producto
+ReglaDescuentoRepository -[#7E22CE,dashed]-> ReglaDescuento
+ReglaDescuentoService -[#7E22CE,dashed]-> ReglaDescuento
+ReservaRepository -[#7E22CE,dashed]-> Reserva
+ReservaService -[#7E22CE,dashed]-> Reserva
+UsuarioRepository -[#7E22CE,dashed]-> UsuarioAutenticable
+ZonaRepository -[#7E22CE,dashed]-> Zona
+@enduml

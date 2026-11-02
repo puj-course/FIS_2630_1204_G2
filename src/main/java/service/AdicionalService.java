@@ -4,7 +4,7 @@ import entity.Adicional;
 import entity.DetallePedidoAdicional;
 import exceptions.AdicionalNoDisponibleException;
 import repository.AdicionalRepository;
-import repository.DetallePedidoAdicionalRepository;
+import repository.DetallePedidoRepository;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -13,8 +13,8 @@ import java.util.List;
 public class AdicionalService {
 
     private final AdicionalRepository adicionalRepository = new AdicionalRepository();
-    private final DetallePedidoAdicionalRepository detallePedidoAdicionalRepository =
-            new DetallePedidoAdicionalRepository();
+    private final DetallePedidoRepository detallePedidoAdicionalRepository =
+            new DetallePedidoRepository();
 
     public List<Adicional> listarActivos() throws SQLException {
         return adicionalRepository.findAllActivos();

@@ -53,6 +53,32 @@ public class EstadoMesaRepository {
         return Optional.empty();
     }
 
+
+    public Optional<EstadoMesa> findByCodigoEstado(
+            Connection conn,
+            String codigo
+    ) throws SQLException {
+
+        String sql = """
+            SELECT id_estado_mesa, codigo_estado
+            FROM estados_mesa
+            WHERE UPPER(codigo_estado) = UPPER(?)
+            """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, codigo.trim());
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(map(rs));
+                }
+            }
+        }
+
+        return Optional.empty();
+    }
+
+
     private EstadoMesa map(ResultSet rs) throws SQLException {
         EstadoMesa estado = new EstadoMesa();
 

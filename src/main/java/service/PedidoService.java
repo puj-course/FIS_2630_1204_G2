@@ -6,13 +6,18 @@ import exceptions.MesaNotFoundException;
 import exceptions.MesaOcupadaException;
 import exceptions.PedidoNoEditableException;
 import repository.PedidoRepository;
-
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Optional;
 import java.util.Set;
 
 public class PedidoService {
 
+    /*
+     * HU-156: COMPLETADO entra en la lista. Cocina marca ese estado cuando la
+     * comanda ya esta lista, de modo que anularla despues devolvia al stock
+     * ingredientes que ya se habian cocinado.
+     */
     private static final Set<EstadoPedido> ESTADOS_YA_CERRADOS = Set.of(
             EstadoPedido.COMPLETADO,
             EstadoPedido.ENTREGADO,
@@ -49,20 +54,49 @@ public class PedidoService {
     public Pedido actualizarPedido(Pedido pedido) throws SQLException {
         return pedidoRepository.save(pedido);
     }
-    public Pedido cerrarPedido(long pedidoId, String codigoEstadoDestinoMesa) throws SQLException {
-        Pedido pedido = pedidoRepository.findById(pedidoId).orElseThrow(() -> new MesaNotFoundException("Pedido no encontrado con id " + pedidoId));
-        if (ESTADOS_YA_CERRADOS.contains(pedido.getEstado())) {
-            throw new PedidoNoEditableException("El pedido "
-                            + pedido.getNumeroPedido()
-                            + " ya está en estado "
-                            + pedido.getEstado());
-        }
-        pedido.setEstado(EstadoPedido.COMPLETADO);
-        Pedido cerrado = pedidoRepository.save(pedido);
-        String destino = codigoEstadoDestinoMesa != null ? codigoEstadoDestinoMesa : "LIBRE";
-        mesaService.cambiarEstado(pedido.getMesaId(), destino, "CIERRE_PEDIDO");
-        return cerrado;
+    public void actualizarImportes(long pedidoId, String productosJson,
+                                   BigDecimal subtotal, BigDecimal impuestos) throws SQLException {
+        pedidoRepository.actualizarImportes(pedidoId, productosJson, subtotal, impuestos);
     }
+
+    public void marcarInventarioDescontado(long pedidoId) throws SQLException {
+        pedidoRepository.marcarInventarioDescontado(pedidoId);
+    }
+    public Pedido cerrarPedido(long pedidoId, String codigoEstadoDestinoMesa) throws SQLException {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new MesaNotFoundException(
+                        "Pedido no encontrado con id " + pedidoId
+                ));
+
+        if (ESTADOS_YA_CERRADOS.contains(pedido.getEstado())) {
+            throw new PedidoNoEditableException(
+                    "El pedido " + pedido.getNumeroPedido()
+                            + " ya está en estado " + pedido.getEstado()
+            );
+        }
+
+        String destino = codigoEstadoDestinoMesa != null
+                ? codigoEstadoDestinoMesa
+                : "DISPONIBLE";
+
+        // Primero se libera la mesa y se registra el cambio de estado.
+        mesaService.cambiarEstado(
+                pedido.getMesaId(),
+                destino,
+                "CIERRE_PEDIDO"
+        );
+
+        // Después se marca el pedido como entregado.
+        pedidoRepository.actualizarEstado(
+                pedidoId,
+                EstadoPedido.ENTREGADO
+        );
+
+        pedido.setEstado(EstadoPedido.ENTREGADO);
+        return pedido;
+    }
+
+
     /**
      * Anula una comanda.
      *
@@ -98,7 +132,8 @@ public class PedidoService {
          * Finalmente cambiamos el estado de la comanda.
          */
         pedido.setEstado(EstadoPedido.CANCELADO);
-        Pedido cancelado = pedidoRepository.save(pedido);
+        pedidoRepository.actualizarEstado(pedidoId, EstadoPedido.CANCELADO);
+        Pedido cancelado = pedido;
         /*
          * Liberamos la mesa.
          */

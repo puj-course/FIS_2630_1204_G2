@@ -1,0 +1,110 @@
+@startuml
+allowmixing
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 6
+skinparam nodesep 28
+skinparam ranksep 70
+skinparam ArrowColor #475569
+skinparam ArrowThickness 1.1
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentFontSize 12
+skinparam ComponentBorderColor #334155
+skinparam ArtifactBackgroundColor #FFFFFF
+skinparam ArtifactFontSize 12
+skinparam DatabaseBackgroundColor #FFFFFF
+
+component "AdicionalRepository" as AdicionalRepository #FFEDD5
+database "adicional" as T_adicional
+component "AlertaInventarioRepository" as AlertaInventarioRepository #FFEDD5
+database "alerta_inventario" as T_alerta_inventario
+component "AsignacionMesaRepository" as AsignacionMesaRepository #FFEDD5
+database "asignacion_mesa" as T_asignacion_mesa
+component "ClienteRepository" as ClienteRepository #FFEDD5
+database "clientes" as T_clientes
+database "tipos_documento" as T_tipos_documento
+component "DetallePedidoAdicionalRepository" as DetallePedidoAdicionalRepository #FFEDD5
+database "detalle_pedido_adicional" as T_detalle_pedido_adicional
+component "DisponibilidadDAO" as DisponibilidadDAO #FFEDD5
+database "categorias" as T_categorias
+database "productos" as T_productos
+component "DisponibilidadService" as DisponibilidadService #DCFCE7
+database "ingredientes" as T_ingredientes
+component "EntradaInventarioRepository" as EntradaInventarioRepository #FFEDD5
+database "movimientos_inventario" as T_movimientos_inventario
+component "EntradaInventarioService" as EntradaInventarioService #DCFCE7
+component "EstadoMesaRepository" as EstadoMesaRepository #FFEDD5
+database "estados_mesa" as T_estados_mesa
+component "HistorialEstadoMesaRepository" as HistorialEstadoMesaRepository #FFEDD5
+database "historial_estado_mesa" as T_historial_estado_mesa
+component "IngredienteRepository" as IngredienteRepository #FFEDD5
+component "InventarioRepository" as InventarioRepository #FFEDD5
+database "plato_insumo" as T_plato_insumo
+component "MesaRepository" as MesaRepository #FFEDD5
+database "mesas" as T_mesas
+database "pedidos" as T_pedidos
+database "usuarios" as T_usuarios
+database "zonas" as T_zonas
+component "MovimientoInventarioRepository" as MovimientoInventarioRepository #FFEDD5
+component "NotaMesaRepository" as NotaMesaRepository #FFEDD5
+database "nota_mesa" as T_nota_mesa
+component "PagoDAO" as PagoDAO #FFEDD5
+database "pagos" as T_pagos
+database "roles" as T_roles
+component "PedidoRepository" as PedidoRepository #FFEDD5
+component "PlatoInsumoRepository" as PlatoInsumoRepository #FFEDD5
+component "PlatoRepository" as PlatoRepository #FFEDD5
+component "ProductoDAO" as ProductoDAO #FFEDD5
+component "ReglaDescuentoRepository" as ReglaDescuentoRepository #FFEDD5
+database "regla_descuento" as T_regla_descuento
+component "ReservaRepository" as ReservaRepository #FFEDD5
+database "reservas" as T_reservas
+component "UsuarioRepository" as UsuarioRepository #FFEDD5
+component "ZonaRepository" as ZonaRepository #FFEDD5
+AdicionalRepository --> T_adicional
+AlertaInventarioRepository --> T_alerta_inventario
+AsignacionMesaRepository --> T_asignacion_mesa
+ClienteRepository --> T_clientes
+ClienteRepository ..> T_tipos_documento
+DetallePedidoAdicionalRepository --> T_detalle_pedido_adicional
+DisponibilidadDAO ..> T_categorias
+DisponibilidadDAO ..> T_productos
+DisponibilidadService ..> T_ingredientes
+DisponibilidadService --> T_productos
+EntradaInventarioRepository --> T_movimientos_inventario
+EntradaInventarioService --> T_productos
+EstadoMesaRepository ..> T_estados_mesa
+HistorialEstadoMesaRepository --> T_historial_estado_mesa
+IngredienteRepository --> T_ingredientes
+InventarioRepository --> T_ingredientes
+InventarioRepository --> T_movimientos_inventario
+InventarioRepository ..> T_plato_insumo
+InventarioRepository ..> T_productos
+MesaRepository ..> T_estados_mesa
+MesaRepository --> T_mesas
+MesaRepository ..> T_pedidos
+MesaRepository ..> T_usuarios
+MesaRepository ..> T_zonas
+MovimientoInventarioRepository --> T_movimientos_inventario
+NotaMesaRepository --> T_nota_mesa
+PagoDAO ..> T_mesas
+PagoDAO --> T_pagos
+PagoDAO --> T_pedidos
+PagoDAO ..> T_roles
+PagoDAO ..> T_usuarios
+PedidoRepository --> T_pedidos
+PlatoInsumoRepository --> T_plato_insumo
+PlatoRepository --> T_productos
+ProductoDAO ..> T_categorias
+ProductoDAO ..> T_productos
+ReglaDescuentoRepository --> T_regla_descuento
+ReservaRepository ..> T_estados_mesa
+ReservaRepository ..> T_mesas
+ReservaRepository --> T_reservas
+ReservaRepository ..> T_zonas
+UsuarioRepository ..> T_roles
+UsuarioRepository --> T_usuarios
+ZonaRepository ..> T_zonas
+@enduml

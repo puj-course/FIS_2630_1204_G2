@@ -1,0 +1,381 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 35
+skinparam ranksep 60
+skinparam padding 3
+skinparam ClassFontSize 13
+skinparam ClassAttributeFontSize 11
+skinparam ClassStereotypeFontSize 10
+skinparam ClassBorderColor #334155
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ClassAttributeIconSize 0
+hide empty members
+
+package "dto · enums · exceptions · session · util · ConexionBD · Main" {
+  class AdicionalNoDisponibleException #FEF9C3 {
+    + AdicionalNoDisponibleException(mensaje : String)
+  }
+  class AsignacionActivaException #FEF9C3 {
+    + AsignacionActivaException(mensaje : String)
+  }
+  class CapacidadExcedidaException #FEF9C3 {
+    + CapacidadExcedidaException()
+  }
+  class ConexionBD #F1F5F9 {
+    - {static} URL : String
+    - {static} USER : String
+    - {static} PASSWORD : String
+    --
+    + {static} getConnection() : Connection
+  }
+  class CuentaPago #FEF9C3 {
+    - pedidoId : long
+    - numeroPedido : String
+    - numeroMesa : Integer
+    - subtotal : BigDecimal
+    - impuestos : BigDecimal
+    - descuento : BigDecimal
+    - propina : BigDecimal
+    - pagada : boolean
+    --
+    + CuentaPago(pedidoId : long, numeroPedido : String, numeroMesa : Integer, subtotal : BigDecimal, impuestos : BigDecimal, descuento : BigDecimal, propina : BigDecimal, pagada : boolean)
+    - valorSeguro(valor : BigDecimal) : BigDecimal
+    + calcularTotal() : BigDecimal
+    + getPedidoId() : long
+    + getNumeroPedido() : String
+    + getNumeroMesa() : Integer
+    + getSubtotal() : BigDecimal
+    + getImpuestos() : BigDecimal
+    + getDescuento() : BigDecimal
+    + setDescuento(descuento : BigDecimal) : void
+    + getPropina() : BigDecimal
+    + setPropina(propina : BigDecimal) : void
+    + isPagada() : boolean
+  }
+  enum EstadoMesa #FEF9C3 {
+    DISPONIBLE
+    OCUPADA
+  }
+  enum EstadoPedido #FEF9C3 {
+    PENDIENTE
+    ASIGNADO_MESA
+    EN_PREPARACION
+    COMPLETADO
+    ENTREGADO
+    CANCELADO
+  }
+  enum EstadoReserva #FEF9C3 {
+    ACTIVA
+    CANCELADA
+    COMPLETADA
+  }
+  class IngredienteStockDTO #FEF9C3 {
+    - id : Long
+    - nombre : String
+    - stockActual : BigDecimal
+    - stockMinimo : BigDecimal
+    - isActive : Boolean
+    - estado : String
+    --
+    + IngredienteStockDTO(id : Long, nombre : String, stockActual : BigDecimal, stockMinimo : BigDecimal, isActive : Boolean, estado : String)
+    + getId() : Long
+    + getNombre() : String
+    + getStockActual() : BigDecimal
+    + getStockMinimo() : BigDecimal
+    + getIsActive() : Boolean
+    + getEstado() : String
+  }
+  class ItemPedido #FEF9C3 {
+    - producto : Producto
+    - cantidad : int
+    --
+    + ItemPedido(producto : Producto)
+    + ItemPedido(producto : Producto, cantidad : int)
+    + getProducto() : Producto
+    + getCantidad() : int
+    + aumentarCantidad() : void
+    + disminuirCantidad() : void
+    + establecerCantidad(cantidad : int) : void
+    + getSubtotal() : BigDecimal
+  }
+  class Main #F1F5F9 {
+    - {static} ICONO_LISTA : String
+    - {static} ICONO_MENU : String
+    - {static} ICONO_MESAS : String
+    - {static} ICONO_PAGO : String
+    - {static} ICONO_VACIO : String
+    - {static} ICONO_COCINA : String
+    - {static} MODULOS : List<Modulo>
+    - avatar : Label
+    - usuarioNombre : Label
+    - usuarioEstado : Label
+    - cerrarSesion : Button
+    - subtituloPanel : Label
+    - listaModulos : VBox
+    - moduloAbierto : String
+    - ventana : Stage
+    --
+    - {static} nombreVisible(rol : String) : String
+    + start(stage : Stage) : void
+    - mostrarLogin() : void
+    - mostrarNavegacion() : void
+    - construirLateral() : VBox
+    - construirPanel() : VBox
+    - {static} icono(trazo : String, lado : double, clase : String) : SVGPath
+    - construirTarjeta(modulo : Modulo) : Button
+    - refrescarNavegacion() : void
+    - estadoVacio(titulo : String, texto : String) : VBox
+    - abrirModulo(modulo : Modulo) : void
+    - describirCausa(error : Throwable) : String
+    + {static} main(args : String[]) : void
+  }
+  class MesaNotFoundException #FEF9C3 {
+    + MesaNotFoundException(mensaje : String)
+  }
+  class MesaOcupadaException #FEF9C3 {
+    + MesaOcupadaException(mensaje : String)
+  }
+  enum MetodoPago #FEF9C3 {
+    EFECTIVO
+    TARJETA
+    TRANSFERENCIA
+  }
+  class Modulo <<record · anidada en Main>> #F1F5F9 {
+    - nombre : String
+    - detalle : String
+    - rol : String
+    - icono : String
+    - tituloVentana : String
+    - fxml : String
+    - css : String
+    - ancho : int
+    - alto : int
+  }
+  class PedidoNoEditableException #FEF9C3 {
+    + PedidoNoEditableException(mensaje : String)
+  }
+  class ProductoDisponibilidad #FEF9C3 {
+    - productoId : long
+    - codigo : String
+    - nombre : String
+    - categoria : String
+    - estado : String
+    - motivo : String
+    --
+    + ProductoDisponibilidad(productoId : long, codigo : String, nombre : String, categoria : String, estado : String, motivo : String)
+    + getProductoId() : long
+    + getCodigo() : String
+    + getNombre() : String
+    + getCategoria() : String
+    + getEstado() : String
+    + getMotivo() : String
+  }
+  class ReservaNoCancelableException #FEF9C3 {
+    + ReservaNoCancelableException(mensaje : String)
+  }
+  class ReservaNotFoundException #FEF9C3 {
+    + ReservaNotFoundException(mensaje : String)
+  }
+  class SesionUsuario #FEF9C3 {
+    - {static} INSTANCIA : SesionUsuario
+    - usuarioId : Integer
+    - nombre : String
+    - rol : String
+    --
+    - SesionUsuario()
+    + {static} getInstance() : SesionUsuario
+    + iniciarSesion(id : int, nombreUsuario : String, nombreRol : String) : void
+    + cerrarSesion() : void
+    + estaAutenticado() : boolean
+    + esCajero() : boolean
+    + getUsuarioId() : int
+    + getNombre() : String
+    + getRol() : String
+  }
+  class StockInsuficienteException #FEF9C3 {
+    + StockInsuficienteException(mensaje : String)
+  }
+  class TextoBusqueda #FEF9C3 {
+    - {static} ES_CO : Locale
+    --
+    - TextoBusqueda()
+    + {static} normalizar(texto : String) : String
+    + {static} coincide(nombre : String, descripcion : String, busqueda : String) : boolean
+  }
+  enum TipoDescuento #FEF9C3 {
+    MONTO_FIJO
+    PORCENTAJE
+    --
+    - nombre : String
+    --
+    - TipoDescuento(nombre : String)
+    + {abstract} calcular(subtotal : BigDecimal, valor : BigDecimal) : BigDecimal
+    + toString() : String
+  }
+  enum TipoMovimiento #FEF9C3 {
+    VENTA_COMANDA
+    REVERSO_COMANDA
+  }
+  AdicionalNoDisponibleException -[hidden]right- AsignacionActivaException
+  AsignacionActivaException -[hidden]right- CapacidadExcedidaException
+  AdicionalNoDisponibleException -[hidden]down- ConexionBD
+  ConexionBD -[hidden]right- CuentaPago
+  AsignacionActivaException -[hidden]down- CuentaPago
+  CuentaPago -[hidden]right- EstadoMesa
+  CapacidadExcedidaException -[hidden]down- EstadoMesa
+  ConexionBD -[hidden]down- EstadoPedido
+  EstadoPedido -[hidden]right- EstadoReserva
+  CuentaPago -[hidden]down- EstadoReserva
+  EstadoReserva -[hidden]right- IngredienteStockDTO
+  EstadoMesa -[hidden]down- IngredienteStockDTO
+  EstadoPedido -[hidden]down- ItemPedido
+  ItemPedido -[hidden]right- Main
+  EstadoReserva -[hidden]down- Main
+  Main -[hidden]right- MesaNotFoundException
+  IngredienteStockDTO -[hidden]down- MesaNotFoundException
+  ItemPedido -[hidden]down- MesaOcupadaException
+  MesaOcupadaException -[hidden]right- MetodoPago
+  Main -[hidden]down- MetodoPago
+  MetodoPago -[hidden]right- Modulo
+  MesaNotFoundException -[hidden]down- Modulo
+  MesaOcupadaException -[hidden]down- PedidoNoEditableException
+  PedidoNoEditableException -[hidden]right- ProductoDisponibilidad
+  MetodoPago -[hidden]down- ProductoDisponibilidad
+  ProductoDisponibilidad -[hidden]right- ReservaNoCancelableException
+  Modulo -[hidden]down- ReservaNoCancelableException
+  PedidoNoEditableException -[hidden]down- ReservaNotFoundException
+  ReservaNotFoundException -[hidden]right- SesionUsuario
+  ProductoDisponibilidad -[hidden]down- SesionUsuario
+  SesionUsuario -[hidden]right- StockInsuficienteException
+  ReservaNoCancelableException -[hidden]down- StockInsuficienteException
+  ReservaNotFoundException -[hidden]down- TextoBusqueda
+  TextoBusqueda -[hidden]right- TipoDescuento
+  SesionUsuario -[hidden]down- TipoDescuento
+  TipoDescuento -[hidden]right- TipoMovimiento
+  StockInsuficienteException -[hidden]down- TipoMovimiento
+}
+package "referencias" <<otros paquetes>> #FAFAFA {
+  class AdicionalService <<service>> #DCFCE7 {
+  }
+  class AsignacionMesaService <<service>> #DCFCE7 {
+  }
+  class CajeroPagoController <<controller>> #DBEAFE {
+  }
+  class CocinaController <<controller>> #DBEAFE {
+  }
+  class DisponibilidadAdminController <<controller>> #DBEAFE {
+  }
+  class DisponibilidadDAO <<dao>> #DCFCE7 {
+  }
+  class EstadoMesaRepository <<repository>> #FFEDD5 {
+  }
+  class InventarioService <<service>> #DCFCE7 {
+  }
+  class MenuMeseroController <<controller>> #DBEAFE {
+  }
+  class MesaService <<service>> #DCFCE7 {
+  }
+  class MovimientoInventario <<entity>> #F3E8FF {
+  }
+  class MovimientoInventarioRepository <<repository>> #FFEDD5 {
+  }
+  class Pago <<entity>> #F3E8FF {
+  }
+  class PagoDAO <<dao>> #DCFCE7 {
+  }
+  class PagoService <<service>> #DCFCE7 {
+  }
+  class Pedido <<entity>> #F3E8FF {
+  }
+  class PedidoFacade <<service>> #DCFCE7 {
+  }
+  class PedidoRepository <<repository>> #FFEDD5 {
+  }
+  class PedidoService <<service>> #DCFCE7 {
+  }
+  class Producto <<entity>> #F3E8FF {
+  }
+  class ReservaService <<service>> #DCFCE7 {
+  }
+  AdicionalService -[hidden]right- AsignacionMesaService
+  AsignacionMesaService -[hidden]right- CajeroPagoController
+  CajeroPagoController -[hidden]right- CocinaController
+  AdicionalService -[hidden]down- DisponibilidadAdminController
+  DisponibilidadAdminController -[hidden]right- DisponibilidadDAO
+  AsignacionMesaService -[hidden]down- DisponibilidadDAO
+  DisponibilidadDAO -[hidden]right- EstadoMesaRepository
+  CajeroPagoController -[hidden]down- EstadoMesaRepository
+  EstadoMesaRepository -[hidden]right- InventarioService
+  CocinaController -[hidden]down- InventarioService
+  DisponibilidadAdminController -[hidden]down- MenuMeseroController
+  MenuMeseroController -[hidden]right- MesaService
+  DisponibilidadDAO -[hidden]down- MesaService
+  MesaService -[hidden]right- MovimientoInventario
+  EstadoMesaRepository -[hidden]down- MovimientoInventario
+  MovimientoInventario -[hidden]right- MovimientoInventarioRepository
+  InventarioService -[hidden]down- MovimientoInventarioRepository
+  MenuMeseroController -[hidden]down- Pago
+  Pago -[hidden]right- PagoDAO
+  MesaService -[hidden]down- PagoDAO
+  PagoDAO -[hidden]right- PagoService
+  MovimientoInventario -[hidden]down- PagoService
+  PagoService -[hidden]right- Pedido
+  MovimientoInventarioRepository -[hidden]down- Pedido
+  Pago -[hidden]down- PedidoFacade
+  PedidoFacade -[hidden]right- PedidoRepository
+  PagoDAO -[hidden]down- PedidoRepository
+  PedidoRepository -[hidden]right- PedidoService
+  PagoService -[hidden]down- PedidoService
+  PedidoService -[hidden]right- Producto
+  Pedido -[hidden]down- Producto
+  PedidoFacade -[hidden]down- ReservaService
+}
+AdicionalNoDisponibleException --|> RuntimeException
+AdicionalService -[#A16207,dashed]-> AdicionalNoDisponibleException
+AsignacionActivaException --|> RuntimeException
+AsignacionMesaService -[#A16207,dashed]-> AsignacionActivaException
+CajeroPagoController -[#A16207]-> "* tipoDescuentoCombo" TipoDescuento
+CajeroPagoController -[#A16207]-> "1 cuentaActual" CuentaPago
+CapacidadExcedidaException --|> RuntimeException
+CocinaController -[#A16207,dashed]-> EstadoPedido
+DisponibilidadAdminController -[#A16207]-> "* tablaProductos\ncolCodigo\ncolNombre\ncolCategoria\ncolEstado\ncolMotivo" ProductoDisponibilidad
+DisponibilidadDAO -[#A16207,dashed]-> ProductoDisponibilidad
+EstadoMesaRepository -[#7E22CE,dashed]-> EstadoMesa
+InventarioService -[#A16207,dashed]-> StockInsuficienteException
+ItemPedido o-[#7E22CE]-> "1 producto" Producto
+Main --|> Application
+Main -[#475569]-> "* MODULOS" Modulo
+MenuMeseroController -[#A16207]-> "* pedido" ItemPedido
+MesaNotFoundException --|> RuntimeException
+MesaOcupadaException --|> RuntimeException
+MesaService -[#7E22CE,dashed]-> EstadoMesa
+MesaService -[#A16207,dashed]-> MesaNotFoundException
+MovimientoInventario -[#A16207]-> "1 tipoMovimiento" TipoMovimiento
+MovimientoInventarioRepository -[#A16207,dashed]-> TipoMovimiento
+Pago -[#A16207]-> "1 metodo" MetodoPago
+PagoDAO -[#A16207,dashed]-> CuentaPago
+PagoService -[#A16207,dashed]-> EstadoPedido
+PagoService -[#A16207,dashed]-> MetodoPago
+Pedido -[#A16207]-> "1 estado" EstadoPedido
+PedidoFacade -[#A16207,dashed]-> ItemPedido
+PedidoNoEditableException --|> RuntimeException
+PedidoRepository -[#A16207,dashed]-> EstadoPedido
+PedidoService -[#A16207,dashed]-> MesaNotFoundException
+PedidoService -[#A16207,dashed]-> MesaOcupadaException
+PedidoService -[#A16207,dashed]-> PedidoNoEditableException
+PedidoService -[#A16207]-> "* ESTADOS_YA_CERRADOS" EstadoPedido
+ReservaNoCancelableException --|> RuntimeException
+ReservaNotFoundException --|> RuntimeException
+ReservaService -[#A16207,dashed]-> EstadoPedido
+ReservaService -[#A16207,dashed]-> ReservaNoCancelableException
+ReservaService -[#A16207,dashed]-> ReservaNotFoundException
+StockInsuficienteException --|> RuntimeException
+class Application <<externa>> #FFFFFF
+class RuntimeException <<externa>> #FFFFFF
+@enduml

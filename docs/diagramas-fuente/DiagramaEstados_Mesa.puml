@@ -1,0 +1,59 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam nodesep 32
+skinparam ranksep 48
+skinparam ArrowFontSize 12
+skinparam ArrowFontStyle bold
+skinparam ArrowColor #1E293B
+skinparam StateFontSize 13
+skinparam StateFontStyle bold
+skinparam StateBackgroundColor #FFFFFF
+skinparam StateBorderColor #334155
+skinparam legendBackgroundColor #FFFFFF
+skinparam legendBorderColor #94A3B8
+skinparam legendFontSize 11
+state "Mesa  ·  catalogo estados_mesa" as MESA #FFEDD5 {
+  state "cualquier estado del catalogo" as M_CAT #F8FAFC {
+    state "DISPONIBLE" as M_DISPONIBLE
+    state "OCUPADA" as M_OCUPADA
+    state "RESERVADA" as M_RESERVADA
+    state "MANTENIMIENTO" as M_MANTENIMIENTO #E5E7EB
+  }
+  state "LIBRE" as M_LIBRE #FECACA
+  [*] -[#2563EB]-> M_DISPONIBLE : T1
+  M_CAT --> M_OCUPADA : T2, T8
+  M_CAT --> M_DISPONIBLE : T3, T5, T7
+  M_CAT -[#B91C1C]-> M_LIBRE : T4, T6
+  M_CAT --> M_RESERVADA : T9
+  M_CAT -[#2563EB]-> M_LIBRE : T10
+  M_CAT -[#2563EB]-> M_DISPONIBLE : T11
+  M_LIBRE -[#2563EB]-> M_OCUPADA : T12
+  M_DISPONIBLE -[#2563EB]-> M_OCUPADA : T13
+}
+state "solo en EstadoMesaVisual" as FANTASMA #F1F5F9 {
+  state "PENDIENTE_PAGO / PENDIENTE_DE_PAGO" as M_PENDIENTE_PAGO #FECACA
+  state "INHABILITADA / INHABILITADO" as M_INHABILITADA #FECACA
+}
+MESA -[hidden]down-> FANTASMA
+legend bottom
+<b>Transiciones</b>
+|=  |= desde |= a |= operacion |= motivo |= condicion |
+| <b>T1</b> | inicio | DISPONIBLE | MesaRepository.agregarMesa() |   | fija id_estado_mesa = 1 |
+| <b>T2</b> | cualquier estado del catalogo | OCUPADA | PedidoService.crearPedido() | APERTURA_PEDIDO | falla si: La mesa ... ya tiene una comanda activa |
+| <b>T3</b> | cualquier estado del catalogo | DISPONIBLE | PedidoService.cerrarPedido() | CIERRE_PEDIDO | parametro = "DISPONIBLE"; falla si: El pedido ... ya está en estado |
+| <b>T4</b> | cualquier estado del catalogo | LIBRE | PedidoService.cerrarPedido() | CIERRE_PEDIDO | parametro = null; falla si: El pedido ... ya está en estado |
+| <b>T5</b> | cualquier estado del catalogo | DISPONIBLE | PedidoService.cancelarPedido() | CANCELACION_PEDIDO | parametro = "DISPONIBLE" o null; falla si: El pedido ... ya está en estado |
+| <b>T6</b> | cualquier estado del catalogo | LIBRE | ReservaService.cancelarReserva() | CANCELAR_RESERVA | falla si: La reserva ya está inactiva; falla si: La mesa ... tiene un pedido en curso |
+| <b>T7</b> | cualquier estado del catalogo | DISPONIBLE | MapaSalonController.cambiarEstadoMesa() | MANUAL | elegido en el dialogo |
+| <b>T8</b> | cualquier estado del catalogo | OCUPADA | MapaSalonController.cambiarEstadoMesa() | MANUAL | elegido en el dialogo |
+| <b>T9</b> | cualquier estado del catalogo | RESERVADA | MapaSalonController.cambiarEstadoMesa() | MANUAL | elegido en el dialogo |
+| <b>T10</b> | cualquier estado del catalogo | LIBRE | MesaRepository.liberarMesa() |   | existe LIBRE; falla si: No existe un estado LIBRE o DISPONIBLE en estados_mesa |
+| <b>T11</b> | cualquier estado del catalogo | DISPONIBLE | MesaRepository.liberarMesa() |   | no existe LIBRE; falla si: No existe un estado LIBRE o DISPONIBLE en estados_mesa |
+| <b>T12</b> | LIBRE | OCUPADA | MesaRepository.asignarComensales() |   | estado actual en LIBRE, DISPONIBLE; falla si: La cantidad de comensales debe ser mayor a cero; exige: la cantidad cabe en capacidad |
+| <b>T13</b> | DISPONIBLE | OCUPADA | MesaRepository.asignarComensales() |   | estado actual en LIBRE, DISPONIBLE; falla si: La cantidad de comensales debe ser mayor a cero; exige: la cantidad cabe en capacidad |
+
+<b>Colores</b>  <back:#E5E7EB>      </back> ningun codigo lo asigna   <back:#FECACA>      </back> no esta en estados_mesa   <back:#B91C1C>      </back> flecha roja: pide un codigo que el catalogo no tiene   <back:#2563EB>      </back> flecha azul: escribe sin pasar por MesaService (no deja fila en historial_estado_mesa)
+endlegend
+@enduml

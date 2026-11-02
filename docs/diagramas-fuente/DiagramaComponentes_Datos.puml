@@ -1,0 +1,182 @@
+@startuml
+allowmixing
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 30
+skinparam ranksep 60
+skinparam ArrowColor #475569
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentFontSize 12
+skinparam InterfaceBackgroundColor #FFFFFF
+skinparam InterfaceFontSize 11
+skinparam ArtifactBackgroundColor #FFFFFF
+skinparam ArtifactFontSize 11
+skinparam DatabaseBackgroundColor #FFFFFF
+
+package "Acceso a datos · repository + dao" #FFEDD5 {
+  component "**AdicionalRepository**" as AdicionalRepository
+  component "**AlertaInventarioRepository**" as AlertaInventarioRepository
+  component "**AsignacionMesaRepository**" as AsignacionMesaRepository
+  component "**ClienteRepository**" as ClienteRepository
+  component "**DetallePedidoAdicionalRepository**" as DetallePedidoAdicionalRepository
+  component "**DetallePedidoRepository**\n<size:9>sin SQL propio</size>\n<size:9>excluida en pom.xml</size>" as DetallePedidoRepository
+  component "**DisponibilidadDAO**\n<size:9>comparte: categorias, productos</size>\n<size:9>llama fn_motivo_receta()</size>\n<size:9>llama fn_pedido_faltantes()</size>\n<size:9>llama fn_producto_disponible_cantidad()</size>\n<size:9>llama fn_recalcular_estado_producto()</size>\n<size:9>llama fn_recalcular_estados_productos()</size>" as DisponibilidadDAO
+  component "**DisponibilidadService**\n<size:9>comparte: ingredientes, productos</size>" as DisponibilidadService
+  component "**EntradaInventarioRepository**\n<size:9>comparte: movimientos_inventario</size>" as EntradaInventarioRepository
+  component "**EntradaInventarioService**\n<size:9>comparte: productos</size>" as EntradaInventarioService
+  component "**EstadoMesaRepository**\n<size:9>comparte: estados_mesa</size>" as EstadoMesaRepository
+  component "**HistorialEstadoMesaRepository**" as HistorialEstadoMesaRepository
+  component "**IngredienteRepository**\n<size:9>comparte: ingredientes</size>" as IngredienteRepository
+  component "**InventarioRepository**\n<size:9>comparte: ingredientes, movimientos_inventario, plato_insumo, productos</size>" as InventarioRepository
+  component "**MesaRepository**\n<size:9>comparte: estados_mesa, mesas, pedidos, usuarios, zonas</size>\n<size:9>elige en ejecucion: pedidos, usuarios</size>" as MesaRepository
+  component "**MeseroRepository**\n<size:9>sin SQL propio</size>\n<size:9>excluida en pom.xml</size>" as MeseroRepository
+  component "**MovimientoInventarioRepository**\n<size:9>comparte: movimientos_inventario</size>" as MovimientoInventarioRepository
+  component "**NotaMesaRepository**" as NotaMesaRepository
+  component "**PagoDAO**\n<size:9>comparte: mesas, pedidos, roles, usuarios</size>" as PagoDAO
+  component "**PagoRepository**\n<size:9>sin SQL propio</size>\n<size:9>excluida en pom.xml</size>" as PagoRepository
+  component "**PedidoRepository**\n<size:9>comparte: pedidos</size>" as PedidoRepository
+  component "**PlatoInsumoRepository**\n<size:9>comparte: plato_insumo</size>" as PlatoInsumoRepository
+  component "**PlatoRepository**\n<size:9>comparte: productos</size>" as PlatoRepository
+  component "**ProductoDAO**\n<size:9>comparte: categorias, productos</size>" as ProductoDAO
+  component "**ReglaDescuentoRepository**" as ReglaDescuentoRepository
+  component "**ReservaRepository**\n<size:9>comparte: estados_mesa, mesas, zonas</size>" as ReservaRepository
+  component "**UsuarioRepository**\n<size:9>comparte: roles, usuarios</size>" as UsuarioRepository
+  component "**ZonaRepository**\n<size:9>comparte: zonas</size>" as ZonaRepository
+  AdicionalRepository -[hidden]right- AlertaInventarioRepository
+  AlertaInventarioRepository -[hidden]right- AsignacionMesaRepository
+  AsignacionMesaRepository -[hidden]right- ClienteRepository
+  AdicionalRepository -[hidden]down- DetallePedidoAdicionalRepository
+  DetallePedidoAdicionalRepository -[hidden]right- DetallePedidoRepository
+  AlertaInventarioRepository -[hidden]down- DetallePedidoRepository
+  DetallePedidoRepository -[hidden]right- DisponibilidadDAO
+  AsignacionMesaRepository -[hidden]down- DisponibilidadDAO
+  DisponibilidadDAO -[hidden]right- DisponibilidadService
+  ClienteRepository -[hidden]down- DisponibilidadService
+  DetallePedidoAdicionalRepository -[hidden]down- EntradaInventarioRepository
+  EntradaInventarioRepository -[hidden]right- EntradaInventarioService
+  DetallePedidoRepository -[hidden]down- EntradaInventarioService
+  EntradaInventarioService -[hidden]right- EstadoMesaRepository
+  DisponibilidadDAO -[hidden]down- EstadoMesaRepository
+  EstadoMesaRepository -[hidden]right- HistorialEstadoMesaRepository
+  DisponibilidadService -[hidden]down- HistorialEstadoMesaRepository
+  EntradaInventarioRepository -[hidden]down- IngredienteRepository
+  IngredienteRepository -[hidden]right- InventarioRepository
+  EntradaInventarioService -[hidden]down- InventarioRepository
+  InventarioRepository -[hidden]right- MesaRepository
+  EstadoMesaRepository -[hidden]down- MesaRepository
+  MesaRepository -[hidden]right- MeseroRepository
+  HistorialEstadoMesaRepository -[hidden]down- MeseroRepository
+  IngredienteRepository -[hidden]down- MovimientoInventarioRepository
+  MovimientoInventarioRepository -[hidden]right- NotaMesaRepository
+  InventarioRepository -[hidden]down- NotaMesaRepository
+  NotaMesaRepository -[hidden]right- PagoDAO
+  MesaRepository -[hidden]down- PagoDAO
+  PagoDAO -[hidden]right- PagoRepository
+  MeseroRepository -[hidden]down- PagoRepository
+  MovimientoInventarioRepository -[hidden]down- PedidoRepository
+  PedidoRepository -[hidden]right- PlatoInsumoRepository
+  NotaMesaRepository -[hidden]down- PlatoInsumoRepository
+  PlatoInsumoRepository -[hidden]right- PlatoRepository
+  PagoDAO -[hidden]down- PlatoRepository
+  PlatoRepository -[hidden]right- ProductoDAO
+  PagoRepository -[hidden]down- ProductoDAO
+  PedidoRepository -[hidden]down- ReglaDescuentoRepository
+  ReglaDescuentoRepository -[hidden]right- ReservaRepository
+  PlatoInsumoRepository -[hidden]down- ReservaRepository
+  ReservaRepository -[hidden]right- UsuarioRepository
+  PlatoRepository -[hidden]down- UsuarioRepository
+  UsuarioRepository -[hidden]right- ZonaRepository
+  ProductoDAO -[hidden]down- ZonaRepository
+}
+package "tablas con un unico repositorio · 11" #DCFCE7 {
+  database "adicional" as T_adicional #FFFFFF
+  database "alerta_inventario" as T_alerta_inventario #FFFFFF
+  database "asignacion_mesa" as T_asignacion_mesa #FFFFFF
+  database "clientes" as T_clientes #FFFFFF
+  database "detalle_pedido_adicional" as T_detalle_pedido_adicional #FFFFFF
+  database "historial_estado_mesa" as T_historial_estado_mesa #FFFFFF
+  database "nota_mesa" as T_nota_mesa #FFFFFF
+  database "pagos" as T_pagos #FFFFFF
+  database "regla_descuento" as T_regla_descuento #FFFFFF
+  database "reservas" as T_reservas #FFFFFF
+  database "tipos_documento" as T_tipos_documento #FFFFFF
+  T_adicional -[hidden]right- T_alerta_inventario
+  T_alerta_inventario -[hidden]right- T_asignacion_mesa
+  T_asignacion_mesa -[hidden]right- T_clientes
+  T_adicional -[hidden]down- T_detalle_pedido_adicional
+  T_detalle_pedido_adicional -[hidden]right- T_historial_estado_mesa
+  T_alerta_inventario -[hidden]down- T_historial_estado_mesa
+  T_historial_estado_mesa -[hidden]right- T_nota_mesa
+  T_asignacion_mesa -[hidden]down- T_nota_mesa
+  T_nota_mesa -[hidden]right- T_pagos
+  T_clientes -[hidden]down- T_pagos
+  T_detalle_pedido_adicional -[hidden]down- T_regla_descuento
+  T_regla_descuento -[hidden]right- T_reservas
+  T_historial_estado_mesa -[hidden]down- T_reservas
+  T_reservas -[hidden]right- T_tipos_documento
+  T_nota_mesa -[hidden]down- T_tipos_documento
+}
+package "tablas que ningun repositorio consulta · 5" #FEF2F2 {
+  database "auditoria_recetas_hu134" as S_auditoria_recetas_hu134 #FFFFFF
+  database "detalle_pedido" as S_detalle_pedido #FFFFFF
+  database "lote_ingrediente" as S_lote_ingrediente #FFFFFF
+  database "precios_producto" as S_precios_producto #FFFFFF
+  database "unidades_medida" as S_unidades_medida #FFFFFF
+  S_auditoria_recetas_hu134 -[hidden]right- S_detalle_pedido
+  S_detalle_pedido -[hidden]right- S_lote_ingrediente
+  S_auditoria_recetas_hu134 -[hidden]down- S_precios_producto
+  S_precios_producto -[hidden]right- S_unidades_medida
+}
+AdicionalRepository --> T_adicional : lee y escribe
+AlertaInventarioRepository --> T_alerta_inventario : lee y escribe
+AsignacionMesaRepository --> T_asignacion_mesa : lee y escribe
+ClienteRepository --> T_clientes : lee y escribe
+DetallePedidoAdicionalRepository --> T_detalle_pedido_adicional : lee y escribe
+HistorialEstadoMesaRepository --> T_historial_estado_mesa : lee y escribe
+NotaMesaRepository --> T_nota_mesa : lee y escribe
+PagoDAO --> T_pagos : lee y escribe
+ReglaDescuentoRepository --> T_regla_descuento : lee y escribe
+ReservaRepository --> T_reservas : lee y escribe
+ClienteRepository ..> T_tipos_documento : lee
+package "Conexion" #F1F5F9 {
+  component "**ConexionBD**" as ConexionBD
+}
+interface "ConexionBD\n<size:9>getConnection()</size>" as I_ConexionBD
+ConexionBD -up- I_ConexionBD
+AdicionalRepository ..> I_ConexionBD : <<use>> 1
+AlertaInventarioRepository ..> I_ConexionBD : <<use>> 1
+AsignacionMesaRepository ..> I_ConexionBD : <<use>> 1
+ClienteRepository ..> I_ConexionBD : <<use>> 1
+DetallePedidoAdicionalRepository ..> I_ConexionBD : <<use>> 1
+DisponibilidadDAO ..> I_ConexionBD : <<use>> 1
+EntradaInventarioRepository ..> I_ConexionBD : <<use>> 1
+EstadoMesaRepository ..> I_ConexionBD : <<use>> 1
+HistorialEstadoMesaRepository ..> I_ConexionBD : <<use>> 1
+IngredienteRepository ..> I_ConexionBD : <<use>> 1
+MesaRepository ..> I_ConexionBD : <<use>> 1
+MovimientoInventarioRepository ..> I_ConexionBD : <<use>> 1
+NotaMesaRepository ..> I_ConexionBD : <<use>> 1
+PagoDAO ..> I_ConexionBD : <<use>> 1
+PedidoRepository ..> I_ConexionBD : <<use>> 1
+PlatoInsumoRepository ..> I_ConexionBD : <<use>> 1
+PlatoRepository ..> I_ConexionBD : <<use>> 1
+ProductoDAO ..> I_ConexionBD : <<use>> 1
+ReglaDescuentoRepository ..> I_ConexionBD : <<use>> 1
+ReservaRepository ..> I_ConexionBD : <<use>> 1
+UsuarioRepository ..> I_ConexionBD : <<use>> 1
+ZonaRepository ..> I_ConexionBD : <<use>> 1
+interface "PlatoInsumoRepository\n<size:9>obtenerPorPlato(int)</size>" as I_PlatoInsumoRepository
+PlatoInsumoRepository -up- I_PlatoInsumoRepository
+DisponibilidadService ..> I_PlatoInsumoRepository : <<use>> 1
+interface "EntradaInventarioRepository\n<size:9>guardar(EntradaInventario)</size>" as I_EntradaInventarioRepository
+EntradaInventarioRepository -up- I_EntradaInventarioRepository
+EntradaInventarioService ..> I_EntradaInventarioRepository : <<use>> 1
+interface "DisponibilidadDAO\n<size:9>estaDisponible(long)</size>\n<size:9>estaDisponible(long, int)</size>\n<size:9>faltantesDelPedido(Map)</size>\n<size:9>listarProductos()</size>\n<size:9>recalcularTodos()</size>" as I_DisponibilidadDAO
+DisponibilidadDAO -up- I_DisponibilidadDAO
+ProductoDAO ..> I_DisponibilidadDAO : <<use>> 2
+@enduml

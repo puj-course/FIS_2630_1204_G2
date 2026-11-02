@@ -1,0 +1,241 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 35
+skinparam ranksep 60
+skinparam padding 3
+skinparam ClassFontSize 13
+skinparam ClassAttributeFontSize 11
+skinparam ClassStereotypeFontSize 10
+skinparam ClassBorderColor #334155
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ClassAttributeIconSize 0
+hide empty members
+
+package "entity · Adicional–EstadoMesa" {
+  class Adicional #F3E8FF {
+    - id : Long
+    - nombre : String
+    - precioAdicional : BigDecimal
+    - isActive : Boolean
+    --
+    + Adicional()
+    + getId() : Long
+    + setId(id : Long) : void
+    + getNombre() : String
+    + setNombre(nombre : String) : void
+    + getPrecioAdicional() : BigDecimal
+    + setPrecioAdicional(precioAdicional : BigDecimal) : void
+    + getIsActive() : Boolean
+    + setIsActive(isActive : Boolean) : void
+  }
+  class AlertaInventario #F3E8FF {
+    - id : Long
+    - ingredienteId : Long
+    - productoId : Long
+    - stockActual : BigDecimal
+    - stockMinimo : BigDecimal
+    - cantidadSugerida : BigDecimal
+    - estado : String
+    - createdAt : LocalDateTime
+    - resolvedAt : LocalDateTime
+    --
+    + AlertaInventario()
+    + getId() : Long
+    + setId(id : Long) : void
+    + getIngredienteId() : Long
+    + setIngredienteId(ingredienteId : Long) : void
+    + getProductoId() : Long
+    + setProductoId(productoId : Long) : void
+    + getStockActual() : BigDecimal
+    + setStockActual(stockActual : BigDecimal) : void
+    + getStockMinimo() : BigDecimal
+    + setStockMinimo(stockMinimo : BigDecimal) : void
+    + getCantidadSugerida() : BigDecimal
+    + setCantidadSugerida(cantidadSugerida : BigDecimal) : void
+    + getEstado() : String
+    + setEstado(estado : String) : void
+    + getCreatedAt() : LocalDateTime
+    + setCreatedAt(createdAt : LocalDateTime) : void
+    + getResolvedAt() : LocalDateTime
+    + setResolvedAt(resolvedAt : LocalDateTime) : void
+    + estaPendiente() : boolean
+    + estaResuelta() : boolean
+  }
+  class AsignacionMesa #F3E8FF {
+    - id : Long
+    - mesaId : Long
+    - usuarioId : Long
+    - fechaAsignacion : LocalDateTime
+    - isActive : Boolean
+    --
+    + AsignacionMesa()
+    + getId() : Long
+    + setId(id : Long) : void
+    + getMesaId() : Long
+    + setMesaId(mesaId : Long) : void
+    + getUsuarioId() : Long
+    + setUsuarioId(usuarioId : Long) : void
+    + getFechaAsignacion() : LocalDateTime
+    + setFechaAsignacion(fechaAsignacion : LocalDateTime) : void
+    + getIsActive() : Boolean
+    + setIsActive(isActive : Boolean) : void
+  }
+  class Cliente #F3E8FF {
+    - id : int
+    - tipoDocumento : String
+    - documento : String
+    - nombre : String
+    - apellido : String
+    - telefono : String
+    - correo : String
+    --
+    + Cliente()
+    + Cliente(nombre : String, telefono : String, correo : String)
+    + Cliente(tipoDocumento : String, documento : String, nombre : String, apellido : String, correo : String, telefono : String)
+    + getId() : int
+    + setId(id : int) : void
+    + getTipoDocumento() : String
+    + setTipoDocumento(tipoDocumento : String) : void
+    + getDocumento() : String
+    + setDocumento(documento : String) : void
+    + getNombre() : String
+    + setNombre(nombre : String) : void
+    + getApellido() : String
+    + setApellido(apellido : String) : void
+    + getTelefono() : String
+    + setTelefono(telefono : String) : void
+    + getCorreo() : String
+    + setCorreo(correo : String) : void
+  }
+  class DetallePedido #F3E8FF {
+    - id : Long
+    - pedidoId : Long
+    - productoId : Long
+    - cantidad : Integer
+    - subtotal : BigDecimal
+    --
+    + DetallePedido()
+    + getId() : Long
+    + setId(id : Long) : void
+    + getPedidoId() : Long
+    + setPedidoId(pedidoId : Long) : void
+    + getProductoId() : Long
+    + setProductoId(productoId : Long) : void
+    + getCantidad() : Integer
+    + setCantidad(cantidad : Integer) : void
+    + getSubtotal() : BigDecimal
+    + setSubtotal(subtotal : BigDecimal) : void
+  }
+  class DetallePedidoAdicional #F3E8FF {
+    - id : Long
+    - detallePedidoId : Long
+    - adicionalId : Long
+    - cantidad : Integer
+    --
+    + DetallePedidoAdicional()
+    + getId() : Long
+    + setId(id : Long) : void
+    + getDetallePedidoId() : Long
+    + setDetallePedidoId(detallePedidoId : Long) : void
+    + getAdicionalId() : Long
+    + setAdicionalId(adicionalId : Long) : void
+    + getCantidad() : Integer
+    + setCantidad(cantidad : Integer) : void
+  }
+  class EntradaInventario #F3E8FF {
+    - idMovimiento : int
+    - ingredienteId : Long
+    - tipoMovimiento : String
+    - cantidad : double
+    - motivo : String
+    --
+    + EntradaInventario()
+    + EntradaInventario(ingredienteId : Long, cantidad : double, motivo : String)
+    + getIdMovimiento() : int
+    + setIdMovimiento(idMovimiento : int) : void
+    + getIngredienteId() : Long
+    + setIngredienteId(ingredienteId : Long) : void
+    + getTipoMovimiento() : String
+    + setTipoMovimiento(tipoMovimiento : String) : void
+    + getCantidad() : double
+    + setCantidad(cantidad : double) : void
+    + getMotivo() : String
+    + setMotivo(motivo : String) : void
+  }
+  class EstadoMesa #F3E8FF {
+    - id : Long
+    - codigoEstado : String
+    - descripcion : String
+    --
+    + EstadoMesa()
+    + getId() : Long
+    + setId(id : Long) : void
+    + getCodigoEstado() : String
+    + setCodigoEstado(codigoEstado : String) : void
+    + getDescripcion() : String
+    + setDescripcion(descripcion : String) : void
+  }
+}
+package "referencias" <<otros paquetes>> #FAFAFA {
+  class AdicionalRepository <<repository>> #FFEDD5 {
+  }
+  class AdicionalService <<service>> #DCFCE7 {
+  }
+  class AlertaInventarioRepository <<repository>> #FFEDD5 {
+  }
+  class AsignacionMesaRepository <<repository>> #FFEDD5 {
+  }
+  class AsignacionMesaService <<service>> #DCFCE7 {
+  }
+  class ClienteRepository <<repository>> #FFEDD5 {
+  }
+  class DetallePedidoAdicionalRepository <<repository>> #FFEDD5 {
+  }
+  interface DetallePedidoRepository <<repository>> #FFEDD5 {
+  }
+  class EntradaInventarioRepository <<repository>> #FFEDD5 {
+  }
+  class EntradaInventarioService <<service>> #DCFCE7 {
+  }
+  class EstadoMesaRepository <<repository>> #FFEDD5 {
+  }
+  class MesaService <<service>> #DCFCE7 {
+  }
+  AdicionalRepository -[hidden]right- AdicionalService
+  AdicionalService -[hidden]right- AlertaInventarioRepository
+  AlertaInventarioRepository -[hidden]right- AsignacionMesaRepository
+  AdicionalRepository -[hidden]down- AsignacionMesaService
+  AsignacionMesaService -[hidden]right- ClienteRepository
+  AdicionalService -[hidden]down- ClienteRepository
+  ClienteRepository -[hidden]right- DetallePedidoAdicionalRepository
+  AlertaInventarioRepository -[hidden]down- DetallePedidoAdicionalRepository
+  DetallePedidoAdicionalRepository -[hidden]right- DetallePedidoRepository
+  AsignacionMesaRepository -[hidden]down- DetallePedidoRepository
+  AsignacionMesaService -[hidden]down- EntradaInventarioRepository
+  EntradaInventarioRepository -[hidden]right- EntradaInventarioService
+  ClienteRepository -[hidden]down- EntradaInventarioService
+  EntradaInventarioService -[hidden]right- EstadoMesaRepository
+  DetallePedidoAdicionalRepository -[hidden]down- EstadoMesaRepository
+  EstadoMesaRepository -[hidden]right- MesaService
+  DetallePedidoRepository -[hidden]down- MesaService
+}
+AdicionalRepository -[#7E22CE,dashed]-> Adicional
+AdicionalService -[#7E22CE,dashed]-> Adicional
+AdicionalService -[#7E22CE,dashed]-> DetallePedidoAdicional
+AlertaInventarioRepository -[#7E22CE,dashed]-> AlertaInventario
+AsignacionMesaRepository -[#7E22CE,dashed]-> AsignacionMesa
+AsignacionMesaService -[#7E22CE,dashed]-> AsignacionMesa
+ClienteRepository -[#7E22CE,dashed]-> Cliente
+DetallePedidoAdicionalRepository -[#7E22CE,dashed]-> DetallePedidoAdicional
+DetallePedidoRepository -[#7E22CE,dashed]-> DetallePedido
+EntradaInventarioRepository -[#7E22CE,dashed]-> EntradaInventario
+EntradaInventarioService -[#7E22CE,dashed]-> EntradaInventario
+EstadoMesaRepository -[#7E22CE,dashed]-> EstadoMesa
+MesaService -[#7E22CE,dashed]-> EstadoMesa
+@enduml

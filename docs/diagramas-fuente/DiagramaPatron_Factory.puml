@@ -1,0 +1,55 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 6
+skinparam nodesep 30
+skinparam ranksep 60
+skinparam ClassBorderColor #334155
+skinparam ClassBackgroundColor #FFFFFF
+skinparam ClassFontSize 14
+skinparam ClassAttributeFontSize 12
+skinparam ClassStereotypeFontSize 11
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 11
+hide circle
+class AlertaStockFactory <<Factory>> {
+  -AlertaStockFactory()
+  +crear(ingrediente : Ingrediente) AlertaStock
+}
+interface AlertaStock <<Product>> {
+  +getTexto() String
+  +getEstiloCelda() String
+  +getEstiloFila() String
+}
+class AlertaAgotado <<ConcreteProduct>> {
+  +getTexto() String
+  +getEstiloCelda() String
+  +getEstiloFila() String
+}
+class AlertaStockBajo <<ConcreteProduct>> {
+  +getTexto() String
+  +getEstiloCelda() String
+  +getEstiloFila() String
+}
+class AlertaNormal <<ConcreteProduct>> {
+  +getTexto() String
+  +getEstiloCelda() String
+  +getEstiloFila() String
+}
+class Ingrediente {
+  +getStockActual() BigDecimal
+  +tieneStockBajo() boolean
+}
+class InventarioController {
+}
+AlertaStock <|.. AlertaAgotado
+AlertaStock <|.. AlertaStockBajo
+AlertaStock <|.. AlertaNormal
+AlertaStockFactory ..> AlertaAgotado : new
+AlertaStockFactory ..> AlertaStockBajo : new
+AlertaStockFactory ..> AlertaNormal : new
+AlertaStockFactory ..> Ingrediente : getStockActual, tieneStockBajo
+InventarioController ..> AlertaStockFactory : crear
+InventarioController ..> AlertaStock : getEstiloCelda, getEstiloFila, getTexto
+@enduml

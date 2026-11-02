@@ -6,7 +6,7 @@ import exceptions.ReservaNoCancelableException;
 import exceptions.ReservaNotFoundException;
 import repository.PedidoRepository;
 import repository.ReservaRepository;
-
+import ConexionBD.ConexionBD;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,35 +26,65 @@ public class ReservaService {
     }
 
     // HU-055: cancelar una reserva vigente
+
     public Reserva cancelarReserva(int idReserva) throws SQLException {
 
         Reserva reserva = reservaRepository.findById(idReserva)
                 .orElseThrow(() -> new ReservaNotFoundException(
-                        "Reserva no encontrada con id " + idReserva));
+                        "Reserva no encontrada con id " + idReserva
+                ));
 
         if (!reserva.isActiva()) {
-            throw new ReservaNoCancelableException("La reserva ya está inactiva");
+            throw new ReservaNoCancelableException(
+                    "La reserva ya está inactiva"
+            );
         }
 
-        // No se puede cancelar si la mesa ya tiene un pedido en curso
-        boolean tienePedidoEnCurso = pedidoRepository.existsByMesaIdAndEstadoNot(
-                reserva.getIdMesa(), EstadoPedido.CANCELADO);
+        boolean tienePedidoEnCurso =
+                pedidoRepository.existsByMesaIdAndEstadoNot(
+                        reserva.getIdMesa(),
+                        EstadoPedido.CANCELADO
+                );
 
         if (tienePedidoEnCurso) {
             throw new ReservaNoCancelableException(
-                    "La mesa " + reserva.getNumeroMesa() + " tiene un pedido en curso");
+                    "La mesa " + reserva.getNumeroMesa()
+                            + " tiene un pedido en curso"
+            );
         }
 
         LocalDateTime ahora = LocalDateTime.now();
 
-        reservaRepository.cancelar(idReserva, ahora);
+        try (java.sql.Connection conn = ConexionBD.getConnection()) {
+            conn.setAutoCommit(false);
 
-        // Liberar la mesa: pasa de RESERVADA a LIBRE, con auditoría en historial_estado_mesa.ddl
-        mesaService.cambiarEstado(reserva.getIdMesa(), "LIBRE", "CANCELAR_RESERVA");
+            try {
+                reservaRepository.cancelar(conn, idReserva, ahora);
 
-        reserva.setActiva(false);
-        reserva.setFechaCancelacion(ahora);
+                mesaService.cambiarEstado(
+                        conn,
+                        reserva.getIdMesa(),
+                        "DISPONIBLE",
+                        "CANCELAR_RESERVA"
+                );
 
-        return reserva;
+                conn.commit();
+
+                reserva.setActiva(false);
+                reserva.setFechaCancelacion(ahora);
+
+                return reserva;
+
+            } catch (SQLException | RuntimeException ex) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackEx) {
+                    ex.addSuppressed(rollbackEx);
+                }
+
+                throw ex;
+            }
+        }
     }
+
 }

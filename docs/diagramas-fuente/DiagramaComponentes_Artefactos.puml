@@ -1,0 +1,97 @@
+@startuml
+allowmixing
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 30
+skinparam ranksep 60
+skinparam ArrowColor #475569
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentFontSize 12
+skinparam InterfaceBackgroundColor #FFFFFF
+skinparam InterfaceFontSize 11
+skinparam ArtifactBackgroundColor #FFFFFF
+skinparam ArtifactFontSize 11
+skinparam DatabaseBackgroundColor #FFFFFF
+
+package "src/main/java · paquetes con componentes\n<size:9>no se dibujan database, dto, entity, enums, exceptions</size>" #F1F5F9 {
+  artifact "(raiz)\n<size:9>1 .java</size>" as J__raiz_ #DBEAFE
+  artifact "ConexionBD/\n<size:9>1 .java</size>" as J_ConexionBD #F1F5F9
+  artifact "controller/\n<size:9>8 .java</size>" as J_controller #DBEAFE
+  artifact "dao/\n<size:9>3 .java</size>" as J_dao #FFEDD5
+  artifact "repository/\n<size:9>23 .java</size>" as J_repository #FFEDD5
+  artifact "service/\n<size:9>12 .java</size>" as J_service #DCFCE7
+  artifact "session/\n<size:9>1 .java</size>" as J_session #F3E8FF
+  artifact "util/\n<size:9>1 .java</size>" as J_util #F3E8FF
+  J__raiz_ -[hidden]right- J_ConexionBD
+  J_ConexionBD -[hidden]right- J_controller
+  J_controller -[hidden]right- J_dao
+  J_dao -[hidden]right- J_repository
+  J_repository -[hidden]right- J_service
+  J_service -[hidden]right- J_session
+  J_session -[hidden]right- J_util
+}
+package "src/main/resources" #FEF9C3 {
+  artifact "views/cajero-pago-view.fxml" as A_cajero_pago_view_fxml
+  artifact "views/cocina-view.fxml" as A_cocina_view_fxml
+  artifact "views/admin-disponibilidad.fxml" as A_admin_disponibilidad_fxml
+  artifact "views/inventario.fxml" as A_inventario_fxml
+  artifact "views/login.fxml" as A_login_fxml
+  artifact "views/MapaSalon.fxml" as A_MapaSalon_fxml
+  artifact "views/menu-mesero.fxml" as A_menu_mesero_fxml
+  artifact "css/cajero-pago.css" as A_cajero_pago_css
+  artifact "css/cocina.css" as A_cocina_css
+  artifact "css/disponibilidad-menu.css" as A_disponibilidad_menu_css
+  artifact "css/login.css" as A_login_css
+  artifact "css/navegacion.css" as A_navegacion_css
+  A_cajero_pago_view_fxml -[hidden]right- A_cocina_view_fxml
+  A_cocina_view_fxml -[hidden]right- A_admin_disponibilidad_fxml
+  A_admin_disponibilidad_fxml -[hidden]right- A_inventario_fxml
+  A_cajero_pago_view_fxml -[hidden]down- A_login_fxml
+  A_login_fxml -[hidden]right- A_MapaSalon_fxml
+  A_cocina_view_fxml -[hidden]down- A_MapaSalon_fxml
+  A_MapaSalon_fxml -[hidden]right- A_menu_mesero_fxml
+  A_admin_disponibilidad_fxml -[hidden]down- A_menu_mesero_fxml
+  A_menu_mesero_fxml -[hidden]right- A_cajero_pago_css
+  A_inventario_fxml -[hidden]down- A_cajero_pago_css
+  A_login_fxml -[hidden]down- A_cocina_css
+  A_cocina_css -[hidden]right- A_disponibilidad_menu_css
+  A_MapaSalon_fxml -[hidden]down- A_disponibilidad_menu_css
+  A_disponibilidad_menu_css -[hidden]right- A_login_css
+  A_menu_mesero_fxml -[hidden]down- A_login_css
+  A_login_css -[hidden]right- A_navegacion_css
+  A_cajero_pago_css -[hidden]down- A_navegacion_css
+}
+package "db" #DCFCE7 {
+  artifact "ddl\n<size:9>26 .ddl</size>" as A_ddl
+  artifact "migrations\n<size:9>10 .sql</size>" as A_mig
+  artifact "functions\n<size:9>12 archivos</size>" as A_fun
+  artifact "scripts/setup.sh" as A_setup
+  A_ddl -[hidden]right- A_mig
+  A_mig -[hidden]right- A_fun
+  A_fun -[hidden]right- A_setup
+}
+database "**gastroflow**\n<size:9>27 tablas</size>" as bd #FFFFFF
+A_cajero_pago_view_fxml ..> J_controller : <<fx:controller>> CajeroPagoController
+A_cocina_view_fxml ..> J_controller : <<fx:controller>> CocinaController
+A_admin_disponibilidad_fxml ..> J_controller : <<fx:controller>> DisponibilidadAdminController
+A_inventario_fxml ..> J_controller : <<fx:controller>> InventarioController
+A_login_fxml ..> J_controller : <<fx:controller>> LoginController
+A_MapaSalon_fxml ..> J_controller : <<fx:controller>> MapaSalonController
+A_menu_mesero_fxml ..> J_controller : <<fx:controller>> MenuMeseroController
+J__raiz_ ..> A_cajero_pago_css : <<carga>> pantalla de CajeroPagoController
+J__raiz_ ..> A_cocina_css : <<carga>> pantalla de CocinaController
+J__raiz_ ..> A_disponibilidad_menu_css : <<carga>> pantalla de DisponibilidadAdminController
+J__raiz_ ..> A_login_css : <<carga>> pantalla de LoginController
+J__raiz_ ..> A_disponibilidad_menu_css : <<carga>> pantalla de MenuMeseroController
+J__raiz_ ..> A_navegacion_css : <<carga>>
+A_setup ..> A_ddl : <<ejecuta>>
+A_setup ..> A_mig : <<ejecuta>>
+A_setup ..> A_fun : <<ejecuta>>
+A_setup --> bd : <<crea>>
+J_ConexionBD --> bd : <<JDBC>>
+@enduml

@@ -31,6 +31,9 @@ import javafx.util.Duration;
 import entity.Mesa;
 import repository.MesaRepository;
 import service.MesaService;
+import exceptions.MesaConPedidoActivoException;
+import exceptions.MesaNotFoundException;
+import util.EstadoFormatterUtil;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -198,7 +201,9 @@ public class MapaSalonController {
 
     private void actualizarBotonMesa(Button btn, Mesa mesa, int posicion) {
         EstadoMesaVisual estado = EstadoMesaVisual.desdeCodigo(mesa.getCodigoEstado());
-        String textoEstado = estado != null ? estado.etiqueta : "Estado no valido";
+
+        // Usar la función centralizada para garantizar la etiqueta uniforme en todos los módulos
+        String textoEstado = EstadoFormatterUtil.formatearEstadoMesa(mesa.getCodigoEstado());
 
         String colorTexto = estado != null ? "white" : "#B00020";
         btn.setText(null);
@@ -273,7 +278,6 @@ public class MapaSalonController {
         if (codigoMesa != null && !codigoMesa.trim().isEmpty()) {
             return codigoMesa.trim();
         }
-
         return String.valueOf(mesa.getNumeroMesa());
     }
 
@@ -352,6 +356,9 @@ public class MapaSalonController {
         EstadoMesaVisual estado = EstadoMesaVisual.desdeCodigo(mesa.getCodigoEstado());
         boolean ocupada = estado == EstadoMesaVisual.OCUPADA;
 
+        // Obtener la etiqueta uniforme mediante la utilidad centralizada
+        String etiquetaEstado = EstadoFormatterUtil.formatearEstadoMesa(mesa.getCodigoEstado());
+
         tituloDetalleMesa.setText("Detalle de Mesa " + obtenerIdentificadorMesa(mesa));
         detalleNumero.setText("Numero: " + mesa.getNumeroMesa());
         detalleEstado.setText("Estado: " + (estado != null ? estado.etiqueta : "Estado no valido"));
@@ -412,26 +419,119 @@ public class MapaSalonController {
         TextInputDialog dialog = new TextInputDialog();
 
         dialog.setTitle("Agregar mesa");
-        dialog.setHeaderText("Nueva mesa");
-        dialog.setContentText("Número de mesa:");
+        dialog.setHeaderText("Registrar una nueva mesa");
+        dialog.setContentText("Ingrese el número de mesa:");
 
         Optional<String> resultado = dialog.showAndWait();
 
-        if (resultado.isPresent()) {
-            try {
-                int numeroMesa = Integer.parseInt(resultado.get());
+        if (resultado.isEmpty()) {
+            return;
+        }
 
-                mesaRepository.agregarMesa(numeroMesa);
+        String entrada = resultado.get().trim();
 
-                cargarMesas();
+        if (entrada.isEmpty()) {
+            mostrarError("Debe ingresar el número de la mesa.");
+            return;
+        }
 
-            } catch (NumberFormatException e) {
-                mostrarError("Ingrese un número válido.");
-            } catch (SQLException e) {
-                mostrarError("Error al agregar mesa: " + e.getMessage());
+        final int numeroMesa;
+
+        try {
+            numeroMesa = Integer.parseInt(entrada);
+        } catch (NumberFormatException e) {
+            mostrarError("El número de mesa debe ser un número entero válido.");
+            return;
+        }
+
+        if (numeroMesa < 1 || numeroMesa > 9999) {
+            mostrarError("El número de mesa debe estar entre 1 y 9999.");
+            return;
+        }
+
+        TextInputDialog dialogCap = new TextInputDialog("2");
+        dialogCap.setTitle("Capacidad");
+        dialogCap.setHeaderText("Mesa " + numeroMesa);
+        dialogCap.setContentText("Capacidad (personas):");
+
+        Optional<String> resCap = dialogCap.showAndWait();
+        if (resCap.isEmpty()) {
+            return;
+        }
+
+        final int capacidad;
+        try {
+            capacidad = Integer.parseInt(resCap.get().trim());
+        } catch (NumberFormatException e) {
+            mostrarError("La capacidad debe ser un número entero válido.");
+            return;
+        }
+
+        if (capacidad < 1 || capacidad > 100) {
+            mostrarError("La capacidad debe estar entre 1 y 100.");
+            return;
+        }
+
+        try {
+            mesaService.registrarMesa(numeroMesa, capacidad);
+            cargarMesas();
+
+            Alert exito = new Alert(Alert.AlertType.INFORMATION);
+            exito.setTitle("Mesa registrada");
+            exito.setHeaderText("Mesa agregada correctamente");
+            exito.setContentText(
+                    "La mesa " + numeroMesa
+                            + " (capacidad " + capacidad + ") se agregó al mapa del salón."
+            );
+            exito.showAndWait();
+
+        } catch (SQLException e) {
+            if ("23505".equals(e.getSQLState())) {
+                mostrarError(
+                        "Ya existe una mesa con ese número en esta zona."
+                );
+            } else {
+                mostrarError(
+                        "No se pudo registrar la mesa. "
+                                + "Verifique la información e inténtelo nuevamente."
+                );
             }
+        } catch (IllegalArgumentException e) {
+            mostrarError(e.getMessage());
         }
     }
+
+    @FXML
+    private void cambiarCapacidadMesaSeleccionada() {
+        if (mesaSeleccionada == null) {
+            mostrarError("Seleccione una mesa primero.");
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog(
+                String.valueOf(mesaSeleccionada.getCapacidad()));
+        dialog.setTitle("Capacidad");
+        dialog.setHeaderText("Mesa " + mesaSeleccionada.getNumeroMesa());
+        dialog.setContentText("Nueva capacidad:");
+
+        dialog.showAndWait().ifPresent(txt -> {
+            try {
+                int capacidad = Integer.parseInt(txt.trim());
+                mesaService.cambiarCapacidad(mesaSeleccionada.getIdMesa(), capacidad);
+                cargarMesas();
+                mesaSeleccionada = mesaRepository.findById(mesaSeleccionada.getIdMesa())
+                        .orElse(mesaSeleccionada);
+                actualizarDetalleMesa(mesaSeleccionada);
+            } catch (NumberFormatException e) {
+                mostrarError("Ingrese un número válido.");
+            } catch (IllegalArgumentException e) {
+                mostrarError(e.getMessage());
+            } catch (SQLException e) {
+                mostrarError("Error al cambiar capacidad: " + e.getMessage());
+            }
+        });
+    }
+
 
     @FXML
     private void quitarMesa() {
@@ -440,22 +540,48 @@ public class MapaSalonController {
             return;
         }
 
+        Mesa mesaPorRetirar = mesaSeleccionada;
+
+        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmacion.setTitle("Retirar mesa");
+        confirmacion.setHeaderText("¿Desea retirar esta mesa?");
+        confirmacion.setContentText(
+                "La mesa dejará de aparecer en el mapa. " +
+                        "No podrá retirarse si tiene un pedido activo."
+        );
+
+        Optional<ButtonType> resultado = confirmacion.showAndWait();
+
+        if (resultado.isEmpty()
+                || resultado.get() != ButtonType.OK) {
+            return;
+        }
+
         try {
-            mesaRepository.quitarMesa(mesaSeleccionada.getIdMesa());
+            int idMesa = mesaSeleccionada.getIdMesa();
+            mesaRepository.quitarMesa(idMesa);
 
-            // Buscar y eliminar solamente el botón de esa mesa
-            String idBoton = "mesa-" + mesaSeleccionada.getIdMesa();
-
-            panelMesas.getChildren().removeIf(
-                    nodo -> idBoton.equals(nodo.getId())
-            );
+            // Quitar del mapa de botones y del panel (cargarMesas también limpia,
+            // pero así no queda basura si algo falla a medias).
+            Button boton = botonesPorMesa.remove(idMesa);
+            if (boton != null) {
+                panelMesas.getChildren().remove(boton);
+            }
 
             mesaSeleccionada = null;
+            limpiarDetalleMesa();
+
+            // Recarga desde BD: botones, posiciones y contadores al día.
+            cargarMesas();
 
         } catch (SQLException e) {
-            mostrarError("Error al quitar mesa: " + e.getMessage());
+            mostrarError(
+                    "No se pudo retirar la mesa por un error de base de datos. " +
+                            "Verifique la conexión e inténtelo nuevamente."
+            );
         }
     }
+
 
     /**
      * HU-60: pide la cantidad de comensales para la mesa seleccionada y advierte
@@ -470,6 +596,7 @@ public class MapaSalonController {
 
         solicitarAsignacionMesa(mesaSeleccionada);
     }
+
     @FXML
     private void liberarMesaSeleccionada() {
         if (mesaSeleccionada == null) {
@@ -624,7 +751,7 @@ public class MapaSalonController {
 
     private void cambiarEstadoMesa(Mesa mesa) {
         List<String> estados = List.of(
-                "LIBRE",
+                "DISPONIBLE",
                 "OCUPADA",
                 "RESERVADA"
         );
@@ -681,28 +808,20 @@ public class MapaSalonController {
 
     private void guardarAsignacion(Mesa mesa, int cantidadComensales) {
         try {
-            boolean guardada = mesaRepository.asignarComensales(mesa.getIdMesa(), cantidadComensales);
-
-            if (!guardada) {
-                mostrarError(
-                        "No se guardo la asignacion: la mesa " + obtenerIdentificadorMesa(mesa)
-                                + " tiene capacidad maxima de " + mesa.getCapacidad() + " personas."
-                );
-                return;
-            }
-
+            /// Se utiliza el servicio para actualizar los comensales de forma independiente
+            mesaService.actualizarCantidadComensales(mesa.getIdMesa(), cantidadComensales);
             cargarMesas();
             mostrarInformacion(
-                    "Asignacion confirmada",
-                    "Mesa " + obtenerIdentificadorMesa(mesa) + " asignada para " + cantidadComensales + " comensales."
+                    "Comensales actualizados",
+                    "La cantidad de comensales para la mesa " + obtenerIdentificadorMesa(mesa)
+                            + " se actualizó a " + cantidadComensales + " correctamente."
             );
+        } catch (IllegalArgumentException e) {
+            mostrarError(e.getMessage());
         } catch (SQLException e) {
             e.printStackTrace();
             mostrarError(
-                    "Error al cargar mesas:\n\n"
-                            + e.getClass().getName()
-                            + "\n"
-                            + e.getMessage()
+                    "Error al actualizar comensales:\n\n" + e.getClass().getName() + "\n" + e.getMessage()
             );
         }
     }
@@ -761,7 +880,7 @@ public class MapaSalonController {
             return;
         }
 
-        if (!SesionUsuario.estaAutenticado()) {
+        if (!SesionUsuario.getInstance().estaAutenticado()) { //cambio por singleton
             mostrarError("No hay un mesero autenticado.");
             return;
         }
@@ -772,12 +891,10 @@ public class MapaSalonController {
             );
 
             Parent raiz = loader.load();
-
             MenuMeseroController controller = loader.getController();
-
             controller.configurarMesa(
                     mesaSeleccionada.getIdMesa(),
-                    SesionUsuario.getUsuarioId()
+                    SesionUsuario.getInstance().getUsuarioId() //cambio por singleton sesión usuario
             );
 
             Stage ventana = new Stage();

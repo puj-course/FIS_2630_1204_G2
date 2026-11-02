@@ -1,0 +1,91 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 35
+skinparam ranksep 60
+skinparam padding 3
+skinparam ClassFontSize 13
+skinparam ClassAttributeFontSize 11
+skinparam ClassStereotypeFontSize 10
+skinparam ClassBorderColor #334155
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ClassAttributeIconSize 0
+hide empty members
+
+hide members
+hide circle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 70
+package "(raiz)" #F1F5F9 {
+  class "Main" as raiz_Main
+  class "Modulo" as raiz_Modulo
+}
+package "controller" #DBEAFE {
+  class "CajeroPagoController" as controller_CajeroPagoController
+  class "CocinaController" as controller_CocinaController
+  class "DisponibilidadAdminController" as controller_DisponibilidadAdminController
+  enum "EstadoMesaVisual" as controller_EstadoMesaVisual
+  class "InventarioController" as controller_InventarioController
+  class "LoginController" as controller_LoginController
+  class "MapaSalonController" as controller_MapaSalonController
+  class "MenuMeseroController" as controller_MenuMeseroController
+  controller_CajeroPagoController -[hidden]right- controller_CocinaController
+  controller_CocinaController -[hidden]right- controller_DisponibilidadAdminController
+  controller_CajeroPagoController -[hidden]down- controller_EstadoMesaVisual
+  controller_EstadoMesaVisual -[hidden]right- controller_InventarioController
+  controller_CocinaController -[hidden]down- controller_InventarioController
+  controller_InventarioController -[hidden]right- controller_LoginController
+  controller_DisponibilidadAdminController -[hidden]down- controller_LoginController
+  controller_EstadoMesaVisual -[hidden]down- controller_MapaSalonController
+  controller_MapaSalonController -[hidden]right- controller_MenuMeseroController
+  controller_InventarioController -[hidden]down- controller_MenuMeseroController
+}
+package "service" #DCFCE7 {
+  class "AutenticacionService" as service_AutenticacionService
+  class "MesaService" as service_MesaService
+  class "PedidoFacade" as service_PedidoFacade
+  class "PedidoService" as service_PedidoService
+  enum "Resultado" as service_Resultado
+  service_AutenticacionService -[hidden]right- service_MesaService
+  service_MesaService -[hidden]right- service_PedidoFacade
+  service_AutenticacionService -[hidden]down- service_PedidoService
+  service_PedidoService -[hidden]right- service_Resultado
+  service_MesaService -[hidden]down- service_Resultado
+}
+package "dao" #DCFCE7 {
+  class "DisponibilidadDAO" as dao_DisponibilidadDAO
+  class "PagoDAO" as dao_PagoDAO
+  class "ProductoDAO" as dao_ProductoDAO
+}
+package "repository" #FFEDD5 {
+  class "IngredienteRepository" as repository_IngredienteRepository
+  class "MesaRepository" as repository_MesaRepository
+  class "PedidoRepository" as repository_PedidoRepository
+}
+raiz_Main -[hidden]down- controller_CajeroPagoController
+controller_CajeroPagoController -[hidden]down- service_AutenticacionService
+service_AutenticacionService -[hidden]down- dao_DisponibilidadDAO
+dao_DisponibilidadDAO -[hidden]down- repository_IngredienteRepository
+raiz_Main -[#475569]-> "* MODULOS" raiz_Modulo
+controller_CajeroPagoController "1" *-[#047857]-> "1 pagoDAO" dao_PagoDAO
+controller_CocinaController "1" *-[#C2410C]-> "1 pedidoRepository" repository_PedidoRepository
+controller_CocinaController "1" *-[#C2410C]-> "1 mesaRepository" repository_MesaRepository
+controller_DisponibilidadAdminController "1" *-[#047857]-> "1 dao" dao_DisponibilidadDAO
+controller_InventarioController "1" *-[#C2410C]-> "1 ingredienteRepository" repository_IngredienteRepository
+controller_LoginController "1" *-[#047857]-> "1 autenticacion" service_AutenticacionService
+controller_MapaSalonController "1" *-[#C2410C]-> "1 mesaRepository" repository_MesaRepository
+controller_MapaSalonController "1" *-[#047857]-> "1 mesaService" service_MesaService
+controller_MapaSalonController -[#1D4ED8]-> "1 filtroActivo" controller_EstadoMesaVisual
+controller_MenuMeseroController "1" *-[#047857]-> "1 pedidoService" service_PedidoService
+controller_MenuMeseroController "1" *-[#047857]-> "1 pedidoFacade" service_PedidoFacade
+controller_MenuMeseroController "1" *-[#047857]-> "1 productoDAO" dao_ProductoDAO
+raiz_Main -[#1D4ED8,dashed]-> controller_LoginController
+controller_LoginController -[#047857,dashed]-> service_Resultado
+controller_MapaSalonController -[#1D4ED8,dashed]-> controller_MenuMeseroController
+@enduml

@@ -100,7 +100,7 @@ public class DisponibilidadDAO {
                     p.nombre,
                     c.nombre AS categoria,
                     p.estado,
-                    fn_motivo_receta(p.ingredientes) AS motivo
+                    fn_motivo_receta(p.producto_id) AS motivo
                 FROM productos p
                 INNER JOIN categorias c ON c.categoria_id = p.categoria_id
                 WHERE p.estado <> 'INACTIVO'

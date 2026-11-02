@@ -1,0 +1,243 @@
+erDiagram
+  roles ||--o{ usuarios : tiene
+  tipos_documento ||--o{ usuarios : identifica
+  tipos_documento ||--o{ clientes : identifica
+  usuarios |o--o{ clientes : cuenta
+  zonas ||--o{ mesas : agrupa
+  estados_mesa ||--o{ mesas : estado_actual
+  mesas ||--o{ historial_estado_mesa : registra
+  estados_mesa ||--o{ historial_estado_mesa : anterior_y_nuevo
+  mesas ||--o| nota_mesa : tiene
+  mesas ||--o{ reservas : recibe
+  mesas ||--o{ asignacion_mesa : asignada
+  usuarios ||--o{ asignacion_mesa : atiende
+  mesas |o--o{ pedidos : origina
+  clientes |o--o{ pedidos : pide
+  usuarios ||--o{ pedidos : toma_y_cancela
+  pedidos ||--o{ detalle_pedido : contiene
+  productos ||--o{ detalle_pedido : vendido
+  detalle_pedido ||--o{ detalle_pedido_adicional : lleva
+  adicional ||--o{ detalle_pedido_adicional : aplicado
+  pedidos ||--o{ pagos : se_cobra
+  usuarios ||--o{ pagos : cobra
+  categorias ||--o{ productos : clasifica
+  productos ||--o{ plato_insumo : receta
+  ingredientes ||--o{ plato_insumo : usado_en
+  unidades_medida ||--o{ ingredientes : mide
+  productos |o--o{ movimientos_inventario : mueve
+  ingredientes |o--o{ movimientos_inventario : mueve
+  usuarios ||--o{ movimientos_inventario : responsable
+  productos |o--o{ alerta_inventario : alerta
+  ingredientes |o--o{ alerta_inventario : alerta
+
+  roles {
+    int id_rol PK
+    string nombre_rol
+    string descripcion
+  }
+  tipos_documento {
+    int id_tipo_documento PK
+    string codigo
+    string nombre
+  }
+  usuarios {
+    int id_usuario PK
+    string codigo_empleado
+    int id_tipo_documento FK
+    string numero_documento
+    string nombre
+    string apellido
+    string correo
+    string password_hash
+    string pin_acceso_hash
+    int id_rol FK
+    smallint is_on_shift
+    smallint is_active
+  }
+  clientes {
+    int id_cliente PK
+    int id_tipo_documento FK
+    string numero_documento
+    string nombre
+    string apellido
+    string correo
+    string telefono
+    int id_usuario_cuenta FK
+    smallint is_active
+  }
+  zonas {
+    int id_zona PK
+    string nombre_zona
+    string descripcion
+    smallint is_active
+  }
+  estados_mesa {
+    int id_estado_mesa PK
+    string codigo_estado
+    string descripcion
+  }
+  mesas {
+    int id_mesa PK
+    int numero_mesa
+    string codigo_mesa
+    int capacidad
+    int cantidad_comensales
+    int id_zona FK
+    int id_estado_mesa FK
+    string codigo_qr
+    smallint is_active
+  }
+  historial_estado_mesa {
+    bigint id PK
+    bigint mesa_id FK
+    bigint estado_anterior_id FK
+    bigint estado_nuevo_id FK
+    string motivo
+    datetime fecha_cambio
+  }
+  nota_mesa {
+    bigint id_nota PK
+    bigint id_mesa FK
+    string texto_nota
+    datetime fecha_creacion
+  }
+  reservas {
+    bigint id_reserva PK
+    bigint id_mesa FK
+    datetime fecha_hora_reserva
+    string nombre_cliente
+    int cantidad_personas
+    smallint is_active
+    datetime fecha_cancelacion
+  }
+  asignacion_mesa {
+    bigint id PK
+    int mesa_id FK
+    int usuario_id FK
+    datetime fecha_asignacion
+    bool is_active
+  }
+  categorias {
+    bigint categoria_id PK
+    string nombre
+    string descripcion
+    int orden_visual
+    string estado
+  }
+  productos {
+    bigint producto_id PK
+    string codigo
+    string nombre
+    string descripcion
+    bigint categoria_id FK
+    decimal precio_venta
+    decimal costo
+    jsonb ingredientes
+    decimal stock_actual
+    decimal stock_minimo
+    decimal stock_maximo
+    string estado
+  }
+  unidades_medida {
+    bigint unidad_medida_id PK
+    string codigo
+    string nombre
+    string abreviatura
+    string tipo
+  }
+  ingredientes {
+    bigint ingrediente_id PK
+    string nombre
+    string descripcion
+    bigint unidad_medida_id FK
+    decimal costo_unitario
+    decimal stock_actual
+    decimal stock_minimo
+    decimal stock_maximo
+    string proveedor
+    string lote
+    date fecha_vencimiento
+    string categoria
+    string estado
+  }
+  plato_insumo {
+    bigint id PK
+    bigint plato_id FK
+    bigint insumo_id FK
+    decimal cantidad_necesaria
+  }
+  adicional {
+    bigint id PK
+    string nombre
+    decimal precio_adicional
+    bool is_active
+  }
+  regla_descuento {
+    bigint id PK
+    string tipo_cambio
+    decimal valor
+    bool es_porcentaje
+    bool is_active
+  }
+  pedidos {
+    bigint pedido_id PK
+    string numero_pedido
+    bigint cliente_id FK
+    bigint mesa_id FK
+    bigint usuario_id FK
+    jsonb productos
+    string estado
+    decimal subtotal
+    decimal descuento
+    decimal impuestos
+    decimal propina
+    decimal total
+    char inventario_descontado
+    string motivo_cancelacion
+    bigint cancelado_por FK
+  }
+  detalle_pedido {
+    bigint id PK
+    bigint pedido_id FK
+    bigint plato_id FK
+    decimal cantidad
+    decimal precio_unitario
+    decimal subtotal
+  }
+  detalle_pedido_adicional {
+    bigint id PK
+    bigint detalle_pedido_id FK
+    bigint adicional_id FK
+    decimal cantidad
+  }
+  pagos {
+    bigint pago_id PK
+    bigint pedido_id FK
+    bigint usuario_id FK
+    decimal subtotal
+    decimal descuento
+    decimal impuestos
+    decimal propina
+    string motivo_descuento
+    decimal total_pagado
+    string estado
+  }
+  movimientos_inventario {
+    int id_movimiento PK
+    bigint producto_id FK
+    bigint ingrediente_id FK
+    string tipo_movimiento
+    decimal cantidad
+    string motivo
+    bigint usuario_id FK
+    datetime fecha_movimiento
+  }
+  alerta_inventario {
+    bigint id PK
+    bigint ingrediente_id FK
+    bigint producto_id FK
+    decimal stock_actual
+    decimal stock_minimo
+    decimal cantidad_sugerida
+    string estado
+  }

@@ -1,0 +1,30 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 10
+skinparam nodesep 16
+skinparam ranksep 24
+skinparam ArrowColor #F59E0B
+skinparam ArrowThickness 2.2
+skinparam RectangleBorderColor #94A3B8
+skinparam RectangleBorderThickness 1.2
+skinparam padding 4
+rectangle "<size:17><b>Presentación</b></size>  <size:12>· 12 tipos</size>\n<size:12><i>Controladores JavaFX y arranque</i></size>\n<size:12>controller · 10   (raiz) · 2</size>" as presentacion #DBEAFE
+rectangle "<size:17><b>Negocio</b></size>  <size:12>· 13 tipos</size>\n<size:12><i>Servicios y fachada</i></size>\n<size:12>service · 13</size>" as negocio #DCFCE7
+rectangle "<size:17><b>Acceso a datos</b></size>  <size:12>· 28 tipos</size>\n<size:12><i>Repositorios y DAO, con el SQL a mano</i></size>\n<size:12>repository · 25   dao · 3</size>" as datos #FFEDD5
+rectangle "<size:17><b>Conexión</b></size>  <size:12>· 1 tipo</size>\n<size:12><i>Única puerta a PostgreSQL</i></size>\n<size:12>ConexionBD · 1</size>" as conexion #F1F5F9
+rectangle "<size:17><b>Modelo del dominio</b></size>  <size:12>· 42 tipos</size>\n<size:12><i>Entidades, enumeraciones, DTO y excepciones</i></size>\n<size:12>entity · 23   enums · 6   dto · 4   exceptions · 9</size>" as modelo #FEF9C3
+rectangle "<size:17><b>Apoyo transversal</b></size>  <size:12>· 2 tipos</size>\n<size:12><i>Estado de sesión y utilidades</i></size>\n<size:12>session · 1   util · 1</size>" as apoyo #F3E8FF
+modelo -[hidden]down- apoyo
+datos -right-> modelo
+negocio -right-> modelo
+negocio -down-> datos
+presentacion -right-> modelo
+datos -down-> conexion
+presentacion -[#B91C1C]right-> datos : <color:#B91C1C>salta capa
+presentacion -right-> apoyo
+presentacion -down-> negocio
+negocio -[#B91C1C]right-> conexion : <color:#B91C1C>salta capa
+negocio -right-> apoyo
+@enduml

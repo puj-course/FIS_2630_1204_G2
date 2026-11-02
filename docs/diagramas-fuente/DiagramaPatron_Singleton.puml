@@ -1,0 +1,44 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 6
+skinparam nodesep 30
+skinparam ranksep 60
+skinparam ClassBorderColor #334155
+skinparam ClassBackgroundColor #FFFFFF
+skinparam ClassFontSize 14
+skinparam ClassAttributeFontSize 12
+skinparam ClassStereotypeFontSize 11
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 11
+hide circle
+class SesionUsuario <<Singleton>> {
+  -INSTANCIA : SesionUsuario
+  -usuarioId : Integer
+  -nombre : String
+  -rol : String
+  -SesionUsuario()
+  +getInstance() SesionUsuario
+  +iniciarSesion(id : int, nombreUsuario : String, nombreRol : String) void
+  +cerrarSesion() void
+  +estaAutenticado() boolean
+  +esCajero() boolean
+  +getUsuarioId() int
+  +getNombre() String
+  +getRol() String
+}
+class AutenticacionService {
+}
+class CajeroPagoController {
+}
+class Main {
+}
+class MapaSalonController {
+}
+AutenticacionService ..> SesionUsuario : «use»
+CajeroPagoController ..> SesionUsuario : «use»
+Main ..> SesionUsuario : «use»
+MapaSalonController ..> SesionUsuario : «use»
+SesionUsuario --> SesionUsuario : INSTANCIA 1
+@enduml

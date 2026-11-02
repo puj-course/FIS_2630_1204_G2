@@ -1,0 +1,34 @@
+@startuml
+top to bottom direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 6
+skinparam nodesep 28
+skinparam ranksep 70
+skinparam ArrowColor #475569
+skinparam ArrowFontSize 11
+skinparam ArrowThickness 1.1
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam PackageFontSize 13
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentFontSize 12
+skinparam ComponentBorderColor #334155
+skinparam legendBackgroundColor #FFFFFF
+skinparam legendBorderColor #94A3B8
+skinparam legendFontSize 11
+package "Piezas compartidas · apoyo y conexion" as p4 #FFFFFF {
+  component "ConexionBD" as c_ConexionBD #F1F5F9
+  component "SesionUsuario" as c_SesionUsuario #F3E8FF
+  component "TextoBusqueda" as c_TextoBusqueda #F3E8FF
+}
+component "**Interfaz de usuario**\n<size:10>8 componentes</size>" as q_ui #DBEAFE
+component "**Logica de negocio**\n<size:10>12 componentes</size>" as q_negocio #DCFCE7
+component "**Acceso a datos**\n<size:10>26 componentes</size>" as q_datos #FFEDD5
+q_negocio --> c_ConexionBD : 4 componentes
+q_datos --> c_ConexionBD : 22 componentes
+q_ui --> c_SesionUsuario : 3 componentes
+q_negocio --> c_SesionUsuario : 1 componente
+q_ui --> c_TextoBusqueda : 1 componente
+@enduml

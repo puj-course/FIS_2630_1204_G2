@@ -1,75 +1,64 @@
 -- =============================================================================
--- HU-28 — Disponibilidad automática de platos
--- =============================================================================
--- Funciones que invoca DisponibilidadDAO:
---
---   fn_recalcular_estados_productos()                  -> INTEGER  (productos modificados)
---   fn_recalcular_estado_producto(producto_id)         -> VARCHAR  (estado resultante)
---   fn_producto_disponible_cantidad(producto_id, cant) -> BOOLEAN
---   fn_motivo_receta(ingredientes)                     -> TEXT     (NULL si no falta nada)
---
--- Reglas (según GastroFlow_HU28/README.md):
---   - AGOTADO   si al menos un ingrediente de la receta no tiene stock suficiente.
---   - DISPONIBLE si todos los ingredientes alcanzan.
---   - INACTIVO  es decisión administrativa: nunca se modifica automáticamente.
---
--- Formato esperado de productos.ingredientes:
---   [{"ingrediente_id": 1, "cantidad": 0.250}, {"ingrediente_id": 4, "cantidad": 2}]
---   La cantidad corresponde a UNA unidad del producto.
---   Receta NULL o [] => el producto no depende de inventario de ingredientes y se
---   evalúa por su propio productos.stock_actual.
+-- HU-28 / HU-134: Disponibilidad automática de productos.
+-- Fuente única de recetas: plato_insumo.
+-- productos.ingredientes se conserva temporalmente por compatibilidad.
 -- =============================================================================
 
+-- Cambiar la firma de la función de motivos:
+-- ahora recibe el ID del producto, no una receta JSONB.
+DROP FUNCTION IF EXISTS fn_motivo_receta(JSONB);
 
 -- -----------------------------------------------------------------------------
--- fn_motivo_receta: nombres de los ingredientes que faltan, o NULL si no falta ninguno.
+-- fn_motivo_receta: devuelve los ingredientes que impiden preparar el producto.
+-- Devuelve NULL cuando no hay faltantes.
 -- -----------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION fn_motivo_receta(p_receta JSONB)
+CREATE OR REPLACE FUNCTION fn_motivo_receta(p_producto_id BIGINT)
 RETURNS TEXT
 LANGUAGE sql
 STABLE
 AS $$
     SELECT CASE
-             WHEN COUNT(*) = 0 THEN NULL
-             ELSE 'Falta: ' || string_agg(nombre, ', ' ORDER BY nombre)
-           END
+        WHEN COUNT(*) = 0 THEN NULL
+        ELSE 'Falta: ' || string_agg(nombre, ', ' ORDER BY nombre)
+    END
     FROM (
-        SELECT COALESCE(i.nombre, 'ingrediente #' || (r->>'ingrediente_id')) AS nombre
-        FROM jsonb_array_elements(
-                 CASE WHEN jsonb_typeof(p_receta) = 'array' THEN p_receta ELSE '[]'::jsonb END
-             ) AS r
+        SELECT DISTINCT
+            COALESCE(i.nombre, 'ingrediente #' || pi.insumo_id) AS nombre
+        FROM plato_insumo pi
         LEFT JOIN ingredientes i
-               ON i.ingrediente_id = (r->>'ingrediente_id')::BIGINT
-        WHERE i.ingrediente_id IS NULL                        -- ingrediente inexistente
-           OR i.estado = 'INACTIVO'                           -- ingrediente dado de baja
-           OR i.stock_actual < (r->>'cantidad')::NUMERIC      -- sin stock suficiente
+            ON i.ingrediente_id = pi.insumo_id
+        WHERE pi.plato_id = p_producto_id
+          AND (
+              i.ingrediente_id IS NULL
+              OR i.estado = 'INACTIVO'
+              OR i.stock_actual < pi.cantidad_necesaria
+          )
     ) faltantes;
 $$;
 
 
 -- -----------------------------------------------------------------------------
--- fn_producto_disponible_cantidad: ¿alcanza el inventario para N unidades?
+-- fn_producto_disponible_cantidad:
+-- comprueba si existe stock para la cantidad solicitada.
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION fn_producto_disponible_cantidad(
     p_producto_id BIGINT,
-    p_cantidad    INTEGER
+    p_cantidad INTEGER
 )
 RETURNS BOOLEAN
 LANGUAGE plpgsql
 STABLE
 AS $$
 DECLARE
-    v_estado  VARCHAR(15);
-    v_receta  JSONB;
-    v_stock   NUMERIC(12,4);
-    v_faltan  INTEGER;
+    v_estado VARCHAR(15);
+    v_stock NUMERIC(12,4);
 BEGIN
     IF p_cantidad IS NULL OR p_cantidad <= 0 THEN
         RETURN FALSE;
     END IF;
 
-    SELECT estado, ingredientes, stock_actual
-      INTO v_estado, v_receta, v_stock
+    SELECT estado, stock_actual
+      INTO v_estado, v_stock
       FROM productos
      WHERE producto_id = p_producto_id;
 
@@ -77,38 +66,45 @@ BEGIN
         RETURN FALSE;
     END IF;
 
-    -- Producto sin receta: se rige por su propio stock.
-    IF v_receta IS NULL
-       OR jsonb_typeof(v_receta) <> 'array'
-       OR jsonb_array_length(v_receta) = 0 THEN
+    -- Si no existe receta normalizada, se usa el stock del producto.
+    IF NOT EXISTS (
+        SELECT 1
+        FROM plato_insumo
+        WHERE plato_id = p_producto_id
+    ) THEN
         RETURN v_stock >= p_cantidad;
     END IF;
 
-    SELECT COUNT(*)
-      INTO v_faltan
-      FROM jsonb_array_elements(v_receta) AS r
-      LEFT JOIN ingredientes i
-             ON i.ingrediente_id = (r->>'ingrediente_id')::BIGINT
-     WHERE i.ingrediente_id IS NULL
-        OR i.estado = 'INACTIVO'
-        OR i.stock_actual < (r->>'cantidad')::NUMERIC * p_cantidad;
-
-    RETURN v_faltan = 0;
+    -- Todos los ingredientes deben tener stock suficiente.
+    RETURN NOT EXISTS (
+        SELECT 1
+        FROM plato_insumo pi
+        LEFT JOIN ingredientes i
+            ON i.ingrediente_id = pi.insumo_id
+        WHERE pi.plato_id = p_producto_id
+          AND (
+              i.ingrediente_id IS NULL
+              OR i.estado = 'INACTIVO'
+              OR i.stock_actual < pi.cantidad_necesaria * p_cantidad
+          )
+    );
 END;
 $$;
 
 
 -- -----------------------------------------------------------------------------
--- fn_recalcular_estado_producto: ajusta el estado de un producto y lo devuelve.
--- Nunca toca los productos INACTIVO.
+-- fn_recalcular_estado_producto:
+-- nunca modifica productos INACTIVO.
 -- -----------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION fn_recalcular_estado_producto(p_producto_id BIGINT)
+CREATE OR REPLACE FUNCTION fn_recalcular_estado_producto(
+    p_producto_id BIGINT
+)
 RETURNS VARCHAR
 LANGUAGE plpgsql
 AS $$
 DECLARE
     v_estado_actual VARCHAR(15);
-    v_estado_nuevo  VARCHAR(15);
+    v_estado_nuevo VARCHAR(15);
 BEGIN
     SELECT estado
       INTO v_estado_actual
@@ -120,20 +116,20 @@ BEGIN
         RETURN NULL;
     END IF;
 
-    -- INACTIVO es una decisión administrativa.
     IF v_estado_actual = 'INACTIVO' THEN
         RETURN 'INACTIVO';
     END IF;
 
-    v_estado_nuevo := CASE
-                        WHEN fn_producto_disponible_cantidad(p_producto_id, 1)
-                        THEN 'DISPONIBLE'
-                        ELSE 'AGOTADO'
-                      END;
+    v_estado_nuevo :=
+        CASE
+            WHEN fn_producto_disponible_cantidad(p_producto_id, 1)
+                THEN 'DISPONIBLE'
+            ELSE 'AGOTADO'
+        END;
 
-    IF v_estado_nuevo <> v_estado_actual THEN
+    IF v_estado_nuevo IS DISTINCT FROM v_estado_actual THEN
         UPDATE productos
-           SET estado              = v_estado_nuevo,
+           SET estado = v_estado_nuevo,
                fecha_actualizacion = CURRENT_TIMESTAMP
          WHERE producto_id = p_producto_id;
     END IF;
@@ -144,25 +140,26 @@ $$;
 
 
 -- -----------------------------------------------------------------------------
--- fn_recalcular_estados_productos: recalcula todo el catálogo.
--- Devuelve cuántos productos cambiaron de estado.
+-- fn_recalcular_estados_productos:
+-- devuelve el número de productos cuyo estado cambió.
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION fn_recalcular_estados_productos()
 RETURNS INTEGER
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_producto      RECORD;
-    v_estado_nuevo  VARCHAR(15);
-    v_cambiados     INTEGER := 0;
+    v_producto RECORD;
+    v_estado_nuevo VARCHAR(15);
+    v_cambiados INTEGER := 0;
 BEGIN
     FOR v_producto IN
         SELECT producto_id, estado
-          FROM productos
-         WHERE estado <> 'INACTIVO'
-         ORDER BY producto_id
+        FROM productos
+        WHERE estado <> 'INACTIVO'
+        ORDER BY producto_id
     LOOP
-        v_estado_nuevo := fn_recalcular_estado_producto(v_producto.producto_id);
+        v_estado_nuevo :=
+            fn_recalcular_estado_producto(v_producto.producto_id);
 
         IF v_estado_nuevo IS DISTINCT FROM v_producto.estado THEN
             v_cambiados := v_cambiados + 1;
@@ -175,80 +172,107 @@ $$;
 
 
 -- -----------------------------------------------------------------------------
--- fn_pedido_faltantes: valida el pedido COMPLETO, sumando el consumo de todos
--- los productos que comparten un mismo ingrediente.
+-- fn_pedido_faltantes:
+-- valida todas las líneas del pedido y acumula el consumo compartido
+-- de ingredientes entre productos.
 --
--- Las funciones anteriores validan un producto a la vez, asi que dos platos
--- distintos que usan la misma carne pasan cada uno por separado aunque juntos
--- no alcancen. Esta recibe todas las lineas del pedido y agrega el consumo.
+-- Entrada:
+-- [{"producto_id": 1, "cantidad": 2}, {"producto_id": 5, "cantidad": 1}]
 --
--- Entrada: [{"producto_id": 1, "cantidad": 2}, {"producto_id": 5, "cantidad": 1}]
--- Salida : una fila por cada ingrediente o producto que no alcanza.
---          Sin filas = el pedido completo se puede preparar.
+-- Salida:
+-- una fila por cada producto o ingrediente insuficiente.
+-- Sin filas significa que el pedido puede prepararse.
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION fn_pedido_faltantes(p_lineas JSONB)
 RETURNS TABLE (
-    faltante   VARCHAR,
-    requerido  NUMERIC,
+    faltante VARCHAR,
+    requerido NUMERIC,
     disponible NUMERIC
 )
 LANGUAGE sql
 STABLE
 AS $$
     WITH lineas AS (
-        SELECT (l->>'producto_id')::BIGINT AS producto_id,
-               (l->>'cantidad')::NUMERIC   AS cantidad
-          FROM jsonb_array_elements(
-                   CASE WHEN jsonb_typeof(p_lineas) = 'array' THEN p_lineas ELSE '[]'::jsonb END
-               ) AS l
+        SELECT
+            (l.valor ->> 'producto_id')::BIGINT AS producto_id,
+            (l.valor ->> 'cantidad')::NUMERIC AS cantidad
+        FROM jsonb_array_elements(
+            CASE
+                WHEN jsonb_typeof(p_lineas) = 'array'
+                    THEN p_lineas
+                ELSE '[]'::JSONB
+            END
+        ) AS l(valor)
     ),
 
-    -- Productos inactivos o inexistentes: no pueden pedirse en ningun caso.
     invalidos AS (
-        SELECT COALESCE(p.nombre, 'producto #' || li.producto_id)::VARCHAR AS faltante,
-               li.cantidad                                                 AS requerido,
-               0::NUMERIC                                                  AS disponible
-          FROM lineas li
-          LEFT JOIN productos p ON p.producto_id = li.producto_id
-         WHERE p.producto_id IS NULL
-            OR p.estado = 'INACTIVO'
+        SELECT
+            COALESCE(
+                p.nombre,
+                'producto #' || li.producto_id
+            )::VARCHAR AS faltante,
+            li.cantidad AS requerido,
+            0::NUMERIC AS disponible
+        FROM lineas li
+        LEFT JOIN productos p
+            ON p.producto_id = li.producto_id
+        WHERE p.producto_id IS NULL
+           OR p.estado = 'INACTIVO'
     ),
 
-    -- Productos sin receta: se rigen por su propio stock.
+    -- Productos sin receta: se evalúan por su propio stock.
     sin_receta AS (
-        SELECT p.nombre::VARCHAR, li.cantidad, p.stock_actual
-          FROM lineas li
-          JOIN productos p ON p.producto_id = li.producto_id
-         WHERE p.estado <> 'INACTIVO'
-           AND (p.ingredientes IS NULL
-                OR jsonb_typeof(p.ingredientes) <> 'array'
-                OR jsonb_array_length(p.ingredientes) = 0)
-           AND p.stock_actual < li.cantidad
+        SELECT
+            p.nombre::VARCHAR AS faltante,
+            li.cantidad AS requerido,
+            p.stock_actual AS disponible
+        FROM lineas li
+        JOIN productos p
+            ON p.producto_id = li.producto_id
+        WHERE p.estado <> 'INACTIVO'
+          AND li.cantidad > 0
+          AND NOT EXISTS (
+              SELECT 1
+              FROM plato_insumo pi
+              WHERE pi.plato_id = p.producto_id
+          )
+          AND p.stock_actual < li.cantidad
     ),
 
-    -- Consumo total de cada ingrediente, sumando TODOS los productos del pedido.
+    -- Suma el consumo de cada ingrediente en todo el pedido.
     consumo AS (
-        SELECT (r->>'ingrediente_id')::BIGINT              AS ingrediente_id,
-               SUM((r->>'cantidad')::NUMERIC * li.cantidad) AS requerido
-          FROM lineas li
-          JOIN productos p ON p.producto_id = li.producto_id
-         CROSS JOIN LATERAL jsonb_array_elements(
-                   CASE WHEN jsonb_typeof(p.ingredientes) = 'array' THEN p.ingredientes ELSE '[]'::jsonb END
-               ) AS r
-         WHERE p.estado <> 'INACTIVO'
-         GROUP BY 1
+        SELECT
+            pi.insumo_id AS ingrediente_id,
+            SUM(pi.cantidad_necesaria * li.cantidad) AS requerido
+        FROM lineas li
+        JOIN productos p
+            ON p.producto_id = li.producto_id
+        JOIN plato_insumo pi
+            ON pi.plato_id = p.producto_id
+        WHERE p.estado <> 'INACTIVO'
+          AND li.cantidad > 0
+        GROUP BY pi.insumo_id
+    ),
+
+    faltantes_ingredientes AS (
+        SELECT
+            COALESCE(
+                i.nombre,
+                'ingrediente #' || c.ingrediente_id
+            )::VARCHAR AS faltante,
+            c.requerido,
+            COALESCE(i.stock_actual, 0)::NUMERIC AS disponible
+        FROM consumo c
+        LEFT JOIN ingredientes i
+            ON i.ingrediente_id = c.ingrediente_id
+        WHERE i.ingrediente_id IS NULL
+           OR i.estado = 'INACTIVO'
+           OR i.stock_actual < c.requerido
     )
 
-    SELECT faltante, requerido, disponible FROM invalidos
+    SELECT * FROM invalidos
     UNION ALL
     SELECT * FROM sin_receta
     UNION ALL
-    SELECT COALESCE(i.nombre, 'ingrediente #' || c.ingrediente_id)::VARCHAR,
-           c.requerido,
-           COALESCE(i.stock_actual, 0)
-      FROM consumo c
-      LEFT JOIN ingredientes i ON i.ingrediente_id = c.ingrediente_id
-     WHERE i.ingrediente_id IS NULL
-        OR i.estado = 'INACTIVO'
-        OR i.stock_actual < c.requerido;
+    SELECT * FROM faltantes_ingredientes;
 $$;

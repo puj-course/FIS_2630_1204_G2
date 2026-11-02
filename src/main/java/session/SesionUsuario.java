@@ -1,21 +1,28 @@
 package session;
 
 public final class SesionUsuario {
+    //La única instancia de la clase
+    private static final SesionUsuario INSTANCIA = new SesionUsuario();
 
+    // Estado de la sesión: ahora es de instancia, ya no estático.
     private static Integer usuarioId;
-    private static String nombre;
-    private static String rol;
+    private  String nombre;
+    private  String rol;
 
     private SesionUsuario() {
     }
 
-    public static void iniciarSesion(int id, String nombreUsuario, String nombreRol) {
+    public static SesionUsuario getInstance() {
+        return INSTANCIA;
+    }
+
+    public  void iniciarSesion(int id, String nombreUsuario, String nombreRol) {
         usuarioId = id;
         nombre = nombreUsuario;
         rol = nombreRol;
     }
 
-    public static void cerrarSesion() {
+    public  void cerrarSesion() {
         usuarioId = null;
         nombre = null;
         rol = null;
@@ -25,7 +32,7 @@ public final class SesionUsuario {
         return usuarioId != null;
     }
 
-    public static boolean esCajero() {
+    public  boolean esCajero() {
         return rol != null && rol.equalsIgnoreCase("CAJERO");
     }
 
@@ -36,11 +43,11 @@ public final class SesionUsuario {
         return usuarioId;
     }
 
-    public static String getNombre() {
+    public  String getNombre() {
         return nombre == null ? "-" : nombre;
     }
 
-    public static String getRol() {
+    public  String getRol() {
         return rol == null ? "-" : rol;
     }
 }

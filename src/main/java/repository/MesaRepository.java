@@ -1,4 +1,5 @@
 package repository;
+
 import ConexionBD.ConexionBD;
 import entity.Mesa;
 import java.sql.Connection;
@@ -120,36 +121,20 @@ public class MesaRepository {
         if (tabla == null) {
             return null;
         }
-        String idMesaColumna = primeraColumnaExistente(
-                        conn,
-                        tabla,
-                        "id_mesa",
-                        "mesa_id"
+        String idMesaColumna = primeraColumnaExistente(conn, tabla, "id_mesa", "mesa_id"
                 );
         if (idMesaColumna == null) {
             return null;
         }
-        String idPedidoColumna = primeraColumnaExistente(
-                        conn,
-                        tabla,
-                        "pedido_id",
-                        "id_pedido",
-                        "id"
+        String idPedidoColumna = primeraColumnaExistente(conn, tabla, "pedido_id", "id_pedido", "id"
                 );
-        String estadoColumna = primeraColumnaExistente(
-                        conn,
-                        tabla,
-                        "estado",
-                        "codigo_estado",
-                        "estado_pedido"
+
+        String estadoColumna = primeraColumnaExistente(conn, tabla, "estado", "codigo_estado", "estado_pedido"
                 );
-        String totalColumna = primeraColumnaExistente(
-                        conn,
-                        tabla,
-                        "total",
-                        "valor_total",
-                        "monto_total"
+
+        String totalColumna = primeraColumnaExistente(conn, tabla, "total", "valor_total", "monto_total"
                 );
+
         if (idPedidoColumna == null) {
             return null;
         }
@@ -224,23 +209,12 @@ public class MesaRepository {
         if (idMesaColumna == null) {
             return null;
         }
-        String idMeseroPedido = primeraColumnaExistente(
-                        conn,
-                        tablaPedidos,
-                        "id_mesero",
-                        "mesero_id",
-                        "id_usuario",
-                        "usuario_id"
+        String idMeseroPedido = primeraColumnaExistente(conn, tablaPedidos, "id_mesero", "mesero_id", "id_usuario", "usuario_id"
                 );
-        String idMeseroTabla = primeraColumnaExistente(
-                        conn,
-                        tablaMeseros,
-                        "id_mesero",
-                        "mesero_id",
-                        "id_usuario",
-                        "usuario_id",
-                        "id"
+
+        String idMeseroTabla = primeraColumnaExistente(conn, tablaMeseros, "id_mesero", "mesero_id", "id_usuario", "usuario_id", "id"
                 );
+
         String nombreMesero = primeraColumnaExistente(
                         conn,
                         tablaMeseros,
@@ -347,8 +321,6 @@ public class MesaRepository {
     }
     /**
      * Comprueba si existe una columna.
-     */
-    /**
      * Comprueba si existe una columna.
      */
     private boolean existeColumna(Connection conn, String tabla, String columna) throws SQLException {
@@ -365,42 +337,50 @@ public class MesaRepository {
     }
     /**
      * Asigna una cantidad de comensales a una mesa.
-     *
      * La tabla actual no contiene una columna para guardar
      * cantidad_comensales, por lo que aquí únicamente se valida
      * la capacidad y se cambia el estado a OCUPADA.
      */
     public boolean asignarComensales(int idMesa, int cantidadComensales) throws SQLException {
+
         if (cantidadComensales <= 0) {
             throw new IllegalArgumentException("La cantidad de comensales debe ser mayor a cero.");
         }
-        String sql = "UPDATE mesas " + "SET id_estado_mesa = COALESCE(?, id_estado_mesa) " + "WHERE id_mesa = ? " + "AND ? <= capacidad";
-        try (Connection conn = ConexionBD.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            Integer idOcupada = obtenerIdEstado(conn, "OCUPADA");
-            if (idOcupada != null) {
-                stmt.setInt(1, idOcupada);
-            } else {
-                stmt.setNull(1, Types.INTEGER);
-            }
+        String sql =
+                "UPDATE mesas " +
+                        "SET cantidad_comensales = ?, " +
+                        "    id_estado_mesa = (" +
+                        "        SELECT id_estado_mesa FROM estados_mesa " +
+                        "        WHERE UPPER(codigo_estado) = 'OCUPADA'" +
+                        "    ) " +
+                        "WHERE id_mesa = ? " +
+                        "AND ? <= capacidad " +
+                        "AND UPPER((" +
+                        "    SELECT codigo_estado FROM estados_mesa " +
+                        "    WHERE id_estado_mesa = mesas.id_estado_mesa" +
+                        ")) IN ('LIBRE', 'DISPONIBLE')";
+
+        try (Connection conn = ConexionBD.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, cantidadComensales);
             stmt.setInt(2, idMesa);
             stmt.setInt(3, cantidadComensales);
             return stmt.executeUpdate() > 0;
         }
     }
 
-    public boolean actualizarCantidadComensales(int idMesa, int cantidadComensales) throws SQLException {
-        if (cantidadComensales <= 0) {
-            throw new IllegalArgumentException("La cantidad de comensales debe ser mayor a cero.");
-        }
+    public void actualizarComensales(long mesaId, int cantidadComensales) throws SQLException {
+        // HU-155: la clave primaria de mesas es id_mesa. Con "id" el UPDATE
+        // fallaba siempre con "column \"id\" does not exist" y la cantidad
+        // de comensales nunca llegaba a guardarse.
+        String sql = "UPDATE mesas SET cantidad_comensales = ? WHERE id_mesa = ?";
 
-        String sql = "UPDATE mesas " + "SET id_estado_mesa = COALESCE(?, id_estado_mesa) " + "WHERE id_mesa = ? " + "AND ? <= capacidad";
-        try (Connection conn = ConexionBD.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = ConexionBD.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, cantidadComensales);
-            stmt.setInt(2, idMesa);
-            stmt.setInt(3, cantidadComensales);
-
-            return stmt.executeUpdate() > 0;
+            stmt.setLong(2, mesaId);
+            stmt.executeUpdate();
         }
     }
 
@@ -425,59 +405,169 @@ public class MesaRepository {
      * Libera una mesa y la devuelve a DISPONIBLE.
      */
     public void liberarMesa(int idMesa) throws SQLException {
-        String sql = "UPDATE mesas " + "SET id_estado_mesa = COALESCE(?, id_estado_mesa) " + "WHERE id_mesa = ?";
+        String sql =
+                "UPDATE mesas " +
+                        "SET id_estado_mesa = ?, " +
+                        "    cantidad_comensales = NULL " +
+                        "WHERE id_mesa = ?";
 
-        try (Connection conn = ConexionBD.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = ConexionBD.getConnection()) {
             Integer idLibre = obtenerIdEstado(conn, "LIBRE", "DISPONIBLE");
-            if (idLibre != null) {
-                stmt.setInt(1, idLibre);
-            } else {
-                stmt.setNull(1, Types.INTEGER);
+
+            if (idLibre == null) {
+                throw new SQLException("No existe un estado LIBRE o DISPONIBLE en estados_mesa.");
             }
-            stmt.setInt(2, idMesa);
-            stmt.executeUpdate();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, idLibre);
+                stmt.setInt(2, idMesa);
+                stmt.executeUpdate();
+            }
         }
     }
     /**
      * Agrega una nueva mesa.
      */
-    public void agregarMesa(int numeroMesa) throws SQLException {
-        String sql = "INSERT INTO mesas " + "(numero_mesa, codigo_mesa, capacidad, id_zona, id_estado_mesa) " + "VALUES (?, ?, 2, ?, 1)";
-        try (Connection conn = ConexionBD.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, numeroMesa);
-            stmt.setString(2, generarCodigoMesa(ZONA_POR_DEFECTO, numeroMesa));
-            stmt.setInt(3, ZONA_POR_DEFECTO);
-            stmt.executeUpdate();
+    public void agregarMesa(int numeroMesa, int capacidad) throws SQLException {
+        if (capacidad <= 0) {
+            throw new IllegalArgumentException("La capacidad debe ser mayor que cero.");
+        }
+
+        String sqlActiva =
+                "SELECT 1 FROM mesas "
+                        + "WHERE numero_mesa = ? AND id_zona = ? AND is_active = 1 LIMIT 1";
+
+        String sqlInactiva =
+                "SELECT id_mesa FROM mesas "
+                        + "WHERE numero_mesa = ? AND id_zona = ? AND is_active = 0 "
+                        + "ORDER BY id_mesa DESC LIMIT 1";
+
+        String sqlReactivar =
+                "UPDATE mesas SET "
+                        + "is_active = 1, "
+                        + "capacidad = ?, "
+                        + "codigo_mesa = ?, "
+                        + "id_estado_mesa = 1 "
+                        + "WHERE id_mesa = ?";
+
+        String sqlInsertar =
+                "INSERT INTO mesas "
+                        + "(numero_mesa, codigo_mesa, capacidad, id_zona, id_estado_mesa, is_active) "
+                        + "VALUES (?, ?, ?, ?, 1, 1)";
+
+        String codigo = generarCodigoMesa(ZONA_POR_DEFECTO, numeroMesa);
+
+        try (Connection conn = ConexionBD.getConnection()) {
+            // 1) Ya activa → error
+            try (PreparedStatement stmt = conn.prepareStatement(sqlActiva)) {
+                stmt.setInt(1, numeroMesa);
+                stmt.setInt(2, ZONA_POR_DEFECTO);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        throw new SQLException(
+                                "Ya existe una mesa activa con el número "
+                                        + numeroMesa + " en esta zona.",
+                                "23505");
+                    }
+                }
+            }
+
+            // 2) Inactiva → REACTIVAR (no solo return)
+            try (PreparedStatement stmt = conn.prepareStatement(sqlInactiva)) {
+                stmt.setInt(1, numeroMesa);
+                stmt.setInt(2, ZONA_POR_DEFECTO);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        int idMesa = rs.getInt("id_mesa");
+                        try (PreparedStatement up = conn.prepareStatement(sqlReactivar)) {
+                            up.setInt(1, capacidad);
+                            up.setString(2, codigo);
+                            up.setInt(3, idMesa);
+                            int filas = up.executeUpdate();
+                            if (filas == 0) {
+                                throw new SQLException(
+                                        "No se pudo reactivar la mesa " + numeroMesa);
+                            }
+                        }
+                        return;
+                    }
+                }
+            }
+
+            // 3) No existe → insertar
+            try (PreparedStatement stmt = conn.prepareStatement(sqlInsertar)) {
+                stmt.setInt(1, numeroMesa);
+                stmt.setString(2, codigo);
+                stmt.setInt(3, capacidad);
+                stmt.setInt(4, ZONA_POR_DEFECTO);
+                stmt.executeUpdate();
+            }
         }
     }
     /**
      * Genera el código de una mesa.
      */
     private String generarCodigoMesa(int idZona, int numeroMesa) {
-        return String.format("M-%02d-%02d", idZona, numeroMesa);
-    }
+    return String.format("MESA-%03d", numeroMesa);
+}
 
     /**
      * Cambia el estado usando una conexión existente.
      */
     public void cambiarEstadoMesa(Connection conn, int idMesa, String codigoEstado) throws SQLException {
-        String sql = "UPDATE mesas " + "SET id_estado_mesa = (" + "    SELECT id_estado_mesa " + "    FROM estados_mesa " + "    WHERE UPPER(codigo_estado) = UPPER(?)" + ") " + "WHERE id_mesa = ?";
+        String sql =
+                "UPDATE mesas " +
+                "SET id_estado_mesa = (" +
+                "        SELECT id_estado_mesa " +
+                "        FROM estados_mesa " +
+                "        WHERE UPPER(codigo_estado) = UPPER(?)" +
+                "    ), " +
+                "    cantidad_comensales = CASE " +
+                "        WHEN UPPER(?) IN ('LIBRE', 'DISPONIBLE') THEN NULL " +
+                "        ELSE cantidad_comensales " +
+                "    END " +
+                "WHERE id_mesa = ?";
+
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, codigoEstado);
-            stmt.setInt(2, idMesa);
-            stmt.executeUpdate();
+            stmt.setString(2, codigoEstado);
+            stmt.setInt(3, idMesa);
+
+            int filasActualizadas = stmt.executeUpdate();
+            if (filasActualizadas == 0) {
+                throw new SQLException("No se pudo cambiar el estado: la mesa no existe.");
+            }
         }
     }
+
     /**
      * Cambia la capacidad de una mesa.
      */
     public void cambiarCapacidadMesa(int idMesa, int capacidad) throws SQLException {
-        String sql = "UPDATE mesas " + "SET capacidad = ? " + "WHERE id_mesa = ?";
-        try (Connection conn = ConexionBD.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+        if (capacidad <= 0) {throw new SQLException("La capacidad debe ser mayor que cero.");
+        }
+
+        String sql =
+                "UPDATE mesas " +
+                        "SET capacidad = ? " +
+                        "WHERE id_mesa = ? " +
+                        "AND (cantidad_comensales IS NULL " +
+                        "     OR cantidad_comensales <= ?)";
+
+        try (Connection conn = ConexionBD.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, capacidad);
             stmt.setInt(2, idMesa);
-            stmt.executeUpdate();
+            stmt.setInt(3, capacidad);
+            int filasActualizadas = stmt.executeUpdate();
+
+            if (filasActualizadas == 0) {
+                throw new SQLException(
+                        "No se pudo cambiar la capacidad. " +
+                                "La mesa no existe o la capacidad es inferior " +
+                                "a la cantidad de comensales actuales."
+                );
+            }
         }
     }
     /**
@@ -496,16 +586,81 @@ public class MesaRepository {
         return mesa;
     }
     /**
-     * Desactiva una mesa.
+     * Desactiva una mesa solamente si no tiene pedidos activos.
+     * La validación y la desactivación se realizan en una transacción.
      */
     public void quitarMesa(int idMesa) throws SQLException {
+        String sqlBloquearMesa =
+                "SELECT id_mesa FROM mesas " +
+                        "WHERE id_mesa = ? AND is_active = 1 FOR UPDATE";
 
-        String sql = "UPDATE mesas " + "SET is_active = 0 " + "WHERE id_mesa = ?";
+        String sqlPedidoActivo =
+                "SELECT 1 FROM pedidos " +
+                        "WHERE mesa_id = ? " +
+                        "AND UPPER(estado) NOT IN " +
+                        "('CANCELADO', 'COMPLETADO', 'ENTREGADO', " +
+                        "'PAGADO', 'CERRADO', 'FINALIZADO') " +
+                        "LIMIT 1";
 
-        try (Connection conn = ConexionBD.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idMesa);
-            stmt.executeUpdate();
+        String sqlDesactivar =
+                "UPDATE mesas SET is_active = 0 " +
+                        "WHERE id_mesa = ? AND is_active = 1";
+
+        try (Connection conn = ConexionBD.getConnection()) {
+            boolean autoCommitOriginal = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+
+            try {
+                // Verifica que la mesa exista y la bloquea durante la operación.
+                try (PreparedStatement stmt =
+                             conn.prepareStatement(sqlBloquearMesa)) {
+                    stmt.setInt(1, idMesa);
+
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (!rs.next()) {
+                            throw new exceptions.MesaNotFoundException(
+                                    "La mesa no existe o ya fue retirada."
+                            );
+                        }
+                    }
+                }
+
+                // No se permite retirar mesas con pedidos activos.
+                try (PreparedStatement stmt =
+                             conn.prepareStatement(sqlPedidoActivo)) {
+                    stmt.setInt(1, idMesa);
+
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            throw new exceptions.MesaConPedidoActivoException(
+                                    "No se puede quitar esta mesa porque tiene " +
+                                            "un pedido activo. Finaliza o cancela el " +
+                                            "pedido antes de retirar la mesa."
+                            );
+                        }
+                    }
+                }
+
+                // Desactiva la mesa sin eliminar su historial.
+                try (PreparedStatement stmt =
+                             conn.prepareStatement(sqlDesactivar)) {
+                    stmt.setInt(1, idMesa);
+
+                    if (stmt.executeUpdate() != 1) {
+                        throw new SQLException(
+                                "No se pudo retirar la mesa."
+                        );
+                    }
+                }
+
+                conn.commit();
+
+            } catch (SQLException | RuntimeException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(autoCommitOriginal);
+            }
         }
     }
 }

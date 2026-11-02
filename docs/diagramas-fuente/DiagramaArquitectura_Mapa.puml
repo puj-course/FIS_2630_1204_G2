@@ -1,0 +1,31 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 10
+skinparam nodesep 18
+skinparam ranksep 26
+skinparam ArrowColor #F59E0B
+skinparam ArrowThickness 2.2
+skinparam RectangleBorderColor #94A3B8
+skinparam RectangleFontSize 13
+skinparam RectangleBorderThickness 1.2
+skinparam padding 4
+rectangle "<size:16><b>Presentación</b></size>  <size:11>· 12</size>\n<size:11><i>Controladores JavaFX y arranque</i></size>\n\n<size:11>CajeroPagoController · CocinaController</size>\n<size:11>DisponibilidadAdminController · InventarioController</size>\n<size:11>LoginController · Main (Modulo)</size>\n<size:11>MapaSalonController (AccionMesa, EstadoMesaVisual, ResumenMesas)</size>\n<size:11>MenuMeseroController</size>" as presentacion #DBEAFE
+rectangle "<size:16><b>Negocio</b></size>  <size:11>· 13</size>\n<size:11><i>Servicios y fachada</i></size>\n\n<size:11>AdicionalService · AsignacionMesaService</size>\n<size:11>AutenticacionService (Resultado) · DisponibilidadService</size>\n<size:11>EntradaInventarioService · InventarioService · MesaService</size>\n<size:11>PagoService · PedidoFacade · PedidoService</size>\n<size:11>ReglaDescuentoService · ReservaService</size>" as negocio #DCFCE7
+rectangle "<size:16><b>Acceso a datos</b></size>  <size:11>· 28</size>\n<size:11><i>Repositorios y DAO, con el SQL a mano</i></size>\n\n<size:11>AdicionalRepository · AlertaInventarioRepository</size>\n<size:11>AsignacionMesaRepository · ClienteRepository</size>\n<size:11>DetallePedidoAdicionalRepository · DetallePedidoRepository</size>\n<size:11>DisponibilidadDAO · EntradaInventarioRepository</size>\n<size:11>EstadoMesaRepository · HistorialEstadoMesaRepository</size>\n<size:11>IngredienteRepository</size>\n<size:11>InventarioRepository (IngredienteReceta, MovimientoPedido)</size>\n<size:11>MesaRepository · MeseroRepository</size>\n<size:11>MovimientoInventarioRepository · NotaMesaRepository · PagoDAO</size>\n<size:11>PagoRepository · PedidoRepository · PlatoInsumoRepository</size>\n<size:11>PlatoRepository · ProductoDAO · ReglaDescuentoRepository</size>\n<size:11>ReservaRepository · UsuarioRepository · ZonaRepository</size>" as datos #FFEDD5
+rectangle "<size:16><b>Conexión</b></size>  <size:11>· 1</size>\n<size:11><i>Única puerta a PostgreSQL</i></size>\n\n<size:11>ConexionBD</size>" as conexion #F1F5F9
+rectangle "<size:16><b>Modelo del dominio</b></size>  <size:11>· 42</size>\n<size:11><i>Entidades, enumeraciones, DTO y excepciones</i></size>\n\n<size:11>Adicional · AdicionalNoDisponibleException · AlertaInventario</size>\n<size:11>AsignacionActivaException · AsignacionMesa</size>\n<size:11>CapacidadExcedidaException · Cliente · CuentaPago</size>\n<size:11>DetallePedido · DetallePedidoAdicional · EntradaInventario</size>\n<size:11>entity.EstadoMesa · enums.EstadoMesa · EstadoPedido</size>\n<size:11>EstadoReserva · HistorialEstadoMesa · Ingrediente</size>\n<size:11>IngredienteStockDTO · ItemPedido · Mesa</size>\n<size:11>MesaNotFoundException · MesaOcupadaException · Mesero</size>\n<size:11>MetodoPago · MovimientoInventario · NotaMesa · Pago · Pedido</size>\n<size:11>PedidoNoEditableException · Plato · PlatoInsumo · Producto</size>\n<size:11>ProductoDisponibilidad · ReglaDescuento · Reserva</size>\n<size:11>ReservaNoCancelableException · ReservaNotFoundException</size>\n<size:11>StockInsuficienteException · TipoDescuento · TipoMovimiento</size>\n<size:11>UsuarioAutenticable · Zona</size>" as modelo #FEF9C3
+rectangle "<size:16><b>Apoyo transversal</b></size>  <size:11>· 2</size>\n<size:11><i>Estado de sesión y utilidades</i></size>\n\n<size:11>SesionUsuario · TextoBusqueda</size>" as apoyo #F3E8FF
+modelo -[hidden]down- apoyo
+datos -right-> modelo
+negocio -right-> modelo
+negocio -down-> datos
+presentacion -right-> modelo
+datos -down-> conexion
+presentacion -[#B91C1C]right-> datos : <color:#B91C1C>salta capa
+presentacion -right-> apoyo
+presentacion -down-> negocio
+negocio -[#B91C1C]right-> conexion : <color:#B91C1C>salta capa
+negocio -right-> apoyo
+@enduml

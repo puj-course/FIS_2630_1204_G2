@@ -1,0 +1,429 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 35
+skinparam ranksep 60
+skinparam padding 3
+skinparam ClassFontSize 13
+skinparam ClassAttributeFontSize 11
+skinparam ClassStereotypeFontSize 10
+skinparam ClassBorderColor #334155
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ClassAttributeIconSize 0
+hide empty members
+
+package "repository" {
+  class AdicionalRepository #FFEDD5 {
+    + findById(id : long) : Optional<Adicional>
+    + findAllActivos() : List<Adicional>
+    + save(a : Adicional) : Adicional
+    - map(rs : ResultSet) : Adicional
+  }
+  class AlertaInventarioRepository #FFEDD5 {
+    + findPendientes() : List<AlertaInventario>
+    + findPendienteByIngredienteId(ingredienteId : long) : Optional<AlertaInventario>
+    + countPendientes() : long
+    + save(alerta : AlertaInventario) : AlertaInventario
+    + resolver(alertaId : long) : void
+    - map(rs : ResultSet) : AlertaInventario
+  }
+  class AsignacionMesaRepository #FFEDD5 {
+    + findActivaByMesaId(mesaId : long) : Optional<AsignacionMesa>
+    + save(a : AsignacionMesa) : AsignacionMesa
+    - map(rs : ResultSet) : AsignacionMesa
+  }
+  class ClienteRepository #FFEDD5 {
+    - {static} SQL_INSERTAR : String
+    --
+    + guardar(cliente : Cliente) : void
+  }
+  class DetallePedidoAdicionalRepository #FFEDD5 {
+    + save(d : DetallePedidoAdicional) : DetallePedidoAdicional
+  }
+  interface DetallePedidoRepository <<excluida en pom.xml>> #FFEDD5 {
+    + findByPedidoId(pedidoId : Long) : List<DetallePedido>
+  }
+  class EntradaInventarioRepository #FFEDD5 {
+    + guardar(entrada : EntradaInventario) : void
+  }
+  class EstadoMesaRepository #FFEDD5 {
+    + findById(id : long) : Optional<EstadoMesa>
+    + findByCodigoEstado(codigo : String) : Optional<EstadoMesa>
+    - map(rs : ResultSet) : EstadoMesa
+  }
+  class HistorialEstadoMesaRepository #FFEDD5 {
+    + save(h : HistorialEstadoMesa) : HistorialEstadoMesa
+    + save(conn : Connection, h : HistorialEstadoMesa) : HistorialEstadoMesa
+  }
+  class IngredienteReceta <<anidada en InventarioRepository>> #FFEDD5 {
+    - ingredienteId : long
+    - cantidad : BigDecimal
+    --
+    + IngredienteReceta(ingredienteId : long, cantidad : BigDecimal)
+    + getIngredienteId() : long
+    + getCantidad() : BigDecimal
+  }
+  class IngredienteRepository #FFEDD5 {
+    - {static} SELECT_BASE : String
+    --
+    + findById(id : long) : Optional<Ingrediente>
+    + findById(conn : Connection, id : long) : Optional<Ingrediente>
+    + findByIdForUpdate(conn : Connection, id : long) : Optional<Ingrediente>
+    + findActivos() : List<Ingrediente>
+    + findActivosPorNombre(texto : String) : List<Ingrediente>
+    + save(i : Ingrediente) : Ingrediente
+    + save(conn : Connection, i : Ingrediente) : Ingrediente
+    + actualizarStock(conn : Connection, id : long, nuevoStock : BigDecimal) : void
+    + findAllActivos() : List<Ingrediente>
+    - bindCampos(stmt : PreparedStatement, i : Ingrediente) : void
+    - map(rs : ResultSet) : Ingrediente
+  }
+  class InventarioRepository #FFEDD5 {
+    + obtenerReceta(conn : Connection, productoId : long) : List<IngredienteReceta>
+    + obtenerStockForUpdate(conn : Connection, ingredienteId : long) : BigDecimal
+    + descontarStock(conn : Connection, ingredienteId : long, cantidad : BigDecimal) : void
+    + devolverStock(conn : Connection, ingredienteId : long, cantidad : BigDecimal) : void
+    + registrarSalidaIngrediente(conn : Connection, ingredienteId : long, cantidad : BigDecimal, motivo : String, usuarioId : long) : void
+    + registrarEntradaIngrediente(conn : Connection, ingredienteId : long, cantidad : BigDecimal, motivo : String, usuarioId : long) : void
+    + obtenerSalidasPorPedido(conn : Connection, pedidoId : long) : List<MovimientoPedido>
+    + existeReversionPorPedido(conn : Connection, pedidoId : long) : boolean
+    + obtenerNombreIngrediente(conn : Connection, ingredienteId : long) : String
+    + obtenerStockMinimo(conn : Connection, ingredienteId : long) : BigDecimal
+  }
+  class MesaRepository #FFEDD5 {
+    - {static} SELECT_BASE : String
+    - {static} ZONA_POR_DEFECTO : int
+    --
+    + obtenerTodas() : List<Mesa>
+    + findById(idMesa : int) : Optional<Mesa>
+    + findById(conn : Connection, idMesa : int) : Optional<Mesa>
+    - completarInformacionAtencion(conn : Connection, mesa : Mesa) : void
+    - obtenerEnteroMesa(conn : Connection, idMesa : int, columnas : String...) : Integer
+    - obtenerPedidoActivo(conn : Connection, idMesa : int) : String
+    - obtenerMeseroResponsable(conn : Connection, idMesa : int) : String
+    - obtenerTextoMesa(conn : Connection, idMesa : int, columna : String) : String
+    - primeraTablaExistente(conn : Connection, tablas : String...) : String
+    - primeraColumnaExistente(conn : Connection, tabla : String, columnas : String...) : String
+    - existeTabla(conn : Connection, tabla : String) : boolean
+    - existeColumna(conn : Connection, tabla : String, columna : String) : boolean
+    + asignarComensales(idMesa : int, cantidadComensales : int) : boolean
+    + actualizarCantidadComensales(idMesa : int, cantidadComensales : int) : boolean
+    - obtenerIdEstado(conn : Connection, codigosEstado : String...) : Integer
+    + liberarMesa(idMesa : int) : void
+    + agregarMesa(numeroMesa : int) : void
+    - generarCodigoMesa(idZona : int, numeroMesa : int) : String
+    + cambiarEstadoMesa(conn : Connection, idMesa : int, codigoEstado : String) : void
+    + cambiarCapacidadMesa(idMesa : int, capacidad : int) : void
+    - mapearMesa(rs : ResultSet) : Mesa
+    + quitarMesa(idMesa : int) : void
+  }
+  interface MeseroRepository <<excluida en pom.xml>> #FFEDD5 {
+  }
+  class MovimientoInventarioRepository #FFEDD5 {
+    - {static} SELECT_BASE : String
+    --
+    + findById(id : long) : Optional<MovimientoInventario>
+    + findByIngredienteId(ingredienteId : long) : List<MovimientoInventario>
+    + findByProductoId(productoId : long) : List<MovimientoInventario>
+    + save(m : MovimientoInventario) : MovimientoInventario
+    + save(conn : Connection, m : MovimientoInventario) : MovimientoInventario
+    - consultarLista(sql : String, id : long) : List<MovimientoInventario>
+    - setLongNullable(stmt : PreparedStatement, index : int, valor : Long) : void
+    - getLongOrNull(rs : ResultSet, columna : String) : Long
+    - map(rs : ResultSet) : MovimientoInventario
+  }
+  class MovimientoPedido <<anidada en InventarioRepository>> #FFEDD5 {
+    - ingredienteId : long
+    - cantidad : BigDecimal
+    --
+    + MovimientoPedido(ingredienteId : long, cantidad : BigDecimal)
+    + getIngredienteId() : long
+    + getCantidad() : BigDecimal
+  }
+  class NotaMesaRepository #FFEDD5 {
+    + obtenerNotaPorMesa(idMesa : int) : Optional<NotaMesa>
+    + guardarNota(idMesa : int, textoNota : String) : void
+    + eliminarNota(idMesa : int) : void
+    - mapearNota(rs : ResultSet) : NotaMesa
+  }
+  interface PagoRepository <<excluida en pom.xml>> #FFEDD5 {
+    + findByPedidoId(pedidoId : Long) : List<Pago>
+  }
+  class PedidoRepository #FFEDD5 {
+    + findById(id : long) : Optional<Pedido>
+    + existsByMesaIdAndEstadoNot(mesaId : long, estadoExcluido : EstadoPedido) : boolean
+    + save(p : Pedido) : Pedido
+    - crearJsonb(json : String) : PGobject
+    + findActivoByMesaId(mesaId : long) : Optional<Pedido>
+    + findPedidosParaCocina() : java.util.List<Pedido>
+    - map(rs : ResultSet) : Pedido
+    - esVerdadero(valor : String) : boolean
+  }
+  class PlatoInsumoRepository #FFEDD5 {
+    + guardar(pi : PlatoInsumo) : void
+    + obtenerPorPlato(platoId : int) : List<PlatoInsumo>
+  }
+  class PlatoRepository #FFEDD5 {
+    + guardar(plato : Plato) : void
+  }
+  class ReglaDescuentoRepository #FFEDD5 {
+    + guardar(regla : ReglaDescuento) : void
+    + obtenerTodos() : List<ReglaDescuento>
+  }
+  class ReservaRepository #FFEDD5 {
+    - {static} SELECT_BASE : String
+    --
+    + obtenerMesasReservadas() : List<Reserva>
+    + obtenerReservasDelTurnoActual() : List<Reserva>
+    + findById(idReserva : int) : Optional<Reserva>
+    + archivarReserva(idReserva : int) : void
+    + cancelar(idReserva : int, fechaCancelacion : LocalDateTime) : void
+    - mapearReserva(rs : ResultSet) : Reserva
+  }
+  class UsuarioRepository #FFEDD5 {
+    - {static} SELECT_ACCESO : String
+    --
+    + buscarPorIdentificador(identificador : String) : Optional<UsuarioAutenticable>
+    + actualizarPasswordHash(idUsuario : int, nuevoHash : String) : void
+  }
+  class ZonaRepository #FFEDD5 {
+    + findById(id : long) : Optional<Zona>
+    + findAllActivas() : List<Zona>
+    - map(rs : ResultSet) : Zona
+  }
+  AdicionalRepository -[hidden]right- AlertaInventarioRepository
+  AlertaInventarioRepository -[hidden]right- AsignacionMesaRepository
+  AsignacionMesaRepository -[hidden]right- ClienteRepository
+  ClienteRepository -[hidden]right- DetallePedidoAdicionalRepository
+  AdicionalRepository -[hidden]down- DetallePedidoRepository
+  DetallePedidoRepository -[hidden]right- EntradaInventarioRepository
+  AlertaInventarioRepository -[hidden]down- EntradaInventarioRepository
+  EntradaInventarioRepository -[hidden]right- EstadoMesaRepository
+  AsignacionMesaRepository -[hidden]down- EstadoMesaRepository
+  EstadoMesaRepository -[hidden]right- HistorialEstadoMesaRepository
+  ClienteRepository -[hidden]down- HistorialEstadoMesaRepository
+  HistorialEstadoMesaRepository -[hidden]right- IngredienteReceta
+  DetallePedidoAdicionalRepository -[hidden]down- IngredienteReceta
+  DetallePedidoRepository -[hidden]down- IngredienteRepository
+  IngredienteRepository -[hidden]right- InventarioRepository
+  EntradaInventarioRepository -[hidden]down- InventarioRepository
+  InventarioRepository -[hidden]right- MesaRepository
+  EstadoMesaRepository -[hidden]down- MesaRepository
+  MesaRepository -[hidden]right- MeseroRepository
+  HistorialEstadoMesaRepository -[hidden]down- MeseroRepository
+  MeseroRepository -[hidden]right- MovimientoInventarioRepository
+  IngredienteReceta -[hidden]down- MovimientoInventarioRepository
+  IngredienteRepository -[hidden]down- MovimientoPedido
+  MovimientoPedido -[hidden]right- NotaMesaRepository
+  InventarioRepository -[hidden]down- NotaMesaRepository
+  NotaMesaRepository -[hidden]right- PagoRepository
+  MesaRepository -[hidden]down- PagoRepository
+  PagoRepository -[hidden]right- PedidoRepository
+  MeseroRepository -[hidden]down- PedidoRepository
+  PedidoRepository -[hidden]right- PlatoInsumoRepository
+  MovimientoInventarioRepository -[hidden]down- PlatoInsumoRepository
+  MovimientoPedido -[hidden]down- PlatoRepository
+  PlatoRepository -[hidden]right- ReglaDescuentoRepository
+  NotaMesaRepository -[hidden]down- ReglaDescuentoRepository
+  ReglaDescuentoRepository -[hidden]right- ReservaRepository
+  PagoRepository -[hidden]down- ReservaRepository
+  ReservaRepository -[hidden]right- UsuarioRepository
+  PedidoRepository -[hidden]down- UsuarioRepository
+  UsuarioRepository -[hidden]right- ZonaRepository
+  PlatoInsumoRepository -[hidden]down- ZonaRepository
+}
+package "referencias" <<otros paquetes>> #FAFAFA {
+  class Adicional <<entity>> #F3E8FF {
+  }
+  class AdicionalService <<service>> #DCFCE7 {
+  }
+  class AlertaInventario <<entity>> #F3E8FF {
+  }
+  class AsignacionMesa <<entity>> #F3E8FF {
+  }
+  class AsignacionMesaService <<service>> #DCFCE7 {
+  }
+  class AutenticacionService <<service>> #DCFCE7 {
+  }
+  class Cliente <<entity>> #F3E8FF {
+  }
+  class CocinaController <<controller>> #DBEAFE {
+  }
+  class DetallePedido <<entity>> #F3E8FF {
+  }
+  class DetallePedidoAdicional <<entity>> #F3E8FF {
+  }
+  class DisponibilidadService <<service>> #DCFCE7 {
+  }
+  class EntradaInventario <<entity>> #F3E8FF {
+  }
+  class EntradaInventarioService <<service>> #DCFCE7 {
+  }
+  class EstadoMesa <<entity>> #F3E8FF {
+  }
+  enum EstadoPedido <<enums>> #FEF9C3 {
+  }
+  class HistorialEstadoMesa <<entity>> #F3E8FF {
+  }
+  class Ingrediente <<entity>> #F3E8FF {
+  }
+  class InventarioController <<controller>> #DBEAFE {
+  }
+  class InventarioService <<service>> #DCFCE7 {
+  }
+  class MapaSalonController <<controller>> #DBEAFE {
+  }
+  class Mesa <<entity>> #F3E8FF {
+  }
+  class MesaService <<service>> #DCFCE7 {
+  }
+  class Mesero <<entity>> #F3E8FF {
+  }
+  class MovimientoInventario <<entity>> #F3E8FF {
+  }
+  class NotaMesa <<entity>> #F3E8FF {
+  }
+  class Pago <<entity>> #F3E8FF {
+  }
+  class PagoService <<service>> #DCFCE7 {
+  }
+  class Pedido <<entity>> #F3E8FF {
+  }
+  class PedidoService <<service>> #DCFCE7 {
+  }
+  class Plato <<entity>> #F3E8FF {
+  }
+  class PlatoInsumo <<entity>> #F3E8FF {
+  }
+  class ReglaDescuento <<entity>> #F3E8FF {
+  }
+  class ReglaDescuentoService <<service>> #DCFCE7 {
+  }
+  class Reserva <<entity>> #F3E8FF {
+  }
+  class ReservaService <<service>> #DCFCE7 {
+  }
+  enum TipoMovimiento <<enums>> #FEF9C3 {
+  }
+  class UsuarioAutenticable <<entity>> #F3E8FF {
+  }
+  class Zona <<entity>> #F3E8FF {
+  }
+  Adicional -[hidden]right- AdicionalService
+  AdicionalService -[hidden]right- AlertaInventario
+  AlertaInventario -[hidden]right- AsignacionMesa
+  Adicional -[hidden]down- AsignacionMesaService
+  AsignacionMesaService -[hidden]right- AutenticacionService
+  AdicionalService -[hidden]down- AutenticacionService
+  AutenticacionService -[hidden]right- Cliente
+  AlertaInventario -[hidden]down- Cliente
+  Cliente -[hidden]right- CocinaController
+  AsignacionMesa -[hidden]down- CocinaController
+  AsignacionMesaService -[hidden]down- DetallePedido
+  DetallePedido -[hidden]right- DetallePedidoAdicional
+  AutenticacionService -[hidden]down- DetallePedidoAdicional
+  DetallePedidoAdicional -[hidden]right- DisponibilidadService
+  Cliente -[hidden]down- DisponibilidadService
+  DisponibilidadService -[hidden]right- EntradaInventario
+  CocinaController -[hidden]down- EntradaInventario
+  DetallePedido -[hidden]down- EntradaInventarioService
+  EntradaInventarioService -[hidden]right- EstadoMesa
+  DetallePedidoAdicional -[hidden]down- EstadoMesa
+  EstadoMesa -[hidden]right- EstadoPedido
+  DisponibilidadService -[hidden]down- EstadoPedido
+  EstadoPedido -[hidden]right- HistorialEstadoMesa
+  EntradaInventario -[hidden]down- HistorialEstadoMesa
+  EntradaInventarioService -[hidden]down- Ingrediente
+  Ingrediente -[hidden]right- InventarioController
+  EstadoMesa -[hidden]down- InventarioController
+  InventarioController -[hidden]right- InventarioService
+  EstadoPedido -[hidden]down- InventarioService
+  InventarioService -[hidden]right- MapaSalonController
+  HistorialEstadoMesa -[hidden]down- MapaSalonController
+  Ingrediente -[hidden]down- Mesa
+  Mesa -[hidden]right- MesaService
+  InventarioController -[hidden]down- MesaService
+  MesaService -[hidden]right- Mesero
+  InventarioService -[hidden]down- Mesero
+  Mesero -[hidden]right- MovimientoInventario
+  MapaSalonController -[hidden]down- MovimientoInventario
+  Mesa -[hidden]down- NotaMesa
+  NotaMesa -[hidden]right- Pago
+  MesaService -[hidden]down- Pago
+  Pago -[hidden]right- PagoService
+  Mesero -[hidden]down- PagoService
+  PagoService -[hidden]right- Pedido
+  MovimientoInventario -[hidden]down- Pedido
+  NotaMesa -[hidden]down- PedidoService
+  PedidoService -[hidden]right- Plato
+  Pago -[hidden]down- Plato
+  Plato -[hidden]right- PlatoInsumo
+  PagoService -[hidden]down- PlatoInsumo
+  PlatoInsumo -[hidden]right- ReglaDescuento
+  Pedido -[hidden]down- ReglaDescuento
+  PedidoService -[hidden]down- ReglaDescuentoService
+  ReglaDescuentoService -[hidden]right- Reserva
+  Plato -[hidden]down- Reserva
+  Reserva -[hidden]right- ReservaService
+  PlatoInsumo -[hidden]down- ReservaService
+  ReservaService -[hidden]right- TipoMovimiento
+  ReglaDescuento -[hidden]down- TipoMovimiento
+  ReglaDescuentoService -[hidden]down- UsuarioAutenticable
+  UsuarioAutenticable -[hidden]right- Zona
+  Reserva -[hidden]down- Zona
+}
+AdicionalRepository -[#7E22CE,dashed]-> Adicional
+AdicionalService "1" *-[#C2410C]-> "1 adicionalRepository" AdicionalRepository
+AdicionalService "1" *-[#C2410C]-> "1 detallePedidoAdicionalRepository" DetallePedidoAdicionalRepository
+AlertaInventarioRepository -[#7E22CE,dashed]-> AlertaInventario
+AsignacionMesaRepository -[#7E22CE,dashed]-> AsignacionMesa
+AsignacionMesaService "1" *-[#C2410C]-> "1 asignacionMesaRepository" AsignacionMesaRepository
+AutenticacionService o-[#C2410C]-> "1 usuarioRepository" UsuarioRepository
+ClienteRepository -[#7E22CE,dashed]-> Cliente
+CocinaController "1" *-[#C2410C]-> "1 mesaRepository" MesaRepository
+CocinaController "1" *-[#C2410C]-> "1 pedidoRepository" PedidoRepository
+DetallePedidoAdicionalRepository -[#7E22CE,dashed]-> DetallePedidoAdicional
+DetallePedidoRepository --|> JpaRepository : <DetallePedido, Long>
+DetallePedidoRepository -[#7E22CE,dashed]-> DetallePedido
+DisponibilidadService "1" *-[#C2410C]-> "1 platoInsumoRepo" PlatoInsumoRepository
+EntradaInventarioRepository -[#7E22CE,dashed]-> EntradaInventario
+EntradaInventarioService "1" *-[#C2410C]-> "1 repo" EntradaInventarioRepository
+EstadoMesaRepository -[#7E22CE,dashed]-> EstadoMesa
+HistorialEstadoMesaRepository -[#7E22CE,dashed]-> HistorialEstadoMesa
+IngredienteRepository -[#7E22CE,dashed]-> Ingrediente
+InventarioController "1" *-[#C2410C]-> "1 ingredienteRepository" IngredienteRepository
+InventarioService "1" *-[#C2410C]-> "1 inventarioRepository" InventarioRepository
+MapaSalonController "1" *-[#C2410C]-> "1 mesaRepository" MesaRepository
+MesaRepository -[#7E22CE,dashed]-> Mesa
+MesaService "1" *-[#C2410C]-> "1 estadoMesaRepository" EstadoMesaRepository
+MesaService "1" *-[#C2410C]-> "1 historialEstadoMesaRepository" HistorialEstadoMesaRepository
+MesaService "1" *-[#C2410C]-> "1 mesaRepository" MesaRepository
+MesaService "1" *-[#C2410C]-> "1 zonaRepository" ZonaRepository
+MeseroRepository --|> JpaRepository : <Mesero, Long>
+MeseroRepository -[#7E22CE,dashed]-> Mesero
+MovimientoInventarioRepository -[#7E22CE,dashed]-> MovimientoInventario
+MovimientoInventarioRepository -[#A16207,dashed]-> TipoMovimiento
+NotaMesaRepository -[#7E22CE,dashed]-> NotaMesa
+PagoRepository --|> JpaRepository : <Pago, Long>
+PagoRepository -[#7E22CE,dashed]-> Pago
+PagoService o-[#C2410C]-> "1 pagoRepository" PagoRepository
+PagoService o-[#C2410C]-> "1 pedidoRepository" PedidoRepository
+PedidoRepository -[#7E22CE,dashed]-> Pedido
+PedidoRepository -[#A16207,dashed]-> EstadoPedido
+PedidoService "1" *-[#C2410C]-> "1 pedidoRepository" PedidoRepository
+PlatoInsumoRepository -[#7E22CE,dashed]-> PlatoInsumo
+PlatoRepository -[#7E22CE,dashed]-> Plato
+ReglaDescuentoRepository -[#7E22CE,dashed]-> ReglaDescuento
+ReglaDescuentoService "1" *-[#C2410C]-> "1 repo" ReglaDescuentoRepository
+ReservaRepository -[#7E22CE,dashed]-> Reserva
+ReservaService "1" *-[#C2410C]-> "1 pedidoRepository" PedidoRepository
+ReservaService "1" *-[#C2410C]-> "1 reservaRepository" ReservaRepository
+UsuarioRepository -[#7E22CE,dashed]-> UsuarioAutenticable
+ZonaRepository -[#7E22CE,dashed]-> Zona
+class JpaRepository <<externa>> #FFFFFF
+@enduml

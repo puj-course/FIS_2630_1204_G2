@@ -1,0 +1,243 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 35
+skinparam ranksep 60
+skinparam padding 3
+skinparam ClassFontSize 13
+skinparam ClassAttributeFontSize 11
+skinparam ClassStereotypeFontSize 10
+skinparam ClassBorderColor #334155
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ClassAttributeIconSize 0
+hide empty members
+
+package "entity · HistorialEstadoMesa–NotaMesa" {
+  class HistorialEstadoMesa #F3E8FF {
+    - id : Long
+    - mesaId : Long
+    - estadoAnteriorId : Long
+    - estadoNuevoId : Long
+    - motivo : String
+    - fechaCambio : LocalDateTime
+    --
+    + HistorialEstadoMesa()
+    + getId() : Long
+    + setId(id : Long) : void
+    + getMesaId() : Long
+    + setMesaId(mesaId : Long) : void
+    + getEstadoAnteriorId() : Long
+    + setEstadoAnteriorId(estadoAnteriorId : Long) : void
+    + getEstadoNuevoId() : Long
+    + setEstadoNuevoId(estadoNuevoId : Long) : void
+    + getMotivo() : String
+    + setMotivo(motivo : String) : void
+    + getFechaCambio() : LocalDateTime
+    + setFechaCambio(fechaCambio : LocalDateTime) : void
+  }
+  class Ingrediente #F3E8FF {
+    + {static} ESTADO_ACTIVO : String
+    + {static} ESTADO_INACTIVO : String
+    - id : Long
+    - nombre : String
+    - descripcion : String
+    - unidadMedidaId : Long
+    - costoUnitario : BigDecimal
+    - stockActual : BigDecimal
+    - stockMinimo : BigDecimal
+    - stockMaximo : BigDecimal
+    - proveedor : String
+    - lote : String
+    - fechaVencimiento : LocalDate
+    - categoria : String
+    - estado : String
+    - fechaCreacion : LocalDateTime
+    - fechaActualizacion : LocalDateTime
+    --
+    + Ingrediente()
+    + getId() : Long
+    + setId(id : Long) : void
+    + getNombre() : String
+    + setNombre(nombre : String) : void
+    + getDescripcion() : String
+    + setDescripcion(descripcion : String) : void
+    + getUnidadMedidaId() : Long
+    + setUnidadMedidaId(unidadMedidaId : Long) : void
+    + getCostoUnitario() : BigDecimal
+    + setCostoUnitario(costoUnitario : BigDecimal) : void
+    + getStockActual() : BigDecimal
+    + setStockActual(stockActual : BigDecimal) : void
+    + getStockMinimo() : BigDecimal
+    + setStockMinimo(stockMinimo : BigDecimal) : void
+    + getStockMaximo() : BigDecimal
+    + setStockMaximo(stockMaximo : BigDecimal) : void
+    + getProveedor() : String
+    + setProveedor(proveedor : String) : void
+    + getLote() : String
+    + setLote(lote : String) : void
+    + getFechaVencimiento() : LocalDate
+    + setFechaVencimiento(fechaVencimiento : LocalDate) : void
+    + getCategoria() : String
+    + setCategoria(categoria : String) : void
+    + getEstado() : String
+    + setEstado(estado : String) : void
+    + estaActivo() : boolean
+    + tieneStockBajo() : boolean
+    + getFechaCreacion() : LocalDateTime
+    + setFechaCreacion(fechaCreacion : LocalDateTime) : void
+    + getFechaActualizacion() : LocalDateTime
+    + setFechaActualizacion(fechaActualizacion : LocalDateTime) : void
+    + isActivo() : boolean
+    + toString() : String
+  }
+  class Mesa #F3E8FF {
+    - idMesa : int
+    - numeroMesa : int
+    - codigoMesa : String
+    - capacidad : int
+    - idZona : int
+    - nombreZona : String
+    - idEstadoMesa : int
+    - codigoEstado : String
+    - cantidadComensales : Integer
+    - pedidoActivo : String
+    - meseroResponsable : String
+    --
+    + Mesa()
+    + getIdMesa() : int
+    + setIdMesa(idMesa : int) : void
+    + getNumeroMesa() : int
+    + setNumeroMesa(numeroMesa : int) : void
+    + getCodigoMesa() : String
+    + setCodigoMesa(codigoMesa : String) : void
+    + getCapacidad() : int
+    + setCapacidad(capacidad : int) : void
+    + getIdZona() : int
+    + setIdZona(idZona : int) : void
+    + getNombreZona() : String
+    + setNombreZona(nombreZona : String) : void
+    + getIdEstadoMesa() : int
+    + setIdEstadoMesa(idEstadoMesa : int) : void
+    + getCodigoEstado() : String
+    + setCodigoEstado(codigoEstado : String) : void
+    + getCantidadComensales() : Integer
+    + setCantidadComensales(cantidadComensales : Integer) : void
+    + getPedidoActivo() : String
+    + setPedidoActivo(pedidoActivo : String) : void
+    + getMeseroResponsable() : String
+    + setMeseroResponsable(meseroResponsable : String) : void
+  }
+  class Mesero <<excluida en pom.xml>> #F3E8FF {
+    - id : Long
+    - nombre : String
+    - activo : Boolean
+    --
+    + Mesero()
+    + getId() : Long
+    + getNombre() : String
+    + setNombre(nombre : String) : void
+    + getActivo() : Boolean
+    + setActivo(activo : Boolean) : void
+  }
+  class MovimientoInventario #F3E8FF {
+    - id : Long
+    - productoId : Long
+    - ingredienteId : Long
+    - tipoMovimiento : TipoMovimiento
+    - cantidad : BigDecimal
+    - motivo : String
+    - usuarioId : Long
+    - fechaMovimiento : LocalDateTime
+    --
+    + MovimientoInventario()
+    + getId() : Long
+    + setId(id : Long) : void
+    + getProductoId() : Long
+    + setProductoId(productoId : Long) : void
+    + getIngredienteId() : Long
+    + setIngredienteId(ingredienteId : Long) : void
+    + getTipoMovimiento() : TipoMovimiento
+    + setTipoMovimiento(tipoMovimiento : TipoMovimiento) : void
+    + getCantidad() : BigDecimal
+    + setCantidad(cantidad : BigDecimal) : void
+    + getMotivo() : String
+    + setMotivo(motivo : String) : void
+    + getUsuarioId() : Long
+    + setUsuarioId(usuarioId : Long) : void
+    + getFechaMovimiento() : LocalDateTime
+    + setFechaMovimiento(fechaMovimiento : LocalDateTime) : void
+  }
+  class NotaMesa #F3E8FF {
+    - idNota : int
+    - idMesa : int
+    - textoNota : String
+    - fechaCreacion : LocalDateTime
+    --
+    + NotaMesa()
+    + getIdNota() : int
+    + setIdNota(idNota : int) : void
+    + getIdMesa() : int
+    + setIdMesa(idMesa : int) : void
+    + getTextoNota() : String
+    + setTextoNota(textoNota : String) : void
+    + getFechaCreacion() : LocalDateTime
+    + setFechaCreacion(fechaCreacion : LocalDateTime) : void
+  }
+}
+package "referencias" <<otros paquetes>> #FAFAFA {
+  class CocinaController <<controller>> #DBEAFE {
+  }
+  class HistorialEstadoMesaRepository <<repository>> #FFEDD5 {
+  }
+  class IngredienteRepository <<repository>> #FFEDD5 {
+  }
+  class InventarioController <<controller>> #DBEAFE {
+  }
+  class MapaSalonController <<controller>> #DBEAFE {
+  }
+  class MesaRepository <<repository>> #FFEDD5 {
+  }
+  class MesaService <<service>> #DCFCE7 {
+  }
+  interface MeseroRepository <<repository>> #FFEDD5 {
+  }
+  class MovimientoInventarioRepository <<repository>> #FFEDD5 {
+  }
+  class NotaMesaRepository <<repository>> #FFEDD5 {
+  }
+  enum TipoMovimiento <<enums>> #FEF9C3 {
+  }
+  CocinaController -[hidden]right- HistorialEstadoMesaRepository
+  HistorialEstadoMesaRepository -[hidden]right- IngredienteRepository
+  IngredienteRepository -[hidden]right- InventarioController
+  CocinaController -[hidden]down- MapaSalonController
+  MapaSalonController -[hidden]right- MesaRepository
+  HistorialEstadoMesaRepository -[hidden]down- MesaRepository
+  MesaRepository -[hidden]right- MesaService
+  IngredienteRepository -[hidden]down- MesaService
+  MesaService -[hidden]right- MeseroRepository
+  InventarioController -[hidden]down- MeseroRepository
+  MapaSalonController -[hidden]down- MovimientoInventarioRepository
+  MovimientoInventarioRepository -[hidden]right- NotaMesaRepository
+  MesaRepository -[hidden]down- NotaMesaRepository
+  NotaMesaRepository -[hidden]right- TipoMovimiento
+  MesaService -[hidden]down- TipoMovimiento
+}
+CocinaController -[#7E22CE,dashed]-> Mesa
+HistorialEstadoMesaRepository -[#7E22CE,dashed]-> HistorialEstadoMesa
+IngredienteRepository -[#7E22CE,dashed]-> Ingrediente
+InventarioController -[#7E22CE]-> "* tablaIngredientes\ncolumnaId\ncolumnaNombre\ncolumnaStock\ncolumnaStockMinimo\ncolumnaEstado\ncolumnaAlerta\ningredientes" Ingrediente
+MapaSalonController -[#7E22CE]-> "1 mesaSeleccionada" Mesa
+MesaRepository -[#7E22CE,dashed]-> Mesa
+MesaService -[#7E22CE,dashed]-> HistorialEstadoMesa
+MesaService -[#7E22CE,dashed]-> Mesa
+MeseroRepository -[#7E22CE,dashed]-> Mesero
+MovimientoInventario -[#A16207]-> "1 tipoMovimiento" TipoMovimiento
+MovimientoInventarioRepository -[#7E22CE,dashed]-> MovimientoInventario
+NotaMesaRepository -[#7E22CE,dashed]-> NotaMesa
+@enduml

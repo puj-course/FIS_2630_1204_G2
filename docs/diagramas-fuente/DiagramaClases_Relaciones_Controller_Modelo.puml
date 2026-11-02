@@ -1,0 +1,87 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 35
+skinparam ranksep 60
+skinparam padding 3
+skinparam ClassFontSize 13
+skinparam ClassAttributeFontSize 11
+skinparam ClassStereotypeFontSize 10
+skinparam ClassBorderColor #334155
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ClassAttributeIconSize 0
+hide empty members
+
+hide members
+hide circle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 70
+package "(raiz)" #F1F5F9 {
+  class "Main" as raiz_Main
+}
+package "controller" #DBEAFE {
+  class "CajeroPagoController" as controller_CajeroPagoController
+  class "CocinaController" as controller_CocinaController
+  class "DisponibilidadAdminController" as controller_DisponibilidadAdminController
+  class "InventarioController" as controller_InventarioController
+  class "MapaSalonController" as controller_MapaSalonController
+  class "MenuMeseroController" as controller_MenuMeseroController
+  controller_CajeroPagoController -[hidden]right- controller_CocinaController
+  controller_CocinaController -[hidden]right- controller_DisponibilidadAdminController
+  controller_CajeroPagoController -[hidden]down- controller_InventarioController
+  controller_InventarioController -[hidden]right- controller_MapaSalonController
+  controller_CocinaController -[hidden]down- controller_MapaSalonController
+  controller_MapaSalonController -[hidden]right- controller_MenuMeseroController
+  controller_DisponibilidadAdminController -[hidden]down- controller_MenuMeseroController
+}
+package "entity" #F3E8FF {
+  class "Ingrediente" as entity_Ingrediente
+  class "Mesa" as entity_Mesa
+  class "Pedido" as entity_Pedido
+  class "Producto" as entity_Producto
+}
+package "dto" #FEF9C3 {
+  class "CuentaPago" as dto_CuentaPago
+  class "ItemPedido" as dto_ItemPedido
+  class "ProductoDisponibilidad" as dto_ProductoDisponibilidad
+}
+package "enums" #FEF9C3 {
+  enum "EstadoPedido" as enums_EstadoPedido
+  enum "TipoDescuento" as enums_TipoDescuento
+}
+package "session" #FEF9C3 {
+  class "SesionUsuario" as session_SesionUsuario
+}
+package "util" #FEF9C3 {
+  class "TextoBusqueda" as util_TextoBusqueda
+}
+raiz_Main -[hidden]down- controller_CajeroPagoController
+controller_CajeroPagoController -[hidden]down- entity_Ingrediente
+entity_Ingrediente -[hidden]down- dto_CuentaPago
+dto_CuentaPago -[hidden]down- enums_EstadoPedido
+enums_EstadoPedido -[hidden]down- session_SesionUsuario
+session_SesionUsuario -[hidden]down- util_TextoBusqueda
+class Application <<externa>> #FFFFFF
+raiz_Main --|> Application
+controller_CajeroPagoController -[#A16207]-> "* tipoDescuentoCombo" enums_TipoDescuento
+controller_CajeroPagoController -[#A16207]-> "1 cuentaActual" dto_CuentaPago
+controller_DisponibilidadAdminController -[#A16207]-> "* tablaProductos\ncolCodigo\ncolNombre\ncolCategoria\ncolEstado\ncolMotivo" dto_ProductoDisponibilidad
+controller_InventarioController -[#7E22CE]-> "* tablaIngredientes\ncolumnaId\ncolumnaNombre\ncolumnaStock\ncolumnaStockMinimo\ncolumnaEstado\ncolumnaAlerta\ningredientes" entity_Ingrediente
+controller_MapaSalonController -[#7E22CE]-> "1 mesaSeleccionada" entity_Mesa
+controller_MenuMeseroController -[#7E22CE]-> "1 pedidoActual" entity_Pedido
+controller_MenuMeseroController -[#A16207]-> "* pedido" dto_ItemPedido
+controller_MenuMeseroController -[#7E22CE]-> "* menuCompleto" entity_Producto
+raiz_Main -[#A16207,dashed]-> session_SesionUsuario
+controller_CajeroPagoController -[#A16207,dashed]-> session_SesionUsuario
+controller_CocinaController -[#A16207,dashed]-> enums_EstadoPedido
+controller_CocinaController -[#7E22CE,dashed]-> entity_Mesa
+controller_CocinaController -[#7E22CE,dashed]-> entity_Pedido
+controller_MapaSalonController -[#A16207,dashed]-> session_SesionUsuario
+controller_MenuMeseroController -[#A16207,dashed]-> util_TextoBusqueda
+@enduml

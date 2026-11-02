@@ -3,162 +3,268 @@ package repository;
 import ConexionBD.ConexionBD;
 import entity.AlertaInventario;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class AlertaInventarioRepository {
 
-    private static final String SELECT_BASE =
-            "SELECT id, ingrediente_id, producto_id, stock_actual, stock_minimo, " +
-                    "cantidad_sugerida, estado, created_at, resolved_at FROM alerta_inventario ";
-
-    public Optional<AlertaInventario> findById(long id) throws SQLException {
-        String sql = SELECT_BASE + "WHERE id = ?";
-        try (Connection conn = ConexionBD.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next() ? Optional.of(map(rs)) : Optional.empty();
-            }
-        }
-    }
-
-    // Alertas vigentes (todo lo que no esté RESUELTA), las más antiguas primero
-    public List<AlertaInventario> findActivas() throws SQLException {
-        String sql = SELECT_BASE + "WHERE estado <> ? ORDER BY created_at";
-        List<AlertaInventario> resultado = new ArrayList<>();
-        try (Connection conn = ConexionBD.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, AlertaInventario.ESTADO_RESUELTA);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    resultado.add(map(rs));
-                }
-            }
-        }
-        return resultado;
-    }
-
-    // Para evitar crear una alerta duplicada si el ingrediente ya tiene una vigente
-    public Optional<AlertaInventario> findActivaByIngredienteId(long ingredienteId) throws SQLException {
-        try (Connection conn = ConexionBD.getConnection()) {
-            return findActivaByIngredienteId(conn, ingredienteId);
-        }
-    }
-
-    public Optional<AlertaInventario> findActivaByIngredienteId(Connection conn, long ingredienteId)
+    /**
+     * Obtiene todas las alertas pendientes.
+     */
+    public List<AlertaInventario> findPendientes()
             throws SQLException {
-        String sql = SELECT_BASE + "WHERE ingrediente_id = ? AND estado <> ? LIMIT 1";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, ingredienteId);
-            stmt.setString(2, AlertaInventario.ESTADO_RESUELTA);
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next() ? Optional.of(map(rs)) : Optional.empty();
+
+        String sql = """
+                SELECT id,
+                       ingrediente_id,
+                       producto_id,
+                       stock_actual,
+                       stock_minimo,
+                       cantidad_sugerida,
+                       estado,
+                       created_at,
+                       resolved_at
+                FROM alerta_inventario
+                WHERE estado = 'PENDIENTE'
+                ORDER BY created_at DESC
+                """;
+
+        List<AlertaInventario> alertas = new ArrayList<>();
+
+        try (Connection conn = ConexionBD.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                alertas.add(map(rs));
             }
         }
+
+        return alertas;
     }
 
-    public int countActivas() throws SQLException {
-        String sql = "SELECT COUNT(*) FROM alerta_inventario WHERE estado <> ?";
+    /**
+     * Busca una alerta pendiente asociada a un ingrediente.
+     */
+    public Optional<AlertaInventario> findPendienteByIngredienteId(
+            long ingredienteId
+    ) throws SQLException {
+
+        String sql = """
+                SELECT id,
+                       ingrediente_id,
+                       producto_id,
+                       stock_actual,
+                       stock_minimo,
+                       cantidad_sugerida,
+                       estado,
+                       created_at,
+                       resolved_at
+                FROM alerta_inventario
+                WHERE ingrediente_id = ?
+                  AND estado = 'PENDIENTE'
+                ORDER BY created_at DESC
+                LIMIT 1
+                """;
+
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, AlertaInventario.ESTADO_RESUELTA);
+
+            stmt.setLong(1, ingredienteId);
+
             try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next() ? rs.getInt(1) : 0;
-            }
-        }
-    }
-
-    public AlertaInventario save(AlertaInventario a) throws SQLException {
-        try (Connection conn = ConexionBD.getConnection()) {
-            return save(conn, a);
-        }
-    }
-
-    public AlertaInventario save(Connection conn, AlertaInventario a) throws SQLException {
-        if (a.getId() == null) {
-            String sql = "INSERT INTO alerta_inventario (ingrediente_id, producto_id, stock_actual, " +
-                    "stock_minimo, cantidad_sugerida, estado, created_at) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id";
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                setLongNullable(stmt, 1, a.getIngredienteId());
-                setLongNullable(stmt, 2, a.getProductoId());
-                stmt.setBigDecimal(3, a.getStockActual());
-                stmt.setBigDecimal(4, a.getStockMinimo());
-                stmt.setBigDecimal(5, a.getCantidadSugerida());
-                stmt.setString(6, a.getEstado());
-                stmt.setTimestamp(7, Timestamp.valueOf(
-                        a.getCreatedAt() != null ? a.getCreatedAt() : java.time.LocalDateTime.now()));
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        a.setId(rs.getLong(1));
-                    }
+                if (rs.next()) {
+                    return Optional.of(map(rs));
                 }
             }
-        } else {
-            String sql = "UPDATE alerta_inventario SET stock_actual = ?, stock_minimo = ?, " +
-                    "cantidad_sugerida = ?, estado = ?, resolved_at = ? WHERE id = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setBigDecimal(1, a.getStockActual());
-                stmt.setBigDecimal(2, a.getStockMinimo());
-                stmt.setBigDecimal(3, a.getCantidadSugerida());
-                stmt.setString(4, a.getEstado());
-                if (a.getResolvedAt() != null) {
-                    stmt.setTimestamp(5, Timestamp.valueOf(a.getResolvedAt()));
-                } else {
-                    stmt.setNull(5, Types.TIMESTAMP);
-                }
-                stmt.setLong(6, a.getId());
-                stmt.executeUpdate();
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Cuenta las alertas pendientes.
+     */
+    public long countPendientes()
+            throws SQLException {
+
+        String sql = """
+                SELECT COUNT(*)
+                FROM alerta_inventario
+                WHERE estado = 'PENDIENTE'
+                """;
+
+        try (Connection conn = ConexionBD.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getLong(1);
             }
         }
-        return a;
+
+        return 0;
     }
 
-    public void resolver(long id) throws SQLException {
-        try (Connection conn = ConexionBD.getConnection()) {
-            resolver(conn, id);
+    /**
+     * Guarda una nueva alerta.
+     */
+    public AlertaInventario save(
+            AlertaInventario alerta
+    ) throws SQLException {
+
+        String sql = """
+                INSERT INTO alerta_inventario (
+                    ingrediente_id,
+                    producto_id,
+                    stock_actual,
+                    stock_minimo,
+                    cantidad_sugerida,
+                    estado
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+                RETURNING id, created_at
+                """;
+
+        try (Connection conn = ConexionBD.getConnection();
+             PreparedStatement stmt =
+                     conn.prepareStatement(sql)) {
+
+            if (alerta.getIngredienteId() != null) {
+                stmt.setLong(1, alerta.getIngredienteId());
+            } else {
+                stmt.setNull(
+                        1,
+                        java.sql.Types.BIGINT
+                );
+            }
+
+            if (alerta.getProductoId() != null) {
+                stmt.setLong(2, alerta.getProductoId());
+            } else {
+                stmt.setNull(
+                        2,
+                        java.sql.Types.BIGINT
+                );
+            }
+
+            stmt.setBigDecimal(
+                    3,
+                    alerta.getStockActual()
+            );
+
+            stmt.setBigDecimal(
+                    4,
+                    alerta.getStockMinimo()
+            );
+
+            stmt.setBigDecimal(
+                    5,
+                    alerta.getCantidadSugerida()
+            );
+
+            stmt.setString(
+                    6,
+                    alerta.getEstado() != null
+                            ? alerta.getEstado()
+                            : "PENDIENTE"
+            );
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    alerta.setId(rs.getLong("id"));
+                    alerta.setCreatedAt(
+                            rs.getTimestamp("created_at")
+                                    .toLocalDateTime()
+                    );
+                }
+            }
         }
+
+        return alerta;
     }
 
-    public void resolver(Connection conn, long id) throws SQLException {
-        String sql = "UPDATE alerta_inventario SET estado = ?, resolved_at = CURRENT_TIMESTAMP WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, AlertaInventario.ESTADO_RESUELTA);
-            stmt.setLong(2, id);
+    /**
+     * Marca una alerta como resuelta.
+     */
+    public void resolver(long alertaId)
+            throws SQLException {
+
+        String sql = """
+                UPDATE alerta_inventario
+                SET estado = 'RESUELTA',
+                    resolved_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                """;
+
+        try (Connection conn = ConexionBD.getConnection();
+             PreparedStatement stmt =
+                     conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, alertaId);
             stmt.executeUpdate();
         }
     }
 
-    private void setLongNullable(PreparedStatement stmt, int index, Long valor) throws SQLException {
-        if (valor != null) {
-            stmt.setLong(index, valor);
-        } else {
-            stmt.setNull(index, Types.BIGINT);
-        }
-    }
+    private AlertaInventario map(ResultSet rs)
+            throws SQLException {
 
-    private Long getLongOrNull(ResultSet rs, String columna) throws SQLException {
-        long valor = rs.getLong(columna);
-        return rs.wasNull() ? null : valor;
-    }
+        AlertaInventario alerta =
+                new AlertaInventario();
 
-    private AlertaInventario map(ResultSet rs) throws SQLException {
-        AlertaInventario a = new AlertaInventario();
-        a.setId(rs.getLong("id"));
-        a.setIngredienteId(getLongOrNull(rs, "ingrediente_id"));
-        a.setProductoId(getLongOrNull(rs, "producto_id"));
-        a.setStockActual(rs.getBigDecimal("stock_actual"));
-        a.setStockMinimo(rs.getBigDecimal("stock_minimo"));
-        a.setCantidadSugerida(rs.getBigDecimal("cantidad_sugerida"));
-        a.setEstado(rs.getString("estado"));
-        a.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-        Timestamp ra = rs.getTimestamp("resolved_at");
-        if (ra != null) {
-            a.setResolvedAt(ra.toLocalDateTime());
+        alerta.setId(
+                rs.getLong("id")
+        );
+
+        long ingredienteId =
+                rs.getLong("ingrediente_id");
+
+        if (!rs.wasNull()) {
+            alerta.setIngredienteId(ingredienteId);
         }
-        return a;
+
+        long productoId =
+                rs.getLong("producto_id");
+
+        if (!rs.wasNull()) {
+            alerta.setProductoId(productoId);
+        }
+
+        alerta.setStockActual(
+                rs.getBigDecimal("stock_actual")
+        );
+
+        alerta.setStockMinimo(
+                rs.getBigDecimal("stock_minimo")
+        );
+
+        alerta.setCantidadSugerida(
+                rs.getBigDecimal("cantidad_sugerida")
+        );
+
+        alerta.setEstado(
+                rs.getString("estado")
+        );
+
+        if (rs.getTimestamp("created_at") != null) {
+            alerta.setCreatedAt(
+                    rs.getTimestamp("created_at")
+                            .toLocalDateTime()
+            );
+        }
+
+        if (rs.getTimestamp("resolved_at") != null) {
+            alerta.setResolvedAt(
+                    rs.getTimestamp("resolved_at")
+                            .toLocalDateTime()
+            );
+        }
+
+        return alerta;
     }
 }

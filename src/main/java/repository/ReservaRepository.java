@@ -3,12 +3,16 @@ package repository;
 import ConexionBD.ConexionBD;
 import entity.Reserva;
 
+
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.Timestamp;
 
 public class ReservaRepository {
 
@@ -107,6 +111,42 @@ public class ReservaRepository {
             stmt.setTimestamp(1, Timestamp.valueOf(fechaCancelacion));
             stmt.setInt(2, idReserva);
             stmt.executeUpdate();
+        }
+    }
+
+    /**
+     * Cancela una reserva utilizando una conexión existente.
+     * La transacción es administrada por el servicio llamador.
+     */
+    public void cancelar(
+            Connection conn,
+            int idReserva,
+            LocalDateTime fechaCancelacion
+    ) throws SQLException {
+
+        String sql = """
+            UPDATE reservas
+            SET is_active = 0,
+                fecha_cancelacion = ?
+            WHERE id_reserva = ?
+              AND is_active = 1
+            """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setTimestamp(
+                    1,
+                    Timestamp.valueOf(fechaCancelacion)
+            );
+            stmt.setInt(2, idReserva);
+
+            int filasActualizadas = stmt.executeUpdate();
+
+            if (filasActualizadas != 1) {
+                throw new SQLException(
+                        "No se pudo cancelar la reserva " + idReserva
+                                + ": no existe o ya está inactiva."
+                );
+            }
         }
     }
 

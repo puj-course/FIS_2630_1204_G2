@@ -1,0 +1,173 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 35
+skinparam ranksep 60
+skinparam padding 3
+skinparam ClassFontSize 13
+skinparam ClassAttributeFontSize 11
+skinparam ClassStereotypeFontSize 10
+skinparam ClassBorderColor #334155
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ClassAttributeIconSize 0
+hide empty members
+
+hide members
+hide circle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 70
+package "repository" #FFEDD5 {
+  class "AdicionalRepository" as repository_AdicionalRepository
+  class "AlertaInventarioRepository" as repository_AlertaInventarioRepository
+  class "AsignacionMesaRepository" as repository_AsignacionMesaRepository
+  class "ClienteRepository" as repository_ClienteRepository
+  class "DetallePedidoAdicionalRepository" as repository_DetallePedidoAdicionalRepository
+  interface "DetallePedidoRepository" as repository_DetallePedidoRepository
+  class "EntradaInventarioRepository" as repository_EntradaInventarioRepository
+  class "EstadoMesaRepository" as repository_EstadoMesaRepository
+  class "HistorialEstadoMesaRepository" as repository_HistorialEstadoMesaRepository
+  class "IngredienteRepository" as repository_IngredienteRepository
+  class "MesaRepository" as repository_MesaRepository
+  interface "MeseroRepository" as repository_MeseroRepository
+  class "MovimientoInventarioRepository" as repository_MovimientoInventarioRepository
+  class "NotaMesaRepository" as repository_NotaMesaRepository
+  interface "PagoRepository" as repository_PagoRepository
+  class "PedidoRepository" as repository_PedidoRepository
+  class "PlatoInsumoRepository" as repository_PlatoInsumoRepository
+  class "PlatoRepository" as repository_PlatoRepository
+  class "ReglaDescuentoRepository" as repository_ReglaDescuentoRepository
+  class "ReservaRepository" as repository_ReservaRepository
+  class "UsuarioRepository" as repository_UsuarioRepository
+  class "ZonaRepository" as repository_ZonaRepository
+  repository_AdicionalRepository -[hidden]right- repository_AlertaInventarioRepository
+  repository_AlertaInventarioRepository -[hidden]right- repository_AsignacionMesaRepository
+  repository_AdicionalRepository -[hidden]down- repository_ClienteRepository
+  repository_ClienteRepository -[hidden]right- repository_DetallePedidoAdicionalRepository
+  repository_AlertaInventarioRepository -[hidden]down- repository_DetallePedidoAdicionalRepository
+  repository_DetallePedidoAdicionalRepository -[hidden]right- repository_DetallePedidoRepository
+  repository_AsignacionMesaRepository -[hidden]down- repository_DetallePedidoRepository
+  repository_ClienteRepository -[hidden]down- repository_EntradaInventarioRepository
+  repository_EntradaInventarioRepository -[hidden]right- repository_EstadoMesaRepository
+  repository_DetallePedidoAdicionalRepository -[hidden]down- repository_EstadoMesaRepository
+  repository_EstadoMesaRepository -[hidden]right- repository_HistorialEstadoMesaRepository
+  repository_DetallePedidoRepository -[hidden]down- repository_HistorialEstadoMesaRepository
+  repository_EntradaInventarioRepository -[hidden]down- repository_IngredienteRepository
+  repository_IngredienteRepository -[hidden]right- repository_MesaRepository
+  repository_EstadoMesaRepository -[hidden]down- repository_MesaRepository
+  repository_MesaRepository -[hidden]right- repository_MeseroRepository
+  repository_HistorialEstadoMesaRepository -[hidden]down- repository_MeseroRepository
+  repository_IngredienteRepository -[hidden]down- repository_MovimientoInventarioRepository
+  repository_MovimientoInventarioRepository -[hidden]right- repository_NotaMesaRepository
+  repository_MesaRepository -[hidden]down- repository_NotaMesaRepository
+  repository_NotaMesaRepository -[hidden]right- repository_PagoRepository
+  repository_MeseroRepository -[hidden]down- repository_PagoRepository
+  repository_MovimientoInventarioRepository -[hidden]down- repository_PedidoRepository
+  repository_PedidoRepository -[hidden]right- repository_PlatoInsumoRepository
+  repository_NotaMesaRepository -[hidden]down- repository_PlatoInsumoRepository
+  repository_PlatoInsumoRepository -[hidden]right- repository_PlatoRepository
+  repository_PagoRepository -[hidden]down- repository_PlatoRepository
+  repository_PedidoRepository -[hidden]down- repository_ReglaDescuentoRepository
+  repository_ReglaDescuentoRepository -[hidden]right- repository_ReservaRepository
+  repository_PlatoInsumoRepository -[hidden]down- repository_ReservaRepository
+  repository_ReservaRepository -[hidden]right- repository_UsuarioRepository
+  repository_PlatoRepository -[hidden]down- repository_UsuarioRepository
+  repository_ReglaDescuentoRepository -[hidden]down- repository_ZonaRepository
+}
+package "entity" #F3E8FF {
+  class "Adicional" as entity_Adicional
+  class "AlertaInventario" as entity_AlertaInventario
+  class "AsignacionMesa" as entity_AsignacionMesa
+  class "Cliente" as entity_Cliente
+  class "DetallePedido" as entity_DetallePedido
+  class "DetallePedidoAdicional" as entity_DetallePedidoAdicional
+  class "EntradaInventario" as entity_EntradaInventario
+  class "EstadoMesa" as entity_EstadoMesa
+  class "HistorialEstadoMesa" as entity_HistorialEstadoMesa
+  class "Ingrediente" as entity_Ingrediente
+  class "Mesa" as entity_Mesa
+  class "Mesero" as entity_Mesero
+  class "MovimientoInventario" as entity_MovimientoInventario
+  class "NotaMesa" as entity_NotaMesa
+  class "Pago" as entity_Pago
+  class "Pedido" as entity_Pedido
+  class "Plato" as entity_Plato
+  class "PlatoInsumo" as entity_PlatoInsumo
+  class "ReglaDescuento" as entity_ReglaDescuento
+  class "Reserva" as entity_Reserva
+  class "UsuarioAutenticable" as entity_UsuarioAutenticable
+  class "Zona" as entity_Zona
+  entity_Adicional -[hidden]right- entity_AlertaInventario
+  entity_AlertaInventario -[hidden]right- entity_AsignacionMesa
+  entity_Adicional -[hidden]down- entity_Cliente
+  entity_Cliente -[hidden]right- entity_DetallePedido
+  entity_AlertaInventario -[hidden]down- entity_DetallePedido
+  entity_DetallePedido -[hidden]right- entity_DetallePedidoAdicional
+  entity_AsignacionMesa -[hidden]down- entity_DetallePedidoAdicional
+  entity_Cliente -[hidden]down- entity_EntradaInventario
+  entity_EntradaInventario -[hidden]right- entity_EstadoMesa
+  entity_DetallePedido -[hidden]down- entity_EstadoMesa
+  entity_EstadoMesa -[hidden]right- entity_HistorialEstadoMesa
+  entity_DetallePedidoAdicional -[hidden]down- entity_HistorialEstadoMesa
+  entity_EntradaInventario -[hidden]down- entity_Ingrediente
+  entity_Ingrediente -[hidden]right- entity_Mesa
+  entity_EstadoMesa -[hidden]down- entity_Mesa
+  entity_Mesa -[hidden]right- entity_Mesero
+  entity_HistorialEstadoMesa -[hidden]down- entity_Mesero
+  entity_Ingrediente -[hidden]down- entity_MovimientoInventario
+  entity_MovimientoInventario -[hidden]right- entity_NotaMesa
+  entity_Mesa -[hidden]down- entity_NotaMesa
+  entity_NotaMesa -[hidden]right- entity_Pago
+  entity_Mesero -[hidden]down- entity_Pago
+  entity_MovimientoInventario -[hidden]down- entity_Pedido
+  entity_Pedido -[hidden]right- entity_Plato
+  entity_NotaMesa -[hidden]down- entity_Plato
+  entity_Plato -[hidden]right- entity_PlatoInsumo
+  entity_Pago -[hidden]down- entity_PlatoInsumo
+  entity_Pedido -[hidden]down- entity_ReglaDescuento
+  entity_ReglaDescuento -[hidden]right- entity_Reserva
+  entity_Plato -[hidden]down- entity_Reserva
+  entity_Reserva -[hidden]right- entity_UsuarioAutenticable
+  entity_PlatoInsumo -[hidden]down- entity_UsuarioAutenticable
+  entity_ReglaDescuento -[hidden]down- entity_Zona
+}
+package "enums" #FEF9C3 {
+  enum "EstadoPedido" as enums_EstadoPedido
+  enum "TipoMovimiento" as enums_TipoMovimiento
+}
+repository_AdicionalRepository -[hidden]down- entity_Adicional
+entity_Adicional -[hidden]down- enums_EstadoPedido
+class JpaRepository <<externa>> #FFFFFF
+repository_DetallePedidoRepository --|> JpaRepository : <DetallePedido, Long>
+repository_MeseroRepository --|> JpaRepository : <Mesero, Long>
+repository_PagoRepository --|> JpaRepository : <Pago, Long>
+repository_AdicionalRepository -[#7E22CE,dashed]-> entity_Adicional
+repository_AlertaInventarioRepository -[#7E22CE,dashed]-> entity_AlertaInventario
+repository_AsignacionMesaRepository -[#7E22CE,dashed]-> entity_AsignacionMesa
+repository_ClienteRepository -[#7E22CE,dashed]-> entity_Cliente
+repository_DetallePedidoAdicionalRepository -[#7E22CE,dashed]-> entity_DetallePedidoAdicional
+repository_DetallePedidoRepository -[#7E22CE,dashed]-> entity_DetallePedido
+repository_EntradaInventarioRepository -[#7E22CE,dashed]-> entity_EntradaInventario
+repository_EstadoMesaRepository -[#7E22CE,dashed]-> entity_EstadoMesa
+repository_HistorialEstadoMesaRepository -[#7E22CE,dashed]-> entity_HistorialEstadoMesa
+repository_IngredienteRepository -[#7E22CE,dashed]-> entity_Ingrediente
+repository_MesaRepository -[#7E22CE,dashed]-> entity_Mesa
+repository_MeseroRepository -[#7E22CE,dashed]-> entity_Mesero
+repository_MovimientoInventarioRepository -[#7E22CE,dashed]-> entity_MovimientoInventario
+repository_MovimientoInventarioRepository -[#A16207,dashed]-> enums_TipoMovimiento
+repository_NotaMesaRepository -[#7E22CE,dashed]-> entity_NotaMesa
+repository_PagoRepository -[#7E22CE,dashed]-> entity_Pago
+repository_PedidoRepository -[#A16207,dashed]-> enums_EstadoPedido
+repository_PedidoRepository -[#7E22CE,dashed]-> entity_Pedido
+repository_PlatoInsumoRepository -[#7E22CE,dashed]-> entity_PlatoInsumo
+repository_PlatoRepository -[#7E22CE,dashed]-> entity_Plato
+repository_ReglaDescuentoRepository -[#7E22CE,dashed]-> entity_ReglaDescuento
+repository_ReservaRepository -[#7E22CE,dashed]-> entity_Reserva
+repository_UsuarioRepository -[#7E22CE,dashed]-> entity_UsuarioAutenticable
+repository_ZonaRepository -[#7E22CE,dashed]-> entity_Zona
+@enduml

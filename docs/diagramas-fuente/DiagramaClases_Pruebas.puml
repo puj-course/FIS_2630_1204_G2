@@ -1,0 +1,264 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 4
+skinparam nodesep 35
+skinparam ranksep 60
+skinparam padding 3
+skinparam ClassFontSize 13
+skinparam ClassAttributeFontSize 11
+skinparam ClassStereotypeFontSize 10
+skinparam ClassBorderColor #334155
+skinparam ArrowColor #1E293B
+skinparam ArrowFontSize 10
+skinparam PackageBorderColor #94A3B8
+skinparam PackageFontStyle bold
+skinparam ClassAttributeIconSize 0
+hide empty members
+
+package "src/test/java" {
+  class CuentaPagoTest <<dto>> #FEF9C3 {
+    - cuenta(subtotal : String, impuestos : String, descuento : String, propina : String) : CuentaPago
+    ~ formulaCompleta() : void
+    ~ sinPropinaNiDescuento() : void
+    ~ propinaNoSeDescuenta() : void
+    ~ descuentoIgualAlSubtotal() : void
+    ~ conservaDecimales() : void
+    ~ valoresNulos() : void
+  }
+  class ItemPedidoTest <<dto>> #FEF9C3 {
+    - producto(precio : String, estado : String) : Producto
+    ~ arrancaEnUno() : void
+    ~ subtotalPorCantidad() : void
+    ~ nuncaBajaDeUno() : void
+    ~ estadoDisponible() : void
+  }
+  class ChoquesNombreTablaTest <<repository>> #FEF9C3 {
+    - {static} DOCUMENTO : String
+    - {static} idProducto : long
+    - {static} idIngrediente : long
+    --
+    ~ {static} comprobarBase() : void
+    ~ limpiar() : void
+    ~ {static} borrarRastros() : void
+    ~ guardarCliente() : void
+    ~ tipoDocumentoInexistente() : void
+    ~ hayStock() : void
+    ~ noHayStock() : void
+    ~ noReactivaInactivo() : void
+    - darReceta(cantidad : int) : void
+    - fijarStock(cantidad : int) : void
+    - estadoProducto() : String
+  }
+  class DisponibilidadHu134Test <<repository>> #FEF9C3 {
+    - cn : Connection
+    - productoId : long
+    - ingredienteId : long
+    --
+    ~ prepararDatos() : void
+    ~ restaurarDatos() : void
+    ~ stockSuficiente() : void
+    ~ stockInsuficiente() : void
+    ~ productoSinReceta() : void
+    ~ productoInactivo() : void
+    - prepararRecetaYStock(stockIngrediente : int, cantidadNecesaria : int) : void
+    - eliminarReceta() : void
+    - actualizarStockProducto(stock : int) : void
+    - actualizarEstado(estado : String) : void
+    - disponible(cantidad : int) : boolean
+  }
+  class MesaModuloFuncionalTest <<repository>> #FEF9C3 {
+    - {static} ZONA_PRUEBA : String
+    - {static} NUMERO_BASE : int
+    - {static} repositorio : MesaRepository
+    - {static} idZona : int
+    - {static} idMesaCuatro : int
+    - {static} idMesaDos : int
+    --
+    ~ {static} prepararDatos() : void
+    ~ {static} limpiarDatos() : void
+    ~ reiniciarMesas() : void
+    ~ cargaDeMesas() : void
+    ~ datosVisiblesDeLaMesa() : void
+    ~ asignarMesaDisponible() : void
+    ~ elEstadoPasaAOcupada() : void
+    ~ liberarMesa() : void
+    ~ mesaOcupadaNoSeReasigna() : void
+    ~ comensalesIgualesALaCapacidad() : void
+    ~ comensalesPorEncimaDeLaCapacidad() : void
+    ~ ceroComensales() : void
+    ~ comensalesNegativos() : void
+    ~ capacidadMasUno() : void
+    ~ bajarCapacidadPorDebajoDeLosComensales() : void
+    ~ consistenciaConLaBaseDeDatos() : void
+    ~ ciclosConsecutivos() : void
+    - {static} buscar(idMesa : int) : Mesa
+    - {static} comensalesEnBaseDeDatos(idMesa : int) : Integer
+    - {static} asegurarEstados(conn : Connection) : void
+    - {static} crearZonaDePrueba(conn : Connection) : int
+    - {static} crearMesa(conn : Connection, numeroMesa : int, capacidad : int) : int
+  }
+  class PedidoModuloFuncionalTest <<repository>> #FEF9C3 {
+    - {static} ZONA_PRUEBA : String
+    - {static} NUMERO_BASE : int
+    - {static} repositorio : PedidoRepository
+    - {static} mesas : MesaRepository
+    - {static} servicio : PedidoService
+    - {static} idZona : int
+    - {static} idMesaUno : int
+    - {static} idMesaDos : int
+    - {static} idUsuario : long
+    --
+    ~ {static} prepararDatos() : void
+    ~ {static} limpiarDatos() : void
+    ~ reiniciar() : void
+    ~ registrarPedido() : void
+    ~ laMesaQuedaOcupada() : void
+    ~ quedaHistorial() : void
+    ~ consultaPorId() : void
+    ~ consultaDePedidoInexistente() : void
+    ~ mesaConComandaActiva() : void
+    ~ cerrarPedido() : void
+    ~ cerrarLiberaLaMesa() : void
+    ~ cerrarDosVeces() : void
+    ~ cerrarPedidoInexistente() : void
+    ~ actualizarPedido() : void
+    ~ pedidoCanceladoNoBloquea() : void
+    ~ cicloCompletoEnLaMismaMesa() : void
+    - {static} estadoEnBaseDeDatos(idPedido : long) : String
+    - {static} productosIguales(idPedido : long, json : String) : boolean
+    - {static} estadoDeMesa(idMesa : int) : String
+    - {static} pedidosDeMesa(idMesa : int) : int
+    - {static} filasDeHistorial(idMesa : int, motivo : String) : int
+    - {static} contar(sql : String, idMesa : int, motivo : String) : int
+    - {static} buscarUsuario(conn : Connection) : long
+    - {static} asegurarEstados(conn : Connection) : void
+    - {static} crearZonaDePrueba(conn : Connection) : int
+    - {static} crearMesa(conn : Connection, numeroMesa : int) : int
+  }
+  class Descripcion <<anidada en TextoBusquedaTest>> #FEF9C3 {
+    ~ encuentraEnDescripcion() : void
+    ~ descripcionNula() : void
+  }
+  class SinTildes <<anidada en TextoBusquedaTest>> #FEF9C3 {
+    ~ sinTildeEncuentraConTilde() : void
+    ~ conTildeEncuentraSinTilde() : void
+    ~ coincidenciaParcial() : void
+    ~ enieEquivaleAEne() : void
+  }
+  class TextoBusquedaTest <<util>> #FEF9C3 {
+    ~ noCoincideCuandoNoDebe() : void
+    ~ normalizarQuitaTildes() : void
+  }
+  class Vacia <<anidada en TextoBusquedaTest>> #FEF9C3 {
+    ~ vaciaCoincideConTodo() : void
+  }
+  CuentaPagoTest -[hidden]right- ItemPedidoTest
+  ItemPedidoTest -[hidden]right- ChoquesNombreTablaTest
+  CuentaPagoTest -[hidden]down- DisponibilidadHu134Test
+  DisponibilidadHu134Test -[hidden]right- MesaModuloFuncionalTest
+  ItemPedidoTest -[hidden]down- MesaModuloFuncionalTest
+  MesaModuloFuncionalTest -[hidden]right- PedidoModuloFuncionalTest
+  ChoquesNombreTablaTest -[hidden]down- PedidoModuloFuncionalTest
+  DisponibilidadHu134Test -[hidden]down- Descripcion
+  Descripcion -[hidden]right- SinTildes
+  MesaModuloFuncionalTest -[hidden]down- SinTildes
+  SinTildes -[hidden]right- TextoBusquedaTest
+  PedidoModuloFuncionalTest -[hidden]down- TextoBusquedaTest
+  Descripcion -[hidden]down- Vacia
+}
+package "src/main/java" #FAFAFA {
+  class Cliente <<entity>> #F3E8FF {
+  }
+  class ClienteRepository <<repository>> #FFEDD5 {
+  }
+  class ConexionBD <<ConexionBD>> #F1F5F9 {
+  }
+  class CuentaPago <<dto>> #FEF9C3 {
+  }
+  class DisponibilidadService <<service>> #DCFCE7 {
+  }
+  enum EstadoPedido <<enums>> #FEF9C3 {
+  }
+  class ItemPedido <<dto>> #FEF9C3 {
+  }
+  class Mesa <<entity>> #F3E8FF {
+  }
+  class MesaNotFoundException <<exceptions>> #FEF9C3 {
+  }
+  class MesaOcupadaException <<exceptions>> #FEF9C3 {
+  }
+  class MesaRepository <<repository>> #FFEDD5 {
+  }
+  class Pedido <<entity>> #F3E8FF {
+  }
+  class PedidoNoEditableException <<exceptions>> #FEF9C3 {
+  }
+  class PedidoRepository <<repository>> #FFEDD5 {
+  }
+  class PedidoService <<service>> #DCFCE7 {
+  }
+  class PlatoInsumo <<entity>> #F3E8FF {
+  }
+  class PlatoInsumoRepository <<repository>> #FFEDD5 {
+  }
+  class Producto <<entity>> #F3E8FF {
+  }
+  class TextoBusqueda <<util>> #FEF9C3 {
+  }
+  Cliente -[hidden]right- ClienteRepository
+  ClienteRepository -[hidden]right- ConexionBD
+  ConexionBD -[hidden]right- CuentaPago
+  CuentaPago -[hidden]right- DisponibilidadService
+  Cliente -[hidden]down- EstadoPedido
+  EstadoPedido -[hidden]right- ItemPedido
+  ClienteRepository -[hidden]down- ItemPedido
+  ItemPedido -[hidden]right- Mesa
+  ConexionBD -[hidden]down- Mesa
+  Mesa -[hidden]right- MesaNotFoundException
+  CuentaPago -[hidden]down- MesaNotFoundException
+  MesaNotFoundException -[hidden]right- MesaOcupadaException
+  DisponibilidadService -[hidden]down- MesaOcupadaException
+  EstadoPedido -[hidden]down- MesaRepository
+  MesaRepository -[hidden]right- Pedido
+  ItemPedido -[hidden]down- Pedido
+  Pedido -[hidden]right- PedidoNoEditableException
+  Mesa -[hidden]down- PedidoNoEditableException
+  PedidoNoEditableException -[hidden]right- PedidoRepository
+  MesaNotFoundException -[hidden]down- PedidoRepository
+  PedidoRepository -[hidden]right- PedidoService
+  MesaOcupadaException -[hidden]down- PedidoService
+  MesaRepository -[hidden]down- PlatoInsumo
+  PlatoInsumo -[hidden]right- PlatoInsumoRepository
+  Pedido -[hidden]down- PlatoInsumoRepository
+  PlatoInsumoRepository -[hidden]right- Producto
+  PedidoNoEditableException -[hidden]down- Producto
+  Producto -[hidden]right- TextoBusqueda
+  PedidoRepository -[hidden]down- TextoBusqueda
+}
+ChoquesNombreTablaTest ..> Cliente
+ChoquesNombreTablaTest ..> ClienteRepository
+ChoquesNombreTablaTest ..> ConexionBD
+ChoquesNombreTablaTest ..> DisponibilidadService
+ChoquesNombreTablaTest ..> PlatoInsumo
+ChoquesNombreTablaTest ..> PlatoInsumoRepository
+CuentaPagoTest ..> CuentaPago
+DisponibilidadHu134Test ..> ConexionBD
+ItemPedidoTest ..> ItemPedido
+ItemPedidoTest ..> Producto
+MesaModuloFuncionalTest ..> ConexionBD
+MesaModuloFuncionalTest ..> Mesa
+MesaModuloFuncionalTest ..> MesaRepository
+PedidoModuloFuncionalTest ..> ConexionBD
+PedidoModuloFuncionalTest ..> EstadoPedido
+PedidoModuloFuncionalTest ..> Mesa
+PedidoModuloFuncionalTest ..> MesaNotFoundException
+PedidoModuloFuncionalTest ..> MesaOcupadaException
+PedidoModuloFuncionalTest ..> MesaRepository
+PedidoModuloFuncionalTest ..> Pedido
+PedidoModuloFuncionalTest ..> PedidoNoEditableException
+PedidoModuloFuncionalTest ..> PedidoRepository
+PedidoModuloFuncionalTest ..> PedidoService
+TextoBusquedaTest ..> TextoBusqueda
+@enduml

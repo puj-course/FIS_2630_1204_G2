@@ -1,0 +1,49 @@
+@startuml
+allowmixing
+top to bottom direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam roundCorner 6
+skinparam nodesep 28
+skinparam ranksep 70
+skinparam ArrowColor #475569
+skinparam ArrowThickness 1.1
+skinparam ComponentBackgroundColor #FFFFFF
+skinparam ComponentFontSize 12
+skinparam ComponentBorderColor #334155
+skinparam ArtifactBackgroundColor #FFFFFF
+skinparam ArtifactFontSize 12
+skinparam DatabaseBackgroundColor #FFFFFF
+
+package "src/main/java" #F8FAFC {
+  artifact "(raiz)\n<size:10>1 .java</size>" as J__raiz_ #DBEAFE
+  artifact "ConexionBD/\n<size:10>1 .java</size>" as J_ConexionBD #F1F5F9
+  artifact "controller/\n<size:10>8 .java</size>" as J_controller #DBEAFE
+  artifact "dao/\n<size:10>3 .java</size>" as J_dao #FFEDD5
+  artifact "repository/\n<size:10>23 .java</size>" as J_repository #FFEDD5
+  artifact "service/\n<size:10>12 .java</size>" as J_service #DCFCE7
+  artifact "session/\n<size:10>1 .java</size>" as J_session #F3E8FF
+  artifact "util/\n<size:10>1 .java</size>" as J_util #F3E8FF
+  J__raiz_ -[hidden]right- J_ConexionBD
+  J_ConexionBD -[hidden]right- J_controller
+  J_controller -[hidden]right- J_dao
+  J_dao -[hidden]right- J_repository
+  J_repository -[hidden]right- J_service
+  J_service -[hidden]right- J_session
+  J_session -[hidden]right- J_util
+}
+package "src/main/resources" #FEF9C3 {
+  artifact "views/\n<size:10>7 .fxml</size>" as A_fxml
+  artifact "css/\n<size:10>5 .css</size>" as A_css
+  A_fxml -[hidden]right- A_css
+}
+package "db" #DCFCE7 {
+  artifact "scripts\n<size:10>49 archivos</size>" as A_db
+}
+database "**gastroflow**\n<size:10>27 tablas</size>" as bd
+A_fxml ..> J_controller : 7
+J__raiz_ ..> A_css : 5
+A_db --> bd
+J_ConexionBD --> bd
+@enduml
