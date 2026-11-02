@@ -15,7 +15,20 @@
         <javafx.version>21.0.5</javafx.version>
         <postgresql.version>42.7.5</postgresql.version>
         <junit.version>5.11.4</junit.version>
-        <sonar.organization>puj-course</sonar.organization>
+        <jacoco.version>0.8.12</jacoco.version>
+
+        <!--
+            Taller de pruebas y metricas. Estos tres valores salen de la pagina
+            del proyecto en https://sonarcloud.io una vez se importa el
+            repositorio. El token no va aqui: va como secreto SONAR_TOKEN del
+            repositorio en GitHub.
+        -->
+        <sonar.organization>COMPLETAR</sonar.organization>
+        <sonar.projectKey>COMPLETAR</sonar.projectKey>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.coverage.jacoco.xmlReportPaths>
+            ${project.build.directory}/site/jacoco/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencies>
@@ -83,6 +96,44 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
+            </plugin>
+
+            <!--
+                Taller de pruebas y metricas: informe HTML de resultados.
+                Se genera con 'mvn surefire-report:report-only' despues de
+                'mvn test' y queda en target/site/surefire-report.html.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>3.5.2</version>
+            </plugin>
+
+            <!--
+                Taller de pruebas y metricas: cobertura. El agente se engancha
+                antes de las pruebas y el reporte se escribe al terminar la
+                fase test, en target/site/jacoco (HTML para leerlo y XML para
+                que SonarCloud lo lea).
+            -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>jacoco-prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>jacoco-report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.openjfx</groupId>
