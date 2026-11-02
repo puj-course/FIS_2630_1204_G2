@@ -1,243 +1,265 @@
 erDiagram
-  roles ||--o{ usuarios : tiene
-  tipos_documento ||--o{ usuarios : identifica
-  tipos_documento ||--o{ clientes : identifica
-  usuarios |o--o{ clientes : cuenta
-  zonas ||--o{ mesas : agrupa
-  estados_mesa ||--o{ mesas : estado_actual
-  mesas ||--o{ historial_estado_mesa : registra
-  estados_mesa ||--o{ historial_estado_mesa : anterior_y_nuevo
-  mesas ||--o| nota_mesa : tiene
-  mesas ||--o{ reservas : recibe
-  mesas ||--o{ asignacion_mesa : asignada
-  usuarios ||--o{ asignacion_mesa : atiende
-  mesas |o--o{ pedidos : origina
-  clientes |o--o{ pedidos : pide
-  usuarios ||--o{ pedidos : toma_y_cancela
-  pedidos ||--o{ detalle_pedido : contiene
-  productos ||--o{ detalle_pedido : vendido
-  detalle_pedido ||--o{ detalle_pedido_adicional : lleva
-  adicional ||--o{ detalle_pedido_adicional : aplicado
-  pedidos ||--o{ pagos : se_cobra
-  usuarios ||--o{ pagos : cobra
-  categorias ||--o{ productos : clasifica
-  productos ||--o{ plato_insumo : receta
-  ingredientes ||--o{ plato_insumo : usado_en
-  unidades_medida ||--o{ ingredientes : mide
-  productos |o--o{ movimientos_inventario : mueve
-  ingredientes |o--o{ movimientos_inventario : mueve
-  usuarios ||--o{ movimientos_inventario : responsable
-  productos |o--o{ alerta_inventario : alerta
-  ingredientes |o--o{ alerta_inventario : alerta
 
-  roles {
-    int id_rol PK
-    string nombre_rol
-    string descripcion
-  }
-  tipos_documento {
-    int id_tipo_documento PK
-    string codigo
-    string nombre
-  }
-  usuarios {
-    int id_usuario PK
-    string codigo_empleado
-    int id_tipo_documento FK
-    string numero_documento
-    string nombre
-    string apellido
-    string correo
-    string password_hash
-    string pin_acceso_hash
-    int id_rol FK
-    smallint is_on_shift
-    smallint is_active
-  }
-  clientes {
-    int id_cliente PK
-    int id_tipo_documento FK
-    string numero_documento
-    string nombre
-    string apellido
-    string correo
-    string telefono
-    int id_usuario_cuenta FK
-    smallint is_active
-  }
-  zonas {
-    int id_zona PK
-    string nombre_zona
-    string descripcion
-    smallint is_active
-  }
-  estados_mesa {
-    int id_estado_mesa PK
-    string codigo_estado
-    string descripcion
-  }
-  mesas {
-    int id_mesa PK
-    int numero_mesa
-    string codigo_mesa
-    int capacidad
-    int cantidad_comensales
-    int id_zona FK
-    int id_estado_mesa FK
-    string codigo_qr
-    smallint is_active
-  }
-  historial_estado_mesa {
-    bigint id PK
-    bigint mesa_id FK
-    bigint estado_anterior_id FK
-    bigint estado_nuevo_id FK
-    string motivo
-    datetime fecha_cambio
-  }
-  nota_mesa {
-    bigint id_nota PK
-    bigint id_mesa FK
-    string texto_nota
-    datetime fecha_creacion
-  }
-  reservas {
-    bigint id_reserva PK
-    bigint id_mesa FK
-    datetime fecha_hora_reserva
-    string nombre_cliente
-    int cantidad_personas
-    smallint is_active
-    datetime fecha_cancelacion
-  }
-  asignacion_mesa {
-    bigint id PK
-    int mesa_id FK
-    int usuario_id FK
-    datetime fecha_asignacion
-    bool is_active
-  }
-  categorias {
-    bigint categoria_id PK
-    string nombre
-    string descripcion
-    int orden_visual
-    string estado
-  }
-  productos {
-    bigint producto_id PK
-    string codigo
-    string nombre
-    string descripcion
-    bigint categoria_id FK
-    decimal precio_venta
-    decimal costo
-    jsonb ingredientes
-    decimal stock_actual
-    decimal stock_minimo
-    decimal stock_maximo
-    string estado
-  }
-  unidades_medida {
-    bigint unidad_medida_id PK
-    string codigo
-    string nombre
-    string abreviatura
-    string tipo
-  }
-  ingredientes {
-    bigint ingrediente_id PK
-    string nombre
-    string descripcion
-    bigint unidad_medida_id FK
-    decimal costo_unitario
-    decimal stock_actual
-    decimal stock_minimo
-    decimal stock_maximo
-    string proveedor
-    string lote
-    date fecha_vencimiento
-    string categoria
-    string estado
-  }
-  plato_insumo {
-    bigint id PK
-    bigint plato_id FK
-    bigint insumo_id FK
-    decimal cantidad_necesaria
-  }
-  adicional {
-    bigint id PK
-    string nombre
-    decimal precio_adicional
-    bool is_active
-  }
-  regla_descuento {
-    bigint id PK
-    string tipo_cambio
-    decimal valor
-    bool es_porcentaje
-    bool is_active
-  }
-  pedidos {
-    bigint pedido_id PK
-    string numero_pedido
-    bigint cliente_id FK
-    bigint mesa_id FK
-    bigint usuario_id FK
-    jsonb productos
-    string estado
-    decimal subtotal
-    decimal descuento
-    decimal impuestos
-    decimal propina
-    decimal total
-    char inventario_descontado
-    string motivo_cancelacion
-    bigint cancelado_por FK
-  }
-  detalle_pedido {
-    bigint id PK
-    bigint pedido_id FK
-    bigint plato_id FK
-    decimal cantidad
-    decimal precio_unitario
-    decimal subtotal
-  }
-  detalle_pedido_adicional {
-    bigint id PK
-    bigint detalle_pedido_id FK
-    bigint adicional_id FK
-    decimal cantidad
-  }
-  pagos {
-    bigint pago_id PK
-    bigint pedido_id FK
-    bigint usuario_id FK
-    decimal subtotal
-    decimal descuento
-    decimal impuestos
-    decimal propina
-    string motivo_descuento
-    decimal total_pagado
-    string estado
-  }
-  movimientos_inventario {
-    int id_movimiento PK
-    bigint producto_id FK
-    bigint ingrediente_id FK
-    string tipo_movimiento
-    decimal cantidad
-    string motivo
-    bigint usuario_id FK
-    datetime fecha_movimiento
-  }
-  alerta_inventario {
-    bigint id PK
-    bigint ingrediente_id FK
-    bigint producto_id FK
-    decimal stock_actual
-    decimal stock_minimo
-    decimal cantidad_sugerida
-    string estado
-  }
+ROL {
+INTEGER id_rol PK "GENERATED ALWAYS AS IDENTITY"
+VARCHAR nombre UK "NOT NULL"
+VARCHAR descripcion
+}
+
+TIPO_DOCUMENTO {
+INTEGER id_tipo_documento PK "GENERATED ALWAYS AS IDENTITY"
+VARCHAR codigo UK "NOT NULL"
+VARCHAR nombre "NOT NULL"
+    }
+
+ZONA {
+INTEGER id_zona PK "GENERATED ALWAYS AS IDENTITY"
+VARCHAR nombre UK "NOT NULL"
+VARCHAR descripcion
+BOOLEAN is_active "DEFAULT TRUE"
+}
+
+ESTADO_MESA {
+INTEGER id_estado_mesa PK "GENERATED ALWAYS AS IDENTITY"
+VARCHAR nombre UK "NOT NULL"
+VARCHAR descripcion
+}
+
+ESTADO_PEDIDO {
+INTEGER id_estado_pedido PK "GENERATED ALWAYS AS IDENTITY"
+VARCHAR nombre UK "NOT NULL"
+VARCHAR descripcion
+}
+
+UNIDAD_MEDIDA {
+INTEGER id_unidad_medida PK "GENERATED BY DEFAULT AS IDENTITY"
+VARCHAR codigo UK "NOT NULL"
+VARCHAR nombre UK "NOT NULL"
+}
+
+CATEGORIA {
+INTEGER id_categoria PK "GENERATED BY DEFAULT AS IDENTITY"
+VARCHAR nombre UK "NOT NULL"
+VARCHAR descripcion
+INTEGER orden_visual "CHECK >= 0"
+BOOLEAN is_active "DEFAULT TRUE"
+}
+
+USUARIO {
+INTEGER id_usuario PK "GENERATED ALWAYS AS IDENTITY"
+INTEGER id_rol FK "NOT NULL"
+INTEGER id_tipo_documento FK "NOT NULL"
+VARCHAR numero_documento UK "NOT NULL"
+VARCHAR nombre "NOT NULL"
+VARCHAR apellido "NOT NULL"
+NUMERIC telefono "NOT NULL"
+VARCHAR correo UK "NOT NULL"
+VARCHAR password_hash "NOT NULL"
+VARCHAR pin_acceso_hash
+BOOLEAN is_active "DEFAULT TRUE"
+}
+
+CLIENTE {
+INTEGER id_cliente PK "GENERATED ALWAYS AS IDENTITY"
+INTEGER id_tipo_documento FK "NOT NULL"
+INTEGER id_mesero FK
+VARCHAR numero_documento UK "NOT NULL"
+VARCHAR nombre "NOT NULL"
+VARCHAR apellido "NOT NULL"
+VARCHAR correo UK
+VARCHAR telefono "NOT NULL"
+BOOLEAN is_active "DEFAULT TRUE"
+}
+
+MESA {
+INTEGER id_mesa PK "GENERATED ALWAYS AS IDENTITY"
+INTEGER id_zona FK "NOT NULL"
+NUMERIC numero_mesa "NOT NULL"
+NUMERIC capacidad "CHECK > 0"
+INTEGER cantidad_comensales
+INTEGER id_estado_mesa FK "NOT NULL"
+VARCHAR nota
+}
+
+HISTORIAL_ESTADO_MESA {
+INTEGER id_historial PK "GENERATED ALWAYS AS IDENTITY"
+INTEGER id_mesa FK "NOT NULL"
+INTEGER estado_anterior_id FK
+INTEGER estado_nuevo_id FK "NOT NULL"
+VARCHAR motivo
+TIMESTAMP fecha_cambio "DEFAULT CURRENT_TIMESTAMP"
+}
+
+INGREDIENTE {
+INTEGER id_ingrediente PK "GENERATED BY DEFAULT AS IDENTITY"
+INTEGER id_unidad_medida FK "NOT NULL"
+VARCHAR nombre UK "NOT NULL"
+VARCHAR descripcion
+BOOLEAN is_active "DEFAULT TRUE"
+NUMERIC costo_unitario "CHECK >= 0"
+NUMERIC stock_actual "CHECK >= 0"
+NUMERIC stock_minimo "CHECK >= 0"
+NUMERIC stock_maximo "CHECK >= stock_minimo"
+VARCHAR lote
+DATE fecha_vencimiento
+    }
+
+PRODUCTO {
+INTEGER id_producto PK "GENERATED BY DEFAULT AS IDENTITY"
+VARCHAR nombre UK "NOT NULL"
+VARCHAR descripcion
+INTEGER id_categoria FK "NOT NULL"
+NUMERIC precio "CHECK > 0"
+BOOLEAN is_active "DEFAULT TRUE"
+}
+
+INGREDIENTE_PRODUCTO {
+INTEGER id_ingrediente_producto PK "GENERATED BY DEFAULT AS IDENTITY"
+INTEGER id_producto FK "NOT NULL"
+INTEGER id_ingrediente FK "NOT NULL"
+NUMERIC cantidad_necesaria "CHECK > 0"
+}
+
+ADICIONAL {
+BIGINT id_adicional PK "GENERATED BY DEFAULT AS IDENTITY"
+BIGINT id_ingrediente FK "NOT NULL"
+VARCHAR nombre UK "NOT NULL"
+NUMERIC precio_adicional "CHECK >= 0"
+BOOLEAN is_active "DEFAULT TRUE"
+}
+
+PEDIDO {
+INTEGER id_pedido PK "GENERATED BY DEFAULT AS IDENTITY"
+INTEGER id_cliente FK
+INTEGER id_mesa FK
+INTEGER id_mesero FK "NOT NULL"
+INTEGER id_estado_pedido FK "NOT NULL"
+TIMESTAMP fecha_creacion "DEFAULT CURRENT_TIMESTAMP"
+VARCHAR observaciones
+}
+
+DETALLE_PEDIDO {
+INTEGER id_detalle_pedido PK "GENERATED BY DEFAULT AS IDENTITY"
+INTEGER id_pedido FK "NOT NULL"
+INTEGER id_producto FK "NOT NULL"
+NUMERIC cantidad "CHECK > 0"
+NUMERIC precio_unitario "CHECK >= 0"
+NUMERIC subtotal "CHECK >= 0"
+}
+
+DETALLE_PEDIDO_ADICIONAL {
+BIGINT id_detalle_adicional PK "GENERATED BY DEFAULT AS IDENTITY"
+BIGINT id_detalle_pedido FK "NOT NULL"
+BIGINT id_adicional FK "NOT NULL"
+NUMERIC cantidad "CHECK > 0"
+NUMERIC precio_unitario "CHECK >= 0"
+NUMERIC subtotal "GENERATED ALWAYS AS (cantidad * precio_unitario)"
+}
+
+RESERVA {
+INTEGER id_reserva PK "GENERATED BY DEFAULT AS IDENTITY"
+INTEGER id_cliente FK "NOT NULL"
+INTEGER id_mesa FK "NOT NULL"
+TIMESTAMP fecha_hora_reserva "NOT NULL"
+INTEGER cantidad_personas "CHECK > 0"
+VARCHAR estado "CHECK IN ('CREADA','CANCELADA','COMPLETADA')"
+TIMESTAMP fecha_cancelacion
+TIMESTAMP created_at "DEFAULT CURRENT_TIMESTAMP"
+}
+
+ASIGNACION_MESA {
+INTEGER id_asignacion PK "GENERATED BY DEFAULT AS IDENTITY"
+INTEGER id_mesa FK "NOT NULL"
+INTEGER id_cliente FK
+INTEGER id_reserva FK
+INTEGER id_usuario FK "NOT NULL"
+INTEGER cantidad_personas "CHECK > 0"
+BOOLEAN is_active "DEFAULT TRUE"
+TIMESTAMP fecha_asignacion "DEFAULT CURRENT_TIMESTAMP"
+}
+
+FACTURA {
+INTEGER id_factura PK "GENERATED ALWAYS AS IDENTITY"
+INTEGER id_pedido FK "NOT NULL"
+NUMERIC subtotal "CHECK >= 0"
+NUMERIC descuento "CHECK >= 0"
+NUMERIC impuesto "CHECK >= 0"
+NUMERIC propina "CHECK >= 0"
+NUMERIC total_pagado "CHECK total = subtotal + impuesto + propina - descuento"
+VARCHAR estado "CHECK IN ('PAGADA','ANULADA','PENDIENTE')"
+TIMESTAMP fecha_pago "DEFAULT CURRENT_TIMESTAMP"
+}
+
+REGLA_DESCUENTO {
+BIGINT id_regla_descuento PK "GENERATED BY DEFAULT AS IDENTITY"
+VARCHAR nombre UK "NOT NULL"
+VARCHAR descripcion
+NUMERIC valor "CHECK >= 0"
+BOOLEAN es_porcentaje "DEFAULT FALSE"
+BOOLEAN is_active "DEFAULT TRUE"
+}
+
+MOVIMIENTO_INVENTARIO {
+INTEGER id_movimiento PK "GENERATED BY DEFAULT AS IDENTITY"
+INTEGER id_producto FK
+INTEGER id_ingrediente FK
+VARCHAR tipo_movimiento "CHECK IN ('ENTRADA','SALIDA')"
+NUMERIC cantidad "CHECK > 0"
+TIMESTAMP fecha_movimiento "DEFAULT CURRENT_TIMESTAMP"
+}
+
+ALERTA_INVENTARIO {
+INTEGER id_alerta PK "GENERATED BY DEFAULT AS IDENTITY"
+INTEGER id_ingrediente FK
+INTEGER id_producto FK
+NUMERIC stock_actual "CHECK >= 0"
+NUMERIC stock_minimo "CHECK >= 0"
+VARCHAR estado "CHECK IN ('PENDIENTE','RESUELTA','IGNORADA')"
+TIMESTAMP created_at "DEFAULT CURRENT_TIMESTAMP"
+TIMESTAMP resolved_at
+}
+
+ROL ||--o{ USUARIO : "id_rol"
+TIPO_DOCUMENTO ||--o{ USUARIO : "id_tipo_documento"
+TIPO_DOCUMENTO ||--o{ CLIENTE : "id_tipo_documento"
+USUARIO ||--o{ CLIENTE : "id_mesero"
+
+ZONA ||--o{ MESA : "id_zona"
+ESTADO_MESA ||--o{ MESA : "id_estado_mesa"
+MESA ||--o{ HISTORIAL_ESTADO_MESA : "id_mesa"
+ESTADO_MESA ||--o{ HISTORIAL_ESTADO_MESA : "estado_anterior_id"
+ESTADO_MESA ||--o{ HISTORIAL_ESTADO_MESA : "estado_nuevo_id"
+
+CLIENTE ||--o{ RESERVA : "id_cliente"
+MESA ||--o{ RESERVA : "id_mesa"
+
+MESA ||--o{ ASIGNACION_MESA : "id_mesa"
+CLIENTE ||--o| ASIGNACION_MESA : "id_cliente"
+RESERVA ||--o| ASIGNACION_MESA : "id_reserva"
+USUARIO ||--o{ ASIGNACION_MESA : "id_usuario"
+
+CATEGORIA ||--o{ PRODUCTO : "id_categoria"
+UNIDAD_MEDIDA ||--o{ INGREDIENTE : "id_unidad_medida"
+PRODUCTO ||--o{ INGREDIENTE_PRODUCTO : "id_producto"
+INGREDIENTE ||--o{ INGREDIENTE_PRODUCTO : "id_ingrediente"
+
+INGREDIENTE ||--o| ADICIONAL : "id_ingrediente"
+
+CLIENTE ||--o{ PEDIDO : "id_cliente"
+MESA ||--o{ PEDIDO : "id_mesa"
+USUARIO ||--o{ PEDIDO : "id_mesero"
+ESTADO_PEDIDO ||--o{ PEDIDO : "id_estado_pedido"
+
+PEDIDO ||--o{ DETALLE_PEDIDO : "id_pedido"
+PRODUCTO ||--o{ DETALLE_PEDIDO : "id_producto"
+
+DETALLE_PEDIDO ||--o{ DETALLE_PEDIDO_ADICIONAL : "id_detalle_pedido"
+ADICIONAL ||--o{ DETALLE_PEDIDO_ADICIONAL : "id_adicional"
+
+PEDIDO ||--|| FACTURA : "id_pedido"
+
+PRODUCTO ||--o{ MOVIMIENTO_INVENTARIO : "id_producto"
+INGREDIENTE ||--o{ MOVIMIENTO_INVENTARIO : "id_ingrediente"
+
+PRODUCTO ||--o{ ALERTA_INVENTARIO : "id_producto"
+INGREDIENTE ||--o{ ALERTA_INVENTARIO : "id_ingrediente"
