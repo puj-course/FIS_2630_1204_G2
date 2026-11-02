@@ -17,11 +17,11 @@ public class ClienteRepository {
     // en lugar de recibir el id, porque el id depende del orden en que se haya
     // sembrado el catalogo.
     private static final String SQL_INSERTAR =
-            "INSERT INTO clientes "
+            "INSERT INTO cliente "
           + "(id_tipo_documento, numero_documento, nombre, apellido, correo, telefono) "
           + "SELECT td.id_tipo_documento, ?, ?, ?, ?, ? "
           + "  FROM tipos_documento td "
-          + " WHERE td.codigo = ?";
+          + " WHERE td.id_tipo_documento = ?";
 
     public void guardar(Cliente cliente) throws SQLException {
 

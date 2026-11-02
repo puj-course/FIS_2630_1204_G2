@@ -12,10 +12,9 @@ import java.util.Optional;
 public class IngredienteRepository {
 
     private static final String SELECT_BASE =
-            "SELECT ingrediente_id, nombre, descripcion, unidad_medida_id, costo_unitario, " +
-                    "stock_actual, stock_minimo, stock_maximo, proveedor, lote, fecha_vencimiento, " +
-                    "categoria, estado, fecha_creacion, fecha_actualizacion " +
-                    "FROM ingredientes ";
+            "SELECT id_ingrediente, nombre, descripcion, id_unidad_medida, costo_unitario, " +
+                    "stock_actual, stock_minimo, stock_maximo, lote, fecha_vencimiento, is_active" +
+                    "FROM ingrediente ";
 
     public Optional<Ingrediente> findById(long id) throws SQLException {
         try (Connection conn = ConexionBD.getConnection()) {
@@ -37,7 +36,7 @@ public class IngredienteRepository {
     // bloquea la fila hasta que termine la transacción de la Connection recibida.
     // Solo tiene efecto con conn.setAutoCommit(false).
     public Optional<Ingrediente> findByIdForUpdate(Connection conn, long id) throws SQLException {
-        String sql = SELECT_BASE + "WHERE ingrediente_id = ? FOR UPDATE";
+        String sql = SELECT_BASE + "WHERE id_ingrediente = ? FOR UPDATE";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -47,7 +46,7 @@ public class IngredienteRepository {
     }
 
     public List<Ingrediente> findActivos() throws SQLException {
-        String sql = SELECT_BASE + "WHERE estado = 'ACTIVO' ORDER BY nombre";
+        String sql = SELECT_BASE + "WHERE is_acrive = 'TRUE' ORDER BY nombre";
         List<Ingrediente> resultado = new ArrayList<>();
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -60,7 +59,7 @@ public class IngredienteRepository {
     }
 
     public List<Ingrediente> findActivosPorNombre(String texto) throws SQLException {
-        String sql = SELECT_BASE + "WHERE estado = 'ACTIVO' AND LOWER(nombre) LIKE LOWER(?) ORDER BY nombre";
+        String sql = SELECT_BASE + "WHERE is_active = 'TRUE' AND LOWER(nombre) LIKE LOWER(?) ORDER BY nombre";
         List<Ingrediente> resultado = new ArrayList<>();
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -82,13 +81,13 @@ public class IngredienteRepository {
 
     public Ingrediente save(Connection conn, Ingrediente i) throws SQLException {
         if (i.getUnidadMedidaId() == null) {
-            throw new SQLException("unidad_medida_id es obligatorio para guardar un ingrediente");
+            throw new SQLException("id_unidad_medida es obligatorio para guardar un ingrediente");
         }
 
         if (i.getId() == null) {
-            String sql = "INSERT INTO ingredientes (nombre, descripcion, unidad_medida_id, costo_unitario, " +
-                    "stock_actual, stock_minimo, stock_maximo, proveedor, lote, fecha_vencimiento, " +
-                    "categoria, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING ingrediente_id";
+            String sql = "INSERT INTO ingrediente (nombre, descripcion, id_unidad_medida, costo_unitario, " +
+                    "stock_actual, stock_minimo, stock_maximo, lote, fecha_vencimiento, " +
+                    "is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id_ingrediente";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 bindCampos(stmt, i);
                 try (ResultSet rs = stmt.executeQuery()) {
@@ -98,10 +97,10 @@ public class IngredienteRepository {
                 }
             }
         } else {
-            String sql = "UPDATE ingredientes SET nombre = ?, descripcion = ?, unidad_medida_id = ?, " +
+            String sql = "UPDATE ingrediente SET nombre = ?, descripcion = ?, id_unidad_medida = ?, " +
                     "costo_unitario = ?, stock_actual = ?, stock_minimo = ?, stock_maximo = ?, " +
-                    "proveedor = ?, lote = ?, fecha_vencimiento = ?, categoria = ?, estado = ?, " +
-                    "fecha_actualizacion = CURRENT_TIMESTAMP WHERE ingrediente_id = ?";
+                    "lote = ?, fecha_vencimiento = ?, id_acrive = ?, " +
+                    "WHERE ingrediente_id = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 bindCampos(stmt, i);
                 stmt.setLong(13, i.getId());
@@ -113,7 +112,7 @@ public class IngredienteRepository {
 
     // Para descontar/reponer stock dentro de una transacción compartida con un movimiento de inventario
     public void actualizarStock(Connection conn, long id, BigDecimal nuevoStock) throws SQLException {
-        String sql = "UPDATE ingredientes SET stock_actual = ?, fecha_actualizacion = CURRENT_TIMESTAMP " +
+        String sql = "UPDATE ingrediente SET stock_actual = ?, " +
                 "WHERE ingrediente_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setBigDecimal(1, nuevoStock);
@@ -126,13 +125,13 @@ public class IngredienteRepository {
             throws SQLException {
 
         String sql = """
-                SELECT ingrediente_id,
+                SELECT id_ingrediente,
                        nombre,
                        stock_actual,
                        stock_minimo,
-                       estado
-                FROM ingredientes
-                WHERE estado = 'ACTIVO'
+                       is_active
+                FROM ingrediente
+                WHERE is_avrive = 'TRUE'
                 ORDER BY nombre
                 """;
 
@@ -158,15 +157,13 @@ public class IngredienteRepository {
         stmt.setBigDecimal(5, i.getStockActual());
         stmt.setBigDecimal(6, i.getStockMinimo());
         stmt.setBigDecimal(7, i.getStockMaximo());
-        stmt.setString(8, i.getProveedor());
-        stmt.setString(9, i.getLote());
+        stmt.setString(8, i.getLote());
         if (i.getFechaVencimiento() != null) {
-            stmt.setDate(10, Date.valueOf(i.getFechaVencimiento()));
+            stmt.setDate(9, Date.valueOf(i.getFechaVencimiento()));
         } else {
             stmt.setNull(10, Types.DATE);
         }
-        stmt.setString(11, i.getCategoria());
-        stmt.setString(12, i.getEstado());
+        stmt.setString(10, i.getEstado());
     }
 
     private Ingrediente map(ResultSet rs) throws SQLException {
@@ -179,22 +176,12 @@ public class IngredienteRepository {
         i.setStockActual(rs.getBigDecimal("stock_actual"));
         i.setStockMinimo(rs.getBigDecimal("stock_minimo"));
         i.setStockMaximo(rs.getBigDecimal("stock_maximo"));
-        i.setProveedor(rs.getString("proveedor"));
         i.setLote(rs.getString("lote"));
         Date fv = rs.getDate("fecha_vencimiento");
         if (fv != null) {
             i.setFechaVencimiento(fv.toLocalDate());
         }
-        i.setCategoria(rs.getString("categoria"));
         i.setEstado(rs.getString("estado"));
-        Timestamp fc = rs.getTimestamp("fecha_creacion");
-        if (fc != null) {
-            i.setFechaCreacion(fc.toLocalDateTime());
-        }
-        Timestamp fa = rs.getTimestamp("fecha_actualizacion");
-        if (fa != null) {
-            i.setFechaActualizacion(fa.toLocalDateTime());
-        }
         return i;
     }
 }

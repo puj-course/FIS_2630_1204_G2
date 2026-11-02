@@ -11,8 +11,8 @@ public class DetallePedidoRepository {
 
     public DetallePedidoAdicional save(DetallePedidoAdicional d) throws SQLException {
         if (d.getId() == null) {
-            String sql = "INSERT INTO detalle_pedido_adicional (detalle_pedido_id, adicional_id, cantidad) " +
-                    "VALUES (?, ?, ?) RETURNING id";
+            String sql = "INSERT INTO detalle_pedido_adicional (id_detalle_pedido, id_adicional, cantidad) " +
+                    "VALUES (?, ?, ?) RETURNING id_detalle_adicional";
             try (Connection conn = ConexionBD.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setLong(1, d.getDetallePedidoId());
@@ -25,7 +25,7 @@ public class DetallePedidoRepository {
                 }
             }
         } else {
-            String sql = "UPDATE detalle_pedido_adicional SET detalle_pedido_id = ?, adicional_id = ?, cantidad = ? WHERE id = ?";
+            String sql = "UPDATE detalle_pedido_adicional SET id_detalle_pedido = ?, id_adicional = ?, cantidad = ? WHERE id_detalle_adicional = ?";
             try (Connection conn = ConexionBD.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setLong(1, d.getDetallePedidoId());
@@ -43,7 +43,7 @@ public class DetallePedidoRepository {
             return;
         }
 
-        String sql = "INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO detalle_pedido (id_pedido, id_producto, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             for (DetallePedido detalle : detalles) {
