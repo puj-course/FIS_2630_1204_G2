@@ -1,4 +1,5 @@
 # Alineación de paquetes Java
+
 ---
 
 ## Objetivo

@@ -15,6 +15,7 @@
         <javafx.version>21.0.5</javafx.version>
         <postgresql.version>42.7.5</postgresql.version>
         <junit.version>5.11.4</junit.version>
+        <sonar.organization>puj-course</sonar.organization>
     </properties>
 
     <dependencies>
