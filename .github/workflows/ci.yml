@@ -34,10 +34,17 @@
         PGPORT: 5432
         PGUSER: postgres
         PGPASSWORD: postgres
+        # Taller de pruebas y metricas. Si el secreto no esta configurado el
+        # paso de SonarCloud se salta y el pipeline sigue pasando igual.
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       steps:
         - name: Descargar código
           uses: actions/checkout@v4
+          with:
+            # SonarCloud necesita el historial completo para atribuir el codigo
+            # nuevo; con el clon superficial por defecto reporta mal.
+            fetch-depth: 0
 
         - name: Configurar Java 21 y caché Maven
           uses: actions/setup-java@v4
@@ -62,4 +69,43 @@
 
         - name: Ejecutar pruebas automatizadas
           run: mvn --batch-mode test
+
+        # ------------------------------------------------------------------
+        # Taller de pruebas y metricas
+        # ------------------------------------------------------------------
+
+        - name: Generar el informe HTML de resultados
+          # Se genera aunque alguna prueba falle: el informe de un pipeline
+          # rojo es justamente el que hay que mirar.
+          if: always()
+          run: mvn --batch-mode surefire-report:report-only
+
+        - name: Generar el informe con la plantilla del plan de pruebas
+          # Cruza los resultados de Surefire con docs/planDePruebas.md y emite
+          # el informe con las mismas columnas del plan (punto 2 del taller).
+          # No tumba el build si el plan y las pruebas no coinciden: lo avisa
+          # en el log y lo marca en rojo dentro del propio informe.
+          if: always()
+          continue-on-error: true
+          run: python3 scripts/informe_pruebas.py
+
+        - name: Publicar el informe de pruebas y la cobertura
+          if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: informe-de-pruebas
+            retention-days: 30
+            path: |
+              target/site/informe-pruebas.html
+              target/site/informe-pruebas.json
+              target/site/surefire-report.html
+              target/site/jacoco/
+              target/surefire-reports/
+
+        - name: Analizar la calidad con SonarCloud
+          # Se salta mientras no exista el secreto SONAR_TOKEN.
+          if: ${{ env.SONAR_TOKEN != '' }}
+          run: >
+            mvn --batch-mode
+            org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar
 
