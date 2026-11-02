@@ -15,8 +15,16 @@ import java.util.Optional;
 
 public class PedidoRepository {
 
+    // Selección base uniendo con la tabla estados_mesa / estado_pedido según corresponda para obtener el código o ID del estado
+    private static final String SELECT_BASE =
+            "SELECT p.id_pedido, p.id_cliente, p.id_mesa, p.id_mesero, " +
+                    "       p.id_estado_pedido, ep.codigo_estado AS estado_str, " +
+                    "       p.fecha_creacion, p.observaciones " +
+                    "FROM pedido p " +
+                    "JOIN estado_pedido ep ON p.id_estado_pedido = ep.id_estado_pedido ";
+
     public Optional<Pedido> findById(long id) throws SQLException {
-        String sql = "SELECT pedido_id, numero_pedido, mesa_id, usuario_id, " + "productos, estado, fecha_pedido, subtotal, impuestos, total, " + "inventario_descontado " + "FROM pedidos " + "WHERE pedido_id = ?";
+        String sql = SELECT_BASE + "WHERE p.id_pedido = ?";
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
@@ -30,11 +38,13 @@ public class PedidoRepository {
     }
 
     public boolean existsByMesaIdAndEstadoNot(long mesaId, EstadoPedido estadoExcluido) throws SQLException {
+        // Se valida consultando el código del estado en la tabla relacionada
         String sql =
-                "SELECT 1 FROM pedidos " +
-                        "WHERE mesa_id = ? " +
-                        "AND estado <> ? " +
-                        "AND estado NOT IN (?, ?, ?) " +
+                "SELECT 1 FROM pedido p " +
+                        "JOIN estado_pedido ep ON p.id_estado_pedido = ep.id_estado_pedido " +
+                        "WHERE p.id_mesa = ? " +
+                        "AND ep.codigo_estado <> ? " +
+                        "AND ep.codigo_estado NOT IN (?, ?, ?) " +
                         "LIMIT 1";
 
         try (Connection conn = ConexionBD.getConnection();
@@ -52,13 +62,10 @@ public class PedidoRepository {
 
     //Para operaciones de pedido en estilo de transaccion
     public Optional<Pedido> findActivoByMesaIdWithConn(Connection conn, long mesaId) throws SQLException {
-        String sql = "SELECT pedido_id, numero_pedido, mesa_id, usuario_id, " +
-                "productos, estado, fecha_pedido, subtotal, impuestos, total, " +
-                "inventario_descontado " +
-                "FROM pedidos " +
-                "WHERE mesa_id = ? " +
-                "AND estado NOT IN ('CANCELADO', 'ENTREGADO', 'COMPLETADO') " +
-                "ORDER BY pedido_id DESC " +
+        String sql = SELECT_BASE +
+                "WHERE p.id_mesa = ? " +
+                "AND ep.codigo_estado NOT IN ('CANCELADO', 'ENTREGADO', 'COMPLETADO', 'PAGADO') " +
+                "ORDER BY p.id_pedido DESC " +
                 "LIMIT 1";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -74,29 +81,28 @@ public class PedidoRepository {
 
     public Pedido save(Pedido p) throws SQLException {
         if (p.getId() == null) {
-            String sql = "INSERT INTO pedidos " +
-                            "(numero_pedido, mesa_id, usuario_id, productos, " +
-                            "estado, fecha_pedido, subtotal, impuestos, total, " +
-                            "inventario_descontado) " +
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
-                            "RETURNING pedido_id";
+            String sql = "INSERT INTO pedido " +
+                    "(id_cliente, id_mesa, id_mesero, id_estado_pedido, fecha_creacion, observaciones) " +
+                    "VALUES (?, ?, ?, (SELECT id_estado_pedido FROM estado_pedido WHERE UPPER(codigo_estado) = UPPER(?)), ?, ?) " +
+                    "RETURNING id_pedido";
+
             try (Connection conn = ConexionBD.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, p.getNumeroPedido());
+
+                // 1. id_cliente (si tu entidad lo maneja, de lo contrario se envía null)
+                if (p.getClienteId() != null) {
+                    stmt.setLong(1, p.getClienteId());
+                } else {
+                    stmt.setNull(1, java.sql.Types.INTEGER);
+                }
+
                 stmt.setLong(2, p.getMesaId());
                 stmt.setLong(3, p.getUsuarioId());
-                stmt.setObject(4, crearJsonb(p.getProductos() != null ? p.getProductos() : "[]"));
-                stmt.setString(5, p.getEstado() != null ? p.getEstado().name() : EstadoPedido.PENDIENTE.name());
-                stmt.setTimestamp(6, Timestamp.valueOf(p.getFechaPedido() != null ? p.getFechaPedido() : java.time.LocalDateTime.now()));
-                stmt.setBigDecimal(7, p.getSubtotal() != null ? p.getSubtotal() : BigDecimal.ZERO);
-                stmt.setBigDecimal(8, p.getImpuestos() != null ? p.getImpuestos() : BigDecimal.ZERO);
-                stmt.setBigDecimal(9, p.getTotal() != null ? p.getTotal() : BigDecimal.ZERO);
-                /*
-                 * La base de datos utiliza:
-                 * S = inventario descontado
-                 * N = inventario no descontado
-                 */
-                stmt.setString(10, p.isInventarioDescontado() ? "S" : "N");
+                String estadoStr = p.getEstado() != null ? p.getEstado().name() : EstadoPedido.PENDIENTE.name();
+                stmt.setString(4, estadoStr);
+                stmt.setTimestamp(5, Timestamp.valueOf(p.getFechaPedido() != null ? p.getFechaPedido() : java.time.LocalDateTime.now()));
+                stmt.setString(6, p.getObservaciones() != null ? p.getObservaciones() : "");
+
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
                         p.setId(rs.getLong(1));
@@ -104,112 +110,116 @@ public class PedidoRepository {
                 }
             }
         } else {
-        String sql = "UPDATE pedidos SET "
-                + "numero_pedido = ?, "
-                + "mesa_id = ?, "
-                + "usuario_id = ?, "
-                + "productos = ?, "
-                + "estado = ?, "
-                + "subtotal = ?, "
-                + "impuestos = ?, "
-                + "total = ?, "
-                + "inventario_descontado = ? "
-                + "WHERE pedido_id = ?";
+            String sql = "UPDATE pedido SET "
+                    + "id_cliente = ?, "
+                    + "id_mesa = ?, "
+                    + "id_mesero = ?, "
+                    + "id_estado_pedido = (SELECT id_estado_pedido FROM estado_pedido WHERE UPPER(codigo_estado) = UPPER(?)), "
+                    + "observaciones = ? "
+                    + "WHERE id_pedido = ?";
 
-        try (Connection conn = ConexionBD.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            try (Connection conn = ConexionBD.getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, p.getNumeroPedido());
-            stmt.setLong(2, p.getMesaId());
-            stmt.setLong(3, p.getUsuarioId());
-            stmt.setObject(4, crearJsonb(
-                    p.getProductos() != null ? p.getProductos() : "[]"));
-            stmt.setString(5, p.getEstado() != null
-                    ? p.getEstado().name()
-                    : EstadoPedido.PENDIENTE.name());
-            stmt.setBigDecimal(6, p.getSubtotal() != null
-                    ? p.getSubtotal() : BigDecimal.ZERO);
-            stmt.setBigDecimal(7, p.getImpuestos() != null
-                    ? p.getImpuestos() : BigDecimal.ZERO);
-            stmt.setBigDecimal(8, p.getTotal() != null
-                    ? p.getTotal() : BigDecimal.ZERO);
-            stmt.setString(9, p.isInventarioDescontado() ? "S" : "N");
-            stmt.setLong(10, p.getId());
-
-            stmt.executeUpdate();
-        }
-      }
-
-      return p;
-    }
-
-    //Para operaciones de pedido en estilo de transaccion
-    public Pedido saveWithConn(Connection conn, Pedido p) throws SQLException {
-        if (p.getId() == null) {
-            String sql = "INSERT INTO pedidos " +
-                    "(numero_pedido, mesa_id, usuario_id, productos, " +
-                    "estado, fecha_pedido, subtotal, impuestos, total, " +
-                    "inventario_descontado) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
-                    "RETURNING pedido_id";
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, p.getNumeroPedido());
-                stmt.setLong(2, p.getMesaId());
-                stmt.setLong(3, p.getUsuarioId());
-                stmt.setObject(4, crearJsonb(p.getProductos() != null ? p.getProductos() : "[]"));
-                stmt.setString(5, p.getEstado() != null ? p.getEstado().name() : EstadoPedido.PENDIENTE.name());
-                stmt.setTimestamp(6, Timestamp.valueOf(p.getFechaPedido() != null ? p.getFechaPedido() : java.time.LocalDateTime.now()));
-                stmt.setBigDecimal(7, p.getSubtotal() != null ? p.getSubtotal() : BigDecimal.ZERO);
-                stmt.setBigDecimal(8, p.getImpuestos() != null ? p.getImpuestos() : BigDecimal.ZERO);
-                stmt.setBigDecimal(9, p.getTotal() != null ? p.getTotal() : BigDecimal.ZERO);
-                stmt.setString(10, p.isInventarioDescontado() ? "S" : "N");
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        p.setId(rs.getLong(1));
-                    }
+                if (p.getClienteId() != null) {
+                    stmt.setLong(1, p.getClienteId());
+                } else {
+                    stmt.setNull(1, java.sql.Types.INTEGER);
                 }
-            }
-        } else {
-            // HU-154: esta es la rama que usa PedidoFacade al confirmar. Escribia
-            // solo la cabecera, asi que los productos y los importes se quedaban
-            // con lo que puso el INSERT ('[]' y ceros). Se alinea con la de save.
-            String sql = "UPDATE pedidos SET "
-                    + "numero_pedido = ?, mesa_id = ?, usuario_id = ?, "
-                    + "productos = ?, estado = ?, "
-                    + "subtotal = ?, impuestos = ?, total = ?, "
-                    + "inventario_descontado = ?, "
-                    + "fecha_actualizacion = CURRENT_TIMESTAMP "
-                    + "WHERE pedido_id = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, p.getNumeroPedido());
+
                 stmt.setLong(2, p.getMesaId());
                 stmt.setLong(3, p.getUsuarioId());
-                stmt.setObject(4, crearJsonb(p.getProductos() != null
-                        ? p.getProductos() : "[]"));
-                stmt.setString(5, p.getEstado() != null
-                        ? p.getEstado().name() : EstadoPedido.PENDIENTE.name());
-                stmt.setBigDecimal(6, p.getSubtotal() != null
-                        ? p.getSubtotal() : BigDecimal.ZERO);
-                stmt.setBigDecimal(7, p.getImpuestos() != null
-                        ? p.getImpuestos() : BigDecimal.ZERO);
-                stmt.setBigDecimal(8, p.getTotal() != null
-                        ? p.getTotal() : BigDecimal.ZERO);
-                stmt.setString(9, p.isInventarioDescontado() ? "S" : "N");
-                stmt.setLong(10, p.getId());
+                String estadoStr = p.getEstado() != null ? p.getEstado().name() : EstadoPedido.PENDIENTE.name();
+                stmt.setString(4, estadoStr);
+                stmt.setString(5, p.getObservaciones() != null ? p.getObservaciones() : "");
+                stmt.setLong(6, p.getId());
+
                 stmt.executeUpdate();
             }
         }
         return p;
     }
 
-public void actualizarEstado(long pedidoId, EstadoPedido estado) throws SQLException {
-        String sql = "UPDATE pedidos SET estado = ?, fecha_actualizacion = CURRENT_TIMESTAMP "
-                + "WHERE pedido_id = ?";
+    // Para operaciones de pedido en estilo de transacción
+    public Pedido saveWithConn(Connection conn, Pedido p) throws SQLException {
+        if (p.getId() == null) {
+            String sql = "INSERT INTO pedido " +
+                    "(id_cliente, id_mesa, id_mesero, id_estado_pedido, fecha_creacion, observaciones) " +
+                    "VALUES (?, ?, ?, (SELECT id_estado_pedido FROM estado_pedido WHERE UPPER(codigo_estado) = UPPER(?)), ?, ?) " +
+                    "RETURNING id_pedido";
+
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                // 1. id_cliente (si la entidad lo maneja, de lo contrario se envía null)
+                if (p.getClienteId() != null) {
+                    stmt.setLong(1, p.getClienteId());
+                } else {
+                    stmt.setNull(1, java.sql.Types.INTEGER);
+                }
+
+                stmt.setLong(2, p.getMesaId());
+                stmt.setLong(3, p.getUsuarioId());
+                String estadoStr = p.getEstado() != null ? p.getEstado().name() : EstadoPedido.PENDIENTE.name();
+                stmt.setString(4, estadoStr);
+                stmt.setTimestamp(5, Timestamp.valueOf(p.getFechaPedido() != null ? p.getFechaPedido() : java.time.LocalDateTime.now()));
+                stmt.setString(6, p.getObservaciones() != null ? p.getObservaciones() : "");
+
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        p.setId(rs.getLong(1));
+                    }
+                }
+            }
+        } else {
+            String sql = "UPDATE pedido SET "
+                    + "id_cliente = ?, "
+                    + "id_mesa = ?, "
+                    + "id_mesero = ?, "
+                    + "id_estado_pedido = (SELECT id_estado_pedido FROM estado_pedido WHERE UPPER(codigo_estado) = UPPER(?)), "
+                    + "observaciones = ? "
+                    + "WHERE id_pedido = ?";
+
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                if (p.getClienteId() != null) {
+                    stmt.setLong(1, p.getClienteId());
+                } else {
+                    stmt.setNull(1, java.sql.Types.INTEGER);
+                }
+
+                stmt.setLong(2, p.getMesaId());
+                stmt.setLong(3, p.getUsuarioId());
+                String estadoStr = p.getEstado() != null ? p.getEstado().name() : EstadoPedido.PENDIENTE.name();
+                stmt.setString(4, estadoStr);
+                stmt.setString(5, p.getObservaciones() != null ? p.getObservaciones() : "");
+                stmt.setLong(6, p.getId());
+                stmt.executeUpdate();
+            }
+        }
+        return p;
+    }
+
+    public void actualizarEstado(long pedidoId, EstadoPedido nuevoEstado) throws SQLException {
+        // Actualiza el id_estado_pedido buscando primero su ID a partir del enum/código,
+        // blindando para que no actualice si ya está cancelado o cerrado.
+        String sql = "UPDATE pedido SET id_estado_pedido = (" +
+                "    SELECT id_estado_pedido FROM estado_pedido WHERE UPPER(codigo_estado) = UPPER(?)" +
+                ") " +
+                "WHERE id_pedido = ? " +
+                "AND id_estado_pedido NOT IN (" +
+                "    SELECT id_estado_pedido FROM estado_pedido WHERE UPPER(codigo_estado) IN ('CANCELADO', 'ENTREGADO', 'COMPLETADO', 'PAGADO')" +
+                ")";
+
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, estado.name());
+            stmt.setString(1, nuevoEstado.name());
             stmt.setLong(2, pedidoId);
-            stmt.executeUpdate();
+
+            int filasAfectadas = stmt.executeUpdate();
+            if (filasAfectadas == 0) {
+                throw new PedidoNoEditableException(
+                        "No se pudo actualizar el estado del pedido #" + pedidoId +
+                                ": el pedido ya se encuentra cancelado o en un estado final."
+                );
+            }
         }
     }
 
@@ -220,7 +230,7 @@ public void actualizarEstado(long pedidoId, EstadoPedido estado) throws SQLExcep
      */
     public void actualizarImportes(long pedidoId, String productosJson,
                                    BigDecimal subtotal, BigDecimal impuestos) throws SQLException {
-        String sql = "UPDATE pedidos SET productos = ?, subtotal = ?, impuestos = ?, "
+        String sql = "UPDATE pedido SET producto = ?, subtotal = ?, impuestos = ?, "
                 + "total = ? + ? + propina - descuento, "
                 + "fecha_actualizacion = CURRENT_TIMESTAMP "
                 + "WHERE pedido_id = ? "
@@ -332,105 +342,21 @@ public void actualizarEstado(long pedidoId, EstadoPedido estado) throws SQLExcep
         return pedidos;
     }
 
-    private Pedido map(
-            ResultSet rs
-    ) throws SQLException {
+    private Pedido map(ResultSet rs) throws SQLException {
+        Pedido p = new Pedido();
+        p.setId(rs.getLong("id_pedido"));
+        p.setMesaId(rs.getLong("id_mesa"));
+        p.setUsuarioId(rs.getLong("id_mesero")); // Mapeo de id_mesero al campo de usuario en la entidad
 
-        Pedido p =
-                new Pedido();
+        String estadoStr = rs.getString("estado_str");
+        if (estadoStr != null) {
+            p.setEstado(EstadoPedido.valueOf(estadoStr.toUpperCase()));
+        }
 
-        p.setId(
-                rs.getLong(
-                        "pedido_id"
-                )
-        );
-
-        p.setNumeroPedido(
-                rs.getString(
-                        "numero_pedido"
-                )
-        );
-
-        p.setMesaId(
-                rs.getLong(
-                        "mesa_id"
-                )
-        );
-
-        p.setUsuarioId(
-                rs.getLong(
-                        "usuario_id"
-                )
-        );
-
-        p.setProductos(
-                rs.getString(
-                        "productos"
-                )
-        );
-
-        p.setEstado(
-                EstadoPedido.valueOf(
-                        rs.getString(
-                                "estado"
-                        )
-                )
-        );
-
-        Timestamp ts =
-                rs.getTimestamp(
-                        "fecha_pedido"
-                );
-
+        Timestamp ts = rs.getTimestamp("fecha_creacion");
         if (ts != null) {
-
-            p.setFechaPedido(
-                    ts.toLocalDateTime()
-            );
+            p.setFechaPedido(ts.toLocalDateTime());
         }
-
-        BigDecimal subtotal =
-                rs.getBigDecimal(
-                        "subtotal"
-                );
-
-        if (subtotal != null) {
-
-            p.setSubtotal(
-                    subtotal
-            );
-        }
-
-        BigDecimal impuestos =
-                rs.getBigDecimal(
-                        "impuestos"
-                );
-        if (impuestos != null) {
-            p.setImpuestos(impuestos);
-        }
-
-        BigDecimal total =
-                rs.getBigDecimal(
-                        "total"
-                );
-
-        if (total != null) {
-
-            p.setTotal(
-                    total
-            );
-        }
-
-        String inventarioDescontado =
-                rs.getString(
-                        "inventario_descontado"
-                );
-
-        p.setInventarioDescontado(
-                esVerdadero(
-                        inventarioDescontado
-                )
-        );
 
         return p;
     }

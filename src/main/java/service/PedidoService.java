@@ -13,7 +13,7 @@ import java.util.Set;
 
 public class PedidoService {
 
-    // Utiliza la definición centralizada de estados de cierre
+    // Definición centralizada de estados de cierre
     private static final Set<EstadoPedido> ESTADOS_YA_CERRADOS = Set.of(
             EstadoPedido.PAGADO,
             EstadoPedido.COMPLETADO,
