@@ -43,12 +43,12 @@ public class DetallePedidoRepository {
             return;
         }
 
-        String sql = "INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             for (DetallePedido detalle : detalles) {
                 stmt.setLong(1, detalle.getPedidoId());
-                stmt.setLong(2, detalle.getProductoId());
+                stmt.setLong(2, detalle.getPlatoId());
                 stmt.setInt(3, detalle.getCantidad());
                 stmt.setBigDecimal(4, detalle.getPrecioUnitario());
                 stmt.setBigDecimal(5, detalle.getSubtotal());

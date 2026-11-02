@@ -104,7 +104,7 @@ public class PedidoFacade {
                 // 3. Mapear productos para el descuento de inventario
                 Map<Long, Integer> lineas = new HashMap<>();
                 for (DetallePedido detalle : detalles) {
-                    lineas.put(detalle.getProductoId(), detalle.getCantidad());
+                    lineas.put(detalle.getPlatoId(), detalle.getCantidad());
                 }
 
                 // 4. Actualizar totales del pedido
@@ -154,7 +154,7 @@ public class PedidoFacade {
     List<DetallePedido> detalles = new ArrayList<>();
     for (ItemPedido item : items) {
         DetallePedido d = new DetallePedido();
-        d.setProductoId(item.getProducto().getProductoId());
+        d.setPlatoId(item.getProducto().getProductoId());
         d.setCantidad(item.getCantidad());
         d.setPrecioUnitario(item.getProducto().getPrecioVenta());
         d.setSubtotal(item.getSubtotal());

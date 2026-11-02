@@ -1,5 +1,6 @@
 package dto;
 
+import entity.PlatoInsumo;
 import entity.Producto;
 
 import java.math.BigDecimal;

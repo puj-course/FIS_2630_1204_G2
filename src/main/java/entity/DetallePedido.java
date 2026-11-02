@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 public class DetallePedido {
     private Long id;
     private Long pedidoId;
-    private Long productoId;
+    private Long platoId;
     private int cantidad;
     private BigDecimal precioUnitario;
     private BigDecimal subtotal;
@@ -19,8 +19,8 @@ public class DetallePedido {
     public Long getPedidoId() { return pedidoId; }
     public void setPedidoId(Long pedidoId) { this.pedidoId = pedidoId; }
 
-    public Long getProductoId() { return productoId; }
-    public void setProductoId(Long productoId) { this.productoId = productoId; }
+    public Long getPlatoId() { return platoId; }
+    public void setPlatoId(Long platoId) { this.platoId = platoId; }
 
     public int getCantidad() { return cantidad; }
     public void setCantidad(int cantidad) { this.cantidad = cantidad; }
