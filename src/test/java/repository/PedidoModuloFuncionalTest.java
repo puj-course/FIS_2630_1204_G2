@@ -46,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * y al terminar se borran junto con sus pedidos e historial. Se reutiliza un
  * usuario que ya exista en la base, porque pedidos.usuario_id es obligatorio.
  */
+
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DisplayName("HU-XXX · Módulo de cocina: pedidos")
 class PedidoModuloFuncionalTest {
@@ -107,8 +108,8 @@ class PedidoModuloFuncionalTest {
             stmt.executeUpdate("DELETE FROM historial_estado_mesa WHERE mesa_id IN (" + ids + ")");
             stmt.executeUpdate(
                     "UPDATE mesas SET id_estado_mesa = (SELECT id_estado_mesa FROM estados_mesa " +
-                    "                                   WHERE UPPER(codigo_estado) = 'LIBRE') " +
-                    "WHERE id_mesa IN (" + ids + ")");
+                            "                                   WHERE UPPER(codigo_estado) = 'LIBRE') " +
+                            "WHERE id_mesa IN (" + ids + ")");
         }
     }
 
@@ -379,8 +380,8 @@ class PedidoModuloFuncionalTest {
     private static void asegurarEstados(Connection conn) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement(
                 "INSERT INTO estados_mesa (codigo_estado, descripcion) " +
-                "SELECT ?, ? WHERE NOT EXISTS " +
-                "  (SELECT 1 FROM estados_mesa WHERE UPPER(codigo_estado) = ?)")) {
+                        "SELECT ?, ? WHERE NOT EXISTS " +
+                        "  (SELECT 1 FROM estados_mesa WHERE UPPER(codigo_estado) = ?)")) {
 
             for (String[] estado : new String[][]{{"LIBRE", "Libre"}, {"OCUPADA", "Ocupada"}}) {
                 stmt.setString(1, estado[0]);
@@ -423,9 +424,9 @@ class PedidoModuloFuncionalTest {
 
         try (PreparedStatement insertar = conn.prepareStatement(
                 "INSERT INTO mesas (numero_mesa, codigo_mesa, capacidad, id_zona, " +
-                "                   id_estado_mesa, is_active) " +
-                "VALUES (?, ?, 4, ?, (SELECT id_estado_mesa FROM estados_mesa " +
-                "                     WHERE UPPER(codigo_estado) = 'LIBRE'), 1)",
+                        "                   id_estado_mesa, is_active) " +
+                        "VALUES (?, ?, 4, ?, (SELECT id_estado_mesa FROM estados_mesa " +
+                        "                     WHERE UPPER(codigo_estado) = 'LIBRE'), 1)",
                 Statement.RETURN_GENERATED_KEYS)) {
 
             insertar.setInt(1, numeroMesa);

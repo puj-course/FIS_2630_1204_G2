@@ -7,7 +7,7 @@ import java.sql.SQLException;
 public class ConexionBD {
 
     // 1. Configuración de parámetros de conexión a PostgreSQL
-    private static final String URL = "jdbc:postgresql://localhost:5432/Gastroflow";
+    private static final String URL = "jdbc:postgresql://localhost:5432/Gastroantigua";
     private static final String USER = "postgres";
     private static final String PASSWORD = "postgres"; //
 
