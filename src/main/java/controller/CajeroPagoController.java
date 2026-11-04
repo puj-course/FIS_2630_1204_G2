@@ -87,6 +87,9 @@ public class CajeroPagoController {
             calculadoraDescuento.setEstrategia(nuevo);
             recalcular();
         });
+        // selectFirst() corre antes de registrar el listener, asi que la
+        // primera seleccion se sincroniza a mano con el contexto.
+        calculadoraDescuento.setEstrategia(tipoDescuentoCombo.getValue());
         limpiarCuenta();
 
         descuentoField.textProperty().addListener((obs, anterior, nuevo) -> recalcular());
@@ -171,19 +174,25 @@ public class CajeroPagoController {
 
         BigDecimal valorDescuento = leerValor(descuentoField.getText());
         // El valor escrito se convierte a pesos con la estrategia elegida.
-        BigDecimal descuento = valorDescuento == null
-                ? null
-                : tipoDescuentoCombo.getValue().calcular(cuentaActual.getSubtotal(), valorDescuento);
+        // Taller de pruebas: antes se llamaba directamente a la estrategia del
+        // combo, de modo que calculadoraDescuento se construia, recibia la
+        // estrategia y nunca se usaba. El contexto del patron Strategy estaba
+        // fuera del camino de ejecucion.
+        BigDecimal descuento;
+        try {
+            descuento = valorDescuento == null
+                    ? null
+                    : calculadoraDescuento.calcular(cuentaActual.getSubtotal(), valorDescuento);
+        } catch (IllegalArgumentException e) {
+            // La estrategia ahora valida el descuento; aqui solo se muestra.
+            totalLabel.setText(e.getMessage());
+            cerrarPagoButton.setDisable(true);
+            return;
+        }
         BigDecimal propina = leerValor(propinaField.getText());
 
         if (descuento == null || propina == null) {
             totalLabel.setText("Valor inválido");
-            cerrarPagoButton.setDisable(true);
-            return;
-        }
-
-        if (descuento.compareTo(cuentaActual.getSubtotal()) > 0) {
-            totalLabel.setText("Descuento demasiado alto");
             cerrarPagoButton.setDisable(true);
             return;
         }
