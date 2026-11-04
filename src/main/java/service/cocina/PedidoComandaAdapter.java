@@ -2,9 +2,12 @@ package service.cocina;
 
 import entity.Pedido;
 import enums.EstadoPedido;
+import exceptions.PedidoNoEditableException;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * Adapter: hace que un Pedido (Adaptee) se comporte como una ComandaCocina
@@ -15,9 +18,26 @@ import java.time.temporal.ChronoUnit;
  */
 public class PedidoComandaAdapter implements ComandaCocina {
 
+    /**
+     * Taller de pruebas: los unicos estados que tienen un siguiente paso en
+     * cocina. Antes la regla estaba escrita al reves, como "cualquier estado
+     * menos COMPLETADO", de modo que un pedido ENTREGADO, PAGADO o CANCELADO
+     * respondia que si podia avanzar. En la pantalla no se notaba porque la
+     * consulta findPedidosParaCocina nunca trae esos estados, pero el servicio
+     * quedaba sin contrato propio y dependia de que la consulta no cambiara.
+     */
+    private static final Set<EstadoPedido> ESTADOS_EN_COCINA = EnumSet.of(
+            EstadoPedido.PENDIENTE,
+            EstadoPedido.ASIGNADO_MESA,
+            EstadoPedido.EN_PREPARACION
+    );
+
     private final Pedido pedido;
 
     public PedidoComandaAdapter(Pedido pedido) {
+        if (pedido == null) {
+            throw new IllegalArgumentException("La comanda necesita un pedido");
+        }
         this.pedido = pedido;
     }
 
@@ -31,13 +51,26 @@ public class PedidoComandaAdapter implements ComandaCocina {
         return pedido.getMesaId();
     }
 
+    /**
+     * Un pedido sin fecha registrada devuelve 0 minutos. Antes lanzaba
+     * NullPointerException y tumbaba el refresco completo del tablero, que
+     * corre cada pocos segundos, por una sola fila con el dato incompleto.
+     */
     @Override
     public long getMinutosEspera() {
-        return ChronoUnit.MINUTES.between(pedido.getFechaPedido(), LocalDateTime.now());
+        LocalDateTime inicio = pedido.getFechaPedido();
+        if (inicio == null) {
+            return 0L;
+        }
+        long minutos = ChronoUnit.MINUTES.between(inicio, LocalDateTime.now());
+        return Math.max(minutos, 0L);
     }
 
     @Override
     public Columna getColumna() {
+        if (pedido.getEstado() == null) {
+            return Columna.PENDIENTES;
+        }
         return switch (pedido.getEstado()) {
             case EN_PREPARACION -> Columna.PREPARACION;
             case COMPLETADO -> Columna.LISTOS;
@@ -48,11 +81,14 @@ public class PedidoComandaAdapter implements ComandaCocina {
 
     @Override
     public boolean puedeAvanzar() {
-        return pedido.getEstado() != EstadoPedido.COMPLETADO;
+        return ESTADOS_EN_COCINA.contains(pedido.getEstado());
     }
 
     @Override
     public String getTextoAccion() {
+        if (pedido.getEstado() == null) {
+            return "—";
+        }
         return switch (pedido.getEstado()) {
             case PENDIENTE, ASIGNADO_MESA -> "Pasar a preparación";
             case EN_PREPARACION -> "Marcar como listo";
@@ -62,6 +98,12 @@ public class PedidoComandaAdapter implements ComandaCocina {
 
     @Override
     public Pedido avanzar() {
+        if (!puedeAvanzar()) {
+            throw new PedidoNoEditableException(
+                    "El pedido " + pedido.getNumeroPedido()
+                            + " ya no tiene pasos pendientes en cocina (estado "
+                            + pedido.getEstado() + ")");
+        }
         if (pedido.getEstado() == EstadoPedido.EN_PREPARACION) {
             pedido.setEstado(EstadoPedido.COMPLETADO);
         } else {
