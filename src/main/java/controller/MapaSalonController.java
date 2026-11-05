@@ -54,27 +54,68 @@ public class MapaSalonController {
     private static final double ESPACIO_Y = 18;
     private static final int COLUMNAS = 3;
 
-    @FXML private Pane panelMesas;
-    @FXML private VBox leyendaEstados;
-    @FXML private ToggleButton filtroTodas;
-    @FXML private ToggleButton filtroLibres;
-    @FXML private ToggleButton filtroOcupadas;
-    @FXML private ToggleButton filtroReservadas;
-    @FXML private Label mensajeFiltro;
-    @FXML private Label contadorTotal;
-    @FXML private Label contadorDisponibles;
-    @FXML private Label contadorOcupadas;
-    @FXML private Label contadorReservadas;
-    @FXML private Label contadorPendientePago;
-    @FXML private Label contadorInhabilitadas;
-    @FXML private Label tituloDetalleMesa;
-    @FXML private Label detalleNumero;
-    @FXML private Label detalleEstado;
-    @FXML private Label detalleCapacidad;
-    @FXML private Label detalleComensales;
-    @FXML private Label detallePedido;
-    @FXML private Label detalleMesero;
-    @FXML private Label detalleCodigo;
+    @FXML
+    private Pane panelMesas;
+
+    @FXML
+    private VBox leyendaEstados;
+
+    @FXML
+    private ToggleButton filtroTodas;
+
+    @FXML
+    private ToggleButton filtroLibres;
+
+    @FXML
+    private ToggleButton filtroOcupadas;
+
+    @FXML
+    private ToggleButton filtroReservadas;
+
+    @FXML
+    private Label mensajeFiltro;
+
+    @FXML
+    private Label contadorTotal;
+
+    @FXML
+    private Label contadorDisponibles;
+
+    @FXML
+    private Label contadorOcupadas;
+
+    @FXML
+    private Label contadorReservadas;
+
+    @FXML
+    private Label contadorPendientePago;
+
+    @FXML
+    private Label contadorInhabilitadas;
+
+    @FXML
+    private Label tituloDetalleMesa;
+
+    @FXML
+    private Label detalleNumero;
+
+    @FXML
+    private Label detalleEstado;
+
+    @FXML
+    private Label detalleCapacidad;
+
+    @FXML
+    private Label detalleComensales;
+
+    @FXML
+    private Label detallePedido;
+
+    @FXML
+    private Label detalleMesero;
+
+    @FXML
+    private Label detalleCodigo;
 
     private final MesaRepository mesaRepository = new MesaRepository();
     private final MesaService mesaService = new MesaService();
@@ -163,7 +204,6 @@ public class MapaSalonController {
 
         // Usar la función centralizada para garantizar la etiqueta uniforme en todos los módulos
         String textoEstado = EstadoFormatterUtil.formatearEstadoMesa(mesa.getCodigoEstado());
-        btn.setText(textoEstado);
 
         String colorTexto = estado != null ? "white" : "#B00020";
         btn.setText(null);
@@ -220,8 +260,8 @@ public class MapaSalonController {
         Integer personas = mesa.getCantidadComensales();
         if (personas != null && personas > 0) {
             detalle.append("\n")
-                   .append(personas)
-                   .append(personas == 1 ? " persona" : " personas");
+                    .append(personas)
+                    .append(personas == 1 ? " persona" : " personas");
         }
 
         return detalle.toString();
@@ -316,11 +356,12 @@ public class MapaSalonController {
         EstadoMesaVisual estado = EstadoMesaVisual.desdeCodigo(mesa.getCodigoEstado());
         boolean ocupada = estado == EstadoMesaVisual.OCUPADA;
 
+        // Obtener la etiqueta uniforme mediante la utilidad centralizada
         String etiquetaEstado = EstadoFormatterUtil.formatearEstadoMesa(mesa.getCodigoEstado());
+
         tituloDetalleMesa.setText("Detalle de Mesa " + obtenerIdentificadorMesa(mesa));
         detalleNumero.setText("Numero: " + mesa.getNumeroMesa());
-
-        detalleEstado.setText("Estado: " + etiquetaEstado);
+        detalleEstado.setText("Estado: " + (estado != null ? estado.etiqueta : "Estado no valido"));
         detalleCapacidad.setText("Capacidad maxima: " + mesa.getCapacidad() + " personas");
         detalleComensales.setText("Comensales: " + textoComensales(mesa, ocupada));
         detallePedido.setText("Pedido activo: " + textoOpcional(mesa.getPedidoActivo(), "Sin pedido activo"));

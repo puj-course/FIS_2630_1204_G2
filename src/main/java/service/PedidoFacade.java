@@ -53,7 +53,7 @@ public class PedidoFacade {
      * @return lo que falta; lista vacía si el pedido se puede preparar
      */
     public List<String> validarDisponibilidad(Collection<ItemPedido> items) throws SQLException {
-        return disponibilidadDAO.faltantesDelPedido(aLineasJson(items));
+        return disponibilidadDAO.faltantesDelPedido(aMapaProductos(items));
     }
 
     /**
@@ -141,7 +141,7 @@ public class PedidoFacade {
     // ------------------------------------------------------------------
 
     /** producto_id -> cantidad pedida (método auxiliar requerido por DisponibilidadDAO). */
-    private Map<Long, Integer> aLineasJson(Collection<ItemPedido> items) {
+    private Map<Long, Integer> aMapaProductos(Collection<ItemPedido> items) {
         Map<Long, Integer> lineas = new LinkedHashMap<>();
         for (ItemPedido item : items) {
             lineas.put(item.getProducto().getProductoId(), item.getCantidad());

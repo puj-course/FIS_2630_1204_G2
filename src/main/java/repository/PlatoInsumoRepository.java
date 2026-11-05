@@ -6,7 +6,7 @@ import java.util.*;
 import ConexionBD.ConexionBD;
 import entity.ProductoIngrediente;
 
-public class ProductoIngredienteRepository {
+public class PlatoInsumoRepository {
 
     public void guardar(ProductoIngrediente pi) throws SQLException {
         String sql = "INSERT INTO producto_ingrediente (producto_id, ingrediente_id, cantidad_necesaria) VALUES (?, ?, ?)";

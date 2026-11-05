@@ -7,10 +7,10 @@ public class ProductoIngrediente {
     private Long ingredienteId;
     private BigDecimal cantidadNecesaria;
 
-    // 1. Constructor vacío (necesario para la creación con setters)
+    // Constructor vacío
     public ProductoIngrediente() {}
 
-    // 2. Constructor con parámetros
+    // Constructor con parámetros
     public ProductoIngrediente(long productoId, long ingredienteId, BigDecimal cantidadNecesaria) {
         this.productoId = productoId;
         this.ingredienteId = ingredienteId;

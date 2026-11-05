@@ -48,6 +48,7 @@ class MesaModuloFuncionalTest {
 
     private static final String ZONA_PRUEBA = "ZONA PRUEBAS HU-087";
     private static final int NUMERO_BASE = 9000;
+
     private static final MesaRepository repositorio = new MesaRepository();
 
     private static int idZona;
@@ -95,15 +96,15 @@ class MesaModuloFuncionalTest {
 
             stmt.executeUpdate(
                     "UPDATE mesas SET cantidad_comensales = NULL, capacidad = 4, " +
-                    "    id_estado_mesa = (SELECT id_estado_mesa FROM estados_mesa " +
-                    "                      WHERE UPPER(codigo_estado) = 'LIBRE') " +
-                    "WHERE id_mesa = " + idMesaCuatro);
+                            "    id_estado_mesa = (SELECT id_estado_mesa FROM estados_mesa " +
+                            "                      WHERE UPPER(codigo_estado) = 'LIBRE') " +
+                            "WHERE id_mesa = " + idMesaCuatro);
 
             stmt.executeUpdate(
                     "UPDATE mesas SET cantidad_comensales = NULL, capacidad = 2, " +
-                    "    id_estado_mesa = (SELECT id_estado_mesa FROM estados_mesa " +
-                    "                      WHERE UPPER(codigo_estado) = 'LIBRE') " +
-                    "WHERE id_mesa = " + idMesaDos);
+                            "    id_estado_mesa = (SELECT id_estado_mesa FROM estados_mesa " +
+                            "                      WHERE UPPER(codigo_estado) = 'LIBRE') " +
+                            "WHERE id_mesa = " + idMesaDos);
         }
     }
 
@@ -277,8 +278,8 @@ class MesaModuloFuncionalTest {
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT m.numero_mesa, m.capacidad, m.cantidad_comensales, e.codigo_estado " +
-                     "FROM mesas m JOIN estados_mesa e ON e.id_estado_mesa = m.id_estado_mesa " +
-                     "WHERE m.id_mesa = ?")) {
+                             "FROM mesas m JOIN estados_mesa e ON e.id_estado_mesa = m.id_estado_mesa " +
+                             "WHERE m.id_mesa = ?")) {
 
             stmt.setInt(1, idMesaCuatro);
 
@@ -431,9 +432,9 @@ class MesaModuloFuncionalTest {
 
         try (PreparedStatement insertar = conn.prepareStatement(
                 "INSERT INTO mesas (numero_mesa, codigo_mesa, capacidad, id_zona, " +
-                "                   id_estado_mesa, is_active) " +
-                "VALUES (?, ?, ?, ?, (SELECT id_estado_mesa FROM estados_mesa " +
-                "                     WHERE UPPER(codigo_estado) = 'LIBRE'), 1)",
+                        "                   id_estado_mesa, is_active) " +
+                        "VALUES (?, ?, ?, ?, (SELECT id_estado_mesa FROM estados_mesa " +
+                        "                     WHERE UPPER(codigo_estado) = 'LIBRE'), 1)",
                 Statement.RETURN_GENERATED_KEYS)) {
 
             insertar.setInt(1, numeroMesa);

@@ -5,11 +5,11 @@ import java.sql.*;
 import java.util.*;
 import ConexionBD.ConexionBD;
 import entity.ProductoIngrediente;
-import repository.ProductoIngredienteRepository;
+import repository.PlatoInsumoRepository;
 
 public class DisponibilidadService {
 
-    private final ProductoIngredienteRepository productoIngredienteRepo = new ProductoIngredienteRepository();
+    private final PlatoInsumoRepository productoIngredienteRepo = new PlatoInsumoRepository();
 
     /**
      * Verifica si todos los ingredientes necesarios para un producto tienen stock suficiente.

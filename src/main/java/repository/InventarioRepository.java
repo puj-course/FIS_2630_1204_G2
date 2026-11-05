@@ -31,14 +31,14 @@ public class InventarioRepository {
 
     /**
      * Obtiene la receta de un producto utilizando la entidad unificada ProductoIngrediente
-     * y consultando exclusivamente la tabla producto_insumo.
+     * y consultando exclusivamente la tabla producto_ingrediente.
      */
     public List<ProductoIngrediente> obtenerReceta(
             Connection conn,
             long productoId
     ) throws SQLException {
         String sql = "SELECT producto_id, ingrediente_id, cantidad_necesaria " +
-                "FROM producto_ingrediente " + // <-- Apuntando a la tabla correcta
+                "FROM producto_ingrediente " +
                 "WHERE producto_id = ? " +
                 "ORDER BY ingrediente_id";
 
@@ -78,7 +78,7 @@ public class InventarioRepository {
         return receta;
     }
 
-    /* Obtiene el stock actual bloqueando la file */
+    /* Obtiene el stock actual bloqueando la fila */
     public BigDecimal obtenerStockForUpdate(
             Connection conn,
             long ingredienteId
@@ -105,7 +105,7 @@ public class InventarioRepository {
         }
     }
 
-    /* Descuenta stock de manera exclusiva en la tabla ingredientes.*/
+    /* Descuenta stock de manera exclusiva en la tabla ingredientes. */
     public void descontarStock(
             Connection conn,
             long ingredienteId,
@@ -127,7 +127,7 @@ public class InventarioRepository {
         }
     }
 
-    /* Devuelve stock a la tabla ingredientes (reversiones).*/
+    /* Devuelve stock a la tabla ingredientes (reversiones). */
     public void devolverStock(
             Connection conn,
             long ingredienteId,

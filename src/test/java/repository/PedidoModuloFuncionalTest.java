@@ -141,7 +141,9 @@ class PedidoModuloFuncionalTest {
     @DisplayName("CP-02 · Al registrar el pedido la mesa pasa a OCUPADA")
     void laMesaQuedaOcupada() throws SQLException {
         assertEquals("LIBRE", estadoDeMesa(idMesaUno), "la mesa no empezo libre");
+
         servicio.crearPedido(idMesaUno, idUsuario);
+
         assertEquals("OCUPADA", estadoDeMesa(idMesaUno), "la mesa no quedo ocupada");
     }
 
@@ -150,6 +152,7 @@ class PedidoModuloFuncionalTest {
     @DisplayName("CP-03 · El cambio de estado de la mesa queda en el historial")
     void quedaHistorial() throws SQLException {
         servicio.crearPedido(idMesaUno, idUsuario);
+
         assertEquals(1, filasDeHistorial(idMesaUno, "APERTURA_PEDIDO"),
                 "debia haber un registro APERTURA_PEDIDO en el historial");
     }
@@ -217,7 +220,9 @@ class PedidoModuloFuncionalTest {
     @DisplayName("CP-07 · Al cerrar el pedido queda ENTREGADO")
     void cerrarPedido() throws SQLException {
         Pedido pedido = servicio.crearPedido(idMesaUno, idUsuario);
+
         Pedido cerrado = servicio.cerrarPedido(pedido.getId(), null);
+
         assertEquals(EstadoPedido.ENTREGADO, cerrado.getEstado(), "estado devuelto");
         assertEquals("ENTREGADO", estadoEnBaseDeDatos(pedido.getId()), "estado en la base");
     }
@@ -261,7 +266,7 @@ class PedidoModuloFuncionalTest {
 
     @Test
     @Order(11)
-    @DisplayName("CP-11 · El pedido pasa a EN_PREPARACION y guarda sus productos")
+    @DisplayName("CP-11 · El pedido pasa a EN_PREPARACION y guarda sus productos relacionales")
     void actualizarPedido() throws SQLException {
         Pedido pedido = servicio.crearPedido(idMesaUno, idUsuario);
 
@@ -270,7 +275,7 @@ class PedidoModuloFuncionalTest {
         detalle.setPedidoId(pedido.getId());
         detalle.setProductoId(1L);
         detalle.setCantidad(2);
-        detalle.setPrecioUnitario(new BigDecimal("15000")); // <- Al hacer esto, el subtotal se calcula solo
+        detalle.setPrecioUnitario(new BigDecimal("15000"));
 
         // Guardamos en la base de datos relacional
         detalleRepo.save(detalle);
