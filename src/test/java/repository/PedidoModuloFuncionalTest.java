@@ -1,6 +1,7 @@
 package repository;
 
 import ConexionBD.ConexionBD;
+import entity.DetallePedido;
 import enums.EstadoPedido;
 import entity.Mesa;
 import entity.Pedido;
@@ -18,11 +19,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import service.PedidoService;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -57,6 +60,7 @@ class PedidoModuloFuncionalTest {
     private static final PedidoRepository repositorio = new PedidoRepository();
     private static final MesaRepository mesas = new MesaRepository();
     private static final PedidoService servicio = new PedidoService();
+    private static final DetallePedidoRepository detalleRepo = new DetallePedidoRepository();
 
     private static int idZona;
     private static int idMesaUno;
@@ -87,6 +91,7 @@ class PedidoModuloFuncionalTest {
              Statement stmt = conn.createStatement()) {
 
             String ids = idMesaUno + "," + idMesaDos;
+            stmt.executeUpdate("DELETE FROM detalle_pedido WHERE pedido_id IN (SELECT pedido_id FROM pedidos WHERE mesa_id IN (" + ids + "))");
             stmt.executeUpdate("DELETE FROM pedidos WHERE mesa_id IN (" + ids + ")");
             stmt.executeUpdate("DELETE FROM historial_estado_mesa WHERE mesa_id IN (" + ids + ")");
             stmt.executeUpdate("DELETE FROM mesas WHERE id_mesa IN (" + ids + ")");
@@ -104,6 +109,7 @@ class PedidoModuloFuncionalTest {
              Statement stmt = conn.createStatement()) {
 
             String ids = idMesaUno + "," + idMesaDos;
+            stmt.executeUpdate("DELETE FROM detalle_pedido WHERE pedido_id IN (SELECT pedido_id FROM pedidos WHERE mesa_id IN (" + ids + "))");
             stmt.executeUpdate("DELETE FROM pedidos WHERE mesa_id IN (" + ids + ")");
             stmt.executeUpdate("DELETE FROM historial_estado_mesa WHERE mesa_id IN (" + ids + ")");
             stmt.executeUpdate(
@@ -135,9 +141,7 @@ class PedidoModuloFuncionalTest {
     @DisplayName("CP-02 · Al registrar el pedido la mesa pasa a OCUPADA")
     void laMesaQuedaOcupada() throws SQLException {
         assertEquals("LIBRE", estadoDeMesa(idMesaUno), "la mesa no empezo libre");
-
         servicio.crearPedido(idMesaUno, idUsuario);
-
         assertEquals("OCUPADA", estadoDeMesa(idMesaUno), "la mesa no quedo ocupada");
     }
 
@@ -146,7 +150,6 @@ class PedidoModuloFuncionalTest {
     @DisplayName("CP-03 · El cambio de estado de la mesa queda en el historial")
     void quedaHistorial() throws SQLException {
         servicio.crearPedido(idMesaUno, idUsuario);
-
         assertEquals(1, filasDeHistorial(idMesaUno, "APERTURA_PEDIDO"),
                 "debia haber un registro APERTURA_PEDIDO en el historial");
     }
@@ -214,9 +217,7 @@ class PedidoModuloFuncionalTest {
     @DisplayName("CP-07 · Al cerrar el pedido queda ENTREGADO")
     void cerrarPedido() throws SQLException {
         Pedido pedido = servicio.crearPedido(idMesaUno, idUsuario);
-
         Pedido cerrado = servicio.cerrarPedido(pedido.getId(), null);
-
         assertEquals(EstadoPedido.ENTREGADO, cerrado.getEstado(), "estado devuelto");
         assertEquals("ENTREGADO", estadoEnBaseDeDatos(pedido.getId()), "estado en la base");
     }
@@ -264,16 +265,26 @@ class PedidoModuloFuncionalTest {
     void actualizarPedido() throws SQLException {
         Pedido pedido = servicio.crearPedido(idMesaUno, idUsuario);
 
-        String lineas = "[{\"producto_id\":1,\"cantidad\":2}]";
+        // Creamos el detalle: la entidad calcula automáticamente su subtotal internamente
+        DetallePedido detalle = new DetallePedido();
+        detalle.setPedidoId(pedido.getId());
+        detalle.setProductoId(1L);
+        detalle.setCantidad(2);
+        detalle.setPrecioUnitario(new BigDecimal("15000")); // <- Al hacer esto, el subtotal se calcula solo
+
+        // Guardamos en la base de datos relacional
+        detalleRepo.save(detalle);
+
         pedido.setEstado(EstadoPedido.EN_PREPARACION);
-        pedido.setProductos(lineas);
         repositorio.save(pedido);
 
         Pedido leido = repositorio.findById(pedido.getId()).orElseThrow();
+        List<DetallePedido> detallesLeidos = detalleRepo.findByPedidoId(pedido.getId());
+
         assertAll(
                 () -> assertEquals(EstadoPedido.EN_PREPARACION, leido.getEstado(), "estado"),
-                // JSONB reordena llaves y espacios, por eso se compara en SQL y no como texto.
-                () -> assertTrue(productosIguales(pedido.getId(), lineas), "productos"));
+                () -> assertFalse(detallesLeidos.isEmpty(), "los productos se guardaron relacionalmente"),
+                () -> assertEquals(2, detallesLeidos.get(0).getCantidad(), "cantidad de productos"));
     }
 
     // ------------------------------------------------------------------
@@ -321,18 +332,6 @@ class PedidoModuloFuncionalTest {
             stmt.setLong(1, idPedido);
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next() ? rs.getString(1) : null;
-            }
-        }
-    }
-
-    private static boolean productosIguales(long idPedido, String json) throws SQLException {
-        try (Connection conn = ConexionBD.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT productos = ?::jsonb FROM pedidos WHERE pedido_id = ?")) {
-            stmt.setString(1, json);
-            stmt.setLong(2, idPedido);
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next() && rs.getBoolean(1);
             }
         }
     }

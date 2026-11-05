@@ -66,8 +66,11 @@ public class PedidoService {
         return pedidoRepository.save(pedido);
     }
 
-    public void actualizarImportes(long pedidoId, String productosJson,
-                                   BigDecimal subtotal, BigDecimal impuestos) throws SQLException {
+    /**
+     * Actualiza los importes (subtotal e impuestos) del pedido de forma exclusiva,
+     * dado que los productos ahora se gestionan de manera relacional en la tabla detalle_pedido.
+     */
+    public void actualizarImportes(long pedidoId, BigDecimal subtotal, BigDecimal impuestos) throws SQLException {
         Pedido pedido = pedidoRepository.findById(pedidoId)
                 .orElseThrow(() -> new MesaNotFoundException("Pedido no encontrado con id " + pedidoId));
 
@@ -75,7 +78,7 @@ public class PedidoService {
             throw new PedidoNoEditableException("No se pueden actualizar importes: el pedido ya está " + pedido.getEstado());
         }
 
-        pedidoRepository.actualizarImportes(pedidoId, productosJson, subtotal, impuestos);
+        pedidoRepository.actualizarImportes(pedidoId, subtotal, impuestos);
     }
 
     public void marcarInventarioDescontado(long pedidoId) throws SQLException {

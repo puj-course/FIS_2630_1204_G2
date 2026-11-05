@@ -5,6 +5,7 @@ import entity.Cliente;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class Pedido {
 
@@ -13,7 +14,7 @@ public class Pedido {
     private Long mesaId;
     private Long clienteId;
     private Long usuarioId;
-    private String productos = "[]";
+    private List<DetallePedido> detalles;
     private EstadoPedido estado = EstadoPedido.PENDIENTE;
     private LocalDateTime fechaPedido = LocalDateTime.now();
     private BigDecimal subtotal = BigDecimal.ZERO;
@@ -54,9 +55,8 @@ public class Pedido {
         return clienteId;
     }
     public void setClienteId(Long clienteId) {
-        this.clienteId = usuarioId;
+        this.clienteId = clienteId;
     }
-
     public Long getUsuarioId() {
         return usuarioId;
     }
@@ -64,11 +64,11 @@ public class Pedido {
         this.usuarioId = usuarioId;
     }
 
-    public String getProductos() {
-        return productos;
+    public List<DetallePedido> getDetalles() {
+        return detalles;
     }
-    public void setProductos(String productos) {
-        this.productos = productos;
+    public void setDetalles(List<DetallePedido> detalles) {
+        this.detalles = detalles;
     }
 
     public EstadoPedido getEstado() {
@@ -103,7 +103,7 @@ public class Pedido {
     public String getObservaciones() {
         return observaciones;
     }
-    public void setObservacioness() {
+    public void setObservaciones(String observaciones) {
         this.observaciones = observaciones;
     }
 

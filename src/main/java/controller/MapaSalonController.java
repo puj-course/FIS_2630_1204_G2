@@ -54,68 +54,27 @@ public class MapaSalonController {
     private static final double ESPACIO_Y = 18;
     private static final int COLUMNAS = 3;
 
-    @FXML
-    private Pane panelMesas;
-
-    @FXML
-    private VBox leyendaEstados;
-
-    @FXML
-    private ToggleButton filtroTodas;
-
-    @FXML
-    private ToggleButton filtroLibres;
-
-    @FXML
-    private ToggleButton filtroOcupadas;
-
-    @FXML
-    private ToggleButton filtroReservadas;
-
-    @FXML
-    private Label mensajeFiltro;
-
-    @FXML
-    private Label contadorTotal;
-
-    @FXML
-    private Label contadorDisponibles;
-
-    @FXML
-    private Label contadorOcupadas;
-
-    @FXML
-    private Label contadorReservadas;
-
-    @FXML
-    private Label contadorPendientePago;
-
-    @FXML
-    private Label contadorInhabilitadas;
-
-    @FXML
-    private Label tituloDetalleMesa;
-
-    @FXML
-    private Label detalleNumero;
-
-    @FXML
-    private Label detalleEstado;
-
-    @FXML
-    private Label detalleCapacidad;
-
-    @FXML
-    private Label detalleComensales;
-
-    @FXML
-    private Label detallePedido;
-
-    @FXML
-    private Label detalleMesero;
-
-    @FXML
-    private Label detalleCodigo;
+    @FXML private Pane panelMesas;
+    @FXML private VBox leyendaEstados;
+    @FXML private ToggleButton filtroTodas;
+    @FXML private ToggleButton filtroLibres;
+    @FXML private ToggleButton filtroOcupadas;
+    @FXML private ToggleButton filtroReservadas;
+    @FXML private Label mensajeFiltro;
+    @FXML private Label contadorTotal;
+    @FXML private Label contadorDisponibles;
+    @FXML private Label contadorOcupadas;
+    @FXML private Label contadorReservadas;
+    @FXML private Label contadorPendientePago;
+    @FXML private Label contadorInhabilitadas;
+    @FXML private Label tituloDetalleMesa;
+    @FXML private Label detalleNumero;
+    @FXML private Label detalleEstado;
+    @FXML private Label detalleCapacidad;
+    @FXML private Label detalleComensales;
+    @FXML private Label detallePedido;
+    @FXML private Label detalleMesero;
+    @FXML private Label detalleCodigo;
 
     private final MesaRepository mesaRepository = new MesaRepository();
     private final MesaService mesaService = new MesaService();
