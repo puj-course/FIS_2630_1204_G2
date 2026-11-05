@@ -1,6 +1,6 @@
 # Postmortem · Milestone Definición arquitectónica y gestión funcional
 
-![Retrospectiva Starfish del milestone Definición arquitectónica y gestión funcional](Imagenes/DiagramaPostmortem_Starfish.png)
+![Retrospectiva Starfish del milestone Definición arquitectónica y gestión funcional](Imagenes/DiagramaPostmortem.jpeg)
 
 # Postmortem · Milestone Definición arquitectónica y gestión funcional
 
