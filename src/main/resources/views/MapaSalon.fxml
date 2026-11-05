@@ -82,5 +82,11 @@
               prefHeight="30.0"
               prefWidth="145.0"
               text="Cambiar estado" />
+      <Button alignment="CENTER" layoutX="330.0" layoutY="565.0"
+              mnemonicParsing="false"
+              onAction="#cambiarCapacidadMesaSeleccionada"
+              prefHeight="30.0"
+              prefWidth="145.0"
+              text="Capacidad" />
    </children>
 </Pane>
