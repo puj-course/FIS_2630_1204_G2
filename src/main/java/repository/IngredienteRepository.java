@@ -151,7 +151,6 @@ public class IngredienteRepository {
 
     private void bindCampos(PreparedStatement stmt, Ingrediente i) throws SQLException {
         stmt.setString(1, i.getNombre());
-        stmt.setString(2, i.getDescripcion());
         stmt.setLong(3, i.getUnidadMedidaId());
         stmt.setBigDecimal(4, i.getCostoUnitario());
         stmt.setBigDecimal(5, i.getStockActual());
@@ -170,7 +169,6 @@ public class IngredienteRepository {
         Ingrediente i = new Ingrediente();
         i.setId(rs.getLong("ingrediente_id"));
         i.setNombre(rs.getString("nombre"));
-        i.setDescripcion(rs.getString("descripcion"));
         i.setUnidadMedidaId(rs.getLong("unidad_medida_id"));
         i.setCostoUnitario(rs.getBigDecimal("costo_unitario"));
         i.setStockActual(rs.getBigDecimal("stock_actual"));

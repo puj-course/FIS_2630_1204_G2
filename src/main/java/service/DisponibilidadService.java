@@ -1,58 +1,69 @@
 package service;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
 import ConexionBD.ConexionBD;
-import entity.PlatoInsumo;
-import repository.PlatoInsumoRepository;
+import entity.ProductoIngrediente;
+import repository.ProductoIngredienteRepository;
 
 public class DisponibilidadService {
-    private PlatoInsumoRepository platoInsumoRepo = new PlatoInsumoRepository();
 
-    public boolean tieneInsumosDisponibles(int platoId) throws SQLException {
-        List<PlatoInsumo> requeridos = platoInsumoRepo.obtenerPorPlato(platoId);
+    private final ProductoIngredienteRepository productoIngredienteRepo = new ProductoIngredienteRepository();
 
-        for (PlatoInsumo pi : requeridos) {
-            int stockActual = obtenerStockInsumo(pi.getInsumoId());
-            if (stockActual < pi.getCantidadNecesaria()) {
-                return false; // falta este insumo → el plato no se puede preparar
+    /**
+     * Verifica si todos los ingredientes necesarios para un producto tienen stock suficiente.
+     */
+    public boolean tieneInsumosDisponibles(long productoId) throws SQLException {
+        List<ProductoIngrediente> requeridos = productoIngredienteRepo.obtenerPorProducto(productoId);
+
+        for (ProductoIngrediente pi : requeridos) {
+            BigDecimal stockActual = obtenerStockInsumo(pi.getIngredienteId());
+
+            // Si el stock actual es menor que la cantidad necesaria (stockActual < cantidadNecesaria)
+            if (stockActual.compareTo(pi.getCantidadNecesaria()) < 0) {
+                return false; // Falta este insumo -> el producto no se puede preparar
             }
         }
-        return true; // todos los insumos alcanzan
+        return true; // Todos los insumos alcanzan
     }
 
-    private int obtenerStockInsumo(int insumoId) throws SQLException {
-        // La tabla se llama "ingredientes" y su llave es "ingrediente_id".
-        // Antes decia "FROM insumo WHERE id = ?", una tabla que no existe (HU-115).
+    /**
+     * Obtiene el stock actual de un ingrediente en formato BigDecimal.
+     */
+    private BigDecimal obtenerStockInsumo(long ingredienteId) throws SQLException {
         String sql = "SELECT stock_actual FROM ingredientes WHERE ingrediente_id = ?";
+
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, insumoId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("stock_actual");
+
+            stmt.setLong(1, ingredienteId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    BigDecimal stock = rs.getBigDecimal("stock_actual");
+                    return stock != null ? stock : BigDecimal.ZERO;
+                }
+                return BigDecimal.ZERO;
             }
-            return 0;
         }
     }
 
-    // Actualiza la disponibilidad del plato en la base de datos.
-    public void actualizarDisponibilidad(int platoId) throws SQLException {
-        boolean disponible = tieneInsumosDisponibles(platoId);
+    /**
+     * Actualiza la disponibilidad del producto en la base de datos (DISPONIBLE o AGOTADO),
+     * protegiendo los productos marcados como INACTIVO.
+     */
+    public void actualizarDisponibilidad(long productoId) throws SQLException {
+        boolean disponible = tieneInsumosDisponibles(productoId);
 
-        // La tabla se llama "productos" y su llave es "producto_id". No tiene una
-        // columna booleana "disponible": guarda un "estado" de tres valores
-        // (DISPONIBLE, AGOTADO, INACTIVO). Antes decia
-        // "UPDATE producto_menu SET disponible = ? WHERE id = ?" (HU-115).
-        //
-        // El filtro por estado protege a los productos INACTIVO: un plato que el
-        // administrador saco del menu no vuelve solo porque haya insumos.
         String sql = "UPDATE productos SET estado = ? "
-                   + "WHERE producto_id = ? AND estado <> 'INACTIVO'";
+                + "WHERE producto_id = ? AND estado <> 'INACTIVO'";
+
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, disponible ? "DISPONIBLE" : "AGOTADO");
-            stmt.setInt(2, platoId);
+            stmt.setLong(2, productoId);
             stmt.executeUpdate();
         }
     }

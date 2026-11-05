@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assumptions;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -84,16 +85,16 @@ class DisponibilidadHu134Test {
     }
 
     @Test
-    @DisplayName("Un producto sin receta se evalúa por su propio stock")
-    void productoSinReceta() throws SQLException {
-        eliminarReceta();
-        actualizarStockProducto(3);
+    @DisplayName("Un producto no está disponible si el stock de sus ingredientes no alcanza para la cantidad solicitada")
+    void productoConStockInsuficienteDeIngredientes() throws SQLException {
+        // Configuramos un stock insuficiente (por ejemplo, 0, o un valor menor al requerido por 4 unidades)
+        actualizarStockIngrediente(0);
 
         assertTrue(disponible(2),
-                "Debe estar disponible si su stock alcanza para dos unidades.");
+                "El producto debe estar disponible si el stock alcanza.");
 
         assertFalse(disponible(4),
-                "No debe estar disponible si se solicitan más unidades que su stock.");
+                "No debe estar disponible si se solicitan más unidades de las que el stock de los ingredientes permite.");
     }
 
     @Test
@@ -114,13 +115,13 @@ class DisponibilidadHu134Test {
         eliminarReceta();
 
         try (PreparedStatement ps = cn.prepareStatement("""
-                INSERT INTO plato_insumo
-                    (plato_id, insumo_id, cantidad_necesaria)
+                INSERT INTO producto_ingrediente
+                    (producto_id, ingrediente_id, cantidad_necesaria)
                 VALUES (?, ?, ?)
                 """)) {
             ps.setLong(1, productoId);
             ps.setLong(2, ingredienteId);
-            ps.setInt(3, cantidadNecesaria);
+            ps.setBigDecimal(3, BigDecimal.valueOf(cantidadNecesaria));
             ps.executeUpdate();
         }
 
@@ -129,7 +130,7 @@ class DisponibilidadHu134Test {
                    SET stock_actual = ?
                  WHERE ingrediente_id = ?
                 """)) {
-            ps.setInt(1, stockIngrediente);
+            ps.setBigDecimal(1, BigDecimal.valueOf(stockIngrediente));
             ps.setLong(2, ingredienteId);
             ps.executeUpdate();
         }
@@ -139,20 +140,20 @@ class DisponibilidadHu134Test {
 
     private void eliminarReceta() throws SQLException {
         try (PreparedStatement ps = cn.prepareStatement(
-                "DELETE FROM plato_insumo WHERE plato_id = ?")) {
+                "DELETE FROM producto_ingrediente WHERE producto_id = ?")) {
             ps.setLong(1, productoId);
             ps.executeUpdate();
         }
     }
 
-    private void actualizarStockProducto(int stock) throws SQLException {
+    private void actualizarStockIngrediente(int stock) throws SQLException {
         try (PreparedStatement ps = cn.prepareStatement("""
-                UPDATE productos
+                UPDATE ingredientes
                    SET stock_actual = ?
-                 WHERE producto_id = ?
+                 WHERE ingrediente_id = ?
                 """)) {
-            ps.setInt(1, stock);
-            ps.setLong(2, productoId);
+            ps.setBigDecimal(1, BigDecimal.valueOf(stock));
+            ps.setLong(2, ingredienteId);
             ps.executeUpdate();
         }
 

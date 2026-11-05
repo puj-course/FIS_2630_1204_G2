@@ -3,7 +3,7 @@ package controller;
 import dao.ProductoDAO;
 import dto.ItemPedido;
 import entity.DetallePedido;
-import entity.Producto;
+import entity.Productos;
 import repository.DetallePedidoRepository;
 import util.TextoBusqueda;
 import javafx.collections.FXCollections;
@@ -20,8 +20,6 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.Map;
 import java.util.List;
 
@@ -51,7 +49,7 @@ public class MenuMeseroController {
     private final NumberFormat moneda = NumberFormat.getCurrencyInstance(Locale.of("es", "CO"));
 
     /** Menú completo cargado desde la base de datos. */
-    private Map<String, List<Producto>> menuCompleto =
+    private Map<String, List<Productos>> menuCompleto =
             new LinkedHashMap<>();
     /** Evita cargar varias veces el mismo pedido activo. */
     private boolean pedidoActivoCargado = false;
@@ -86,12 +84,12 @@ public class MenuMeseroController {
     @FXML
     private void cargarMenu() {
 
-        Task<Map<String, List<Producto>>> tarea = new Task<>() {
+        Task<Map<String, List<Productos>>> tarea = new Task<>() {
             @Override
-            protected Map<String, List<Producto>> call()
+            protected Map<String, List<Productos>> call()
                     throws SQLException {
                         System.out.println(">>> INICIANDO CARGA DEL MENU");
-                        Map<String, List<Producto>> resultado = productoDAO.obtenerMenuPorCategorias();
+                        Map<String, List<Productos>> resultado = productoDAO.obtenerMenuPorCategorias();
                         System.out.println(">>> MENU CARGADO CORRECTAMENTE");
                         System.out.println(">>> CATEGORIAS: " + resultado.keySet());
                         return resultado;
@@ -186,7 +184,7 @@ public class MenuMeseroController {
         }
 
         for (DetallePedido detalle : detalles) {
-            Producto producto = buscarProductoEnMenu(detalle.getProductoId());
+            Productos producto = buscarProductoEnMenu(detalle.getProductoId());
             if (producto == null) {
                 System.out.println(">>> PRODUCTO " + detalle.getProductoId() + " NO ENCONTRADO EN EL MENU");
                 continue;
@@ -201,10 +199,10 @@ public class MenuMeseroController {
     /**
      * Busca un producto por ID dentro del menú completo.
      */
-    private Producto buscarProductoEnMenu(long productoId) {
+    private Productos buscarProductoEnMenu(long productoId) {
 
-        for (List<Producto> productos : menuCompleto.values()) {
-            for (Producto producto : productos) {
+        for (List<Productos> productos : menuCompleto.values()) {
+            for (Productos producto : productos) {
                 if (producto.getProductoId() == productoId) {
                     return producto;
                 }
@@ -240,12 +238,12 @@ public class MenuMeseroController {
         boolean soloDisponibles = soloDisponiblesCheck.isSelected();
         int visibles = 0;
 
-        for (Map.Entry<String, List<Producto>> entrada : menuCompleto.entrySet()) {
+        for (Map.Entry<String, List<Productos>> entrada : menuCompleto.entrySet()) {
             if (categoria != null && !TODAS_LAS_CATEGORIAS.equals(categoria) && !categoria.equals(entrada.getKey())) {
                 continue;
             }
-            List<Producto> coincidencias = new ArrayList<>();
-            for (Producto p : entrada.getValue()) {
+            List<Productos> coincidencias = new ArrayList<>();
+            for (Productos p : entrada.getValue()) {
                 if (soloDisponibles && !p.isDisponible()) continue;
                 if (TextoBusqueda.coincide(p.getNombre(), p.getDescripcion(), busqueda)) {
                     coincidencias.add(p);
@@ -259,7 +257,7 @@ public class MenuMeseroController {
             pane.setHgap(14);
             pane.setVgap(14);
             pane.setPrefColumns(3);
-            for (Producto p : coincidencias) pane.getChildren().add(crearTarjeta(p));
+            for (Productos p : coincidencias) pane.getChildren().add(crearTarjeta(p));
             categoriasBox.getChildren().addAll(titulo, pane);
             visibles += coincidencias.size();
         }
@@ -276,7 +274,7 @@ public class MenuMeseroController {
         categoriasBox.getChildren().setAll(etiqueta);
     }
 
-    private VBox crearTarjeta(Producto producto) {
+    private VBox crearTarjeta(Productos producto) {
         VBox card = new VBox(8);
         card.setPrefWidth(205);
         card.setMinHeight(155);
@@ -305,7 +303,7 @@ public class MenuMeseroController {
         return card;
     }
 
-    private void agregarProducto(Producto producto) {
+    private void agregarProducto(Productos producto) {
         if (pedidoActual != null && pedidoActual.isInventarioDescontado()) {
             Alert alerta = new Alert(Alert.AlertType.WARNING);
             alerta.setTitle("Pedido confirmado");

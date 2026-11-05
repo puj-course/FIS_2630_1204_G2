@@ -48,7 +48,6 @@ class MesaModuloFuncionalTest {
 
     private static final String ZONA_PRUEBA = "ZONA PRUEBAS HU-087";
     private static final int NUMERO_BASE = 9000;
-
     private static final MesaRepository repositorio = new MesaRepository();
 
     private static int idZona;

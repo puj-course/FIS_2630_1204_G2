@@ -2,7 +2,7 @@ package repository;
 
 import ConexionBD.ConexionBD;
 import entity.Cliente;
-import entity.PlatoInsumo;
+import entity.ProductoIngrediente;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import service.DisponibilidadService;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -43,7 +44,6 @@ class ChoquesNombreTablaTest {
     static void comprobarBase() {
         try (Connection cn = ConexionBD.getConnection();
              Statement st = cn.createStatement()) {
-
             ResultSet rs = st.executeQuery(
                     "SELECT producto_id FROM productos ORDER BY producto_id LIMIT 1");
             Assumptions.assumeTrue(rs.next(), "No hay productos en la base: se omite.");
@@ -57,6 +57,9 @@ class ChoquesNombreTablaTest {
             rs = st.executeQuery("SELECT 1 FROM tipos_documento WHERE codigo = 'CC'");
             Assumptions.assumeTrue(rs.next(), "Falta el tipo de documento CC: se omite.");
 
+            // Limpieza inicial segura utilizando el idProducto ya obtenido
+            st.executeUpdate("DELETE FROM producto_ingrediente WHERE producto_id = " + idProducto);
+
         } catch (SQLException e) {
             Assumptions.abort("No hay base de datos disponible: " + e.getMessage());
         }
@@ -67,7 +70,7 @@ class ChoquesNombreTablaTest {
         try (Connection cn = ConexionBD.getConnection();
              Statement st = cn.createStatement()) {
             st.executeUpdate("DELETE FROM clientes WHERE numero_documento LIKE 'HU115-%'");
-            st.executeUpdate("DELETE FROM plato_insumo WHERE plato_id = " + idProducto);
+            st.executeUpdate("DELETE FROM producto_ingrediente WHERE producto_id = " + idProducto);
             st.executeUpdate("UPDATE productos SET estado = 'DISPONIBLE' "
                     + "WHERE producto_id = " + idProducto);
         }
@@ -78,7 +81,7 @@ class ChoquesNombreTablaTest {
         try (Connection cn = ConexionBD.getConnection();
              Statement st = cn.createStatement()) {
             st.executeUpdate("DELETE FROM clientes WHERE numero_documento LIKE 'HU115-%'");
-            st.executeUpdate("DELETE FROM plato_insumo WHERE plato_id = " + idProducto);
+            st.executeUpdate("DELETE FROM producto_ingrediente WHERE producto_id = " + idProducto);
         } catch (SQLException ignorada) {
             // Si la base se cayo despues de las pruebas no hay nada que limpiar.
         }
@@ -126,9 +129,9 @@ class ChoquesNombreTablaTest {
         fijarStock(100);
 
         DisponibilidadService servicio = new DisponibilidadService();
-        assertTrue(servicio.tieneInsumosDisponibles((int) idProducto));
+        assertTrue(servicio.tieneInsumosDisponibles(idProducto));
 
-        servicio.actualizarDisponibilidad((int) idProducto);
+        servicio.actualizarDisponibilidad(idProducto);
         assertEquals("DISPONIBLE", estadoProducto());
     }
 
@@ -139,14 +142,14 @@ class ChoquesNombreTablaTest {
         fijarStock(1);
 
         DisponibilidadService servicio = new DisponibilidadService();
-        assertFalse(servicio.tieneInsumosDisponibles((int) idProducto));
+        assertFalse(servicio.tieneInsumosDisponibles(idProducto));
 
-        servicio.actualizarDisponibilidad((int) idProducto);
+        servicio.actualizarDisponibilidad(idProducto);
         assertEquals("AGOTADO", estadoProducto());
     }
 
     @Test
-    @DisplayName("un producto INACTIVO no se reactiva solo porque haya insumos")
+    @DisplayName("un producto INACTIVO no se reactiva solo porque haya ingredientes")
     void noReactivaInactivo() throws SQLException {
         darReceta(5);
         fijarStock(100);
@@ -157,18 +160,19 @@ class ChoquesNombreTablaTest {
                     + "WHERE producto_id = " + idProducto);
         }
 
-        new DisponibilidadService().actualizarDisponibilidad((int) idProducto);
+        new DisponibilidadService().actualizarDisponibilidad(idProducto);
         assertEquals("INACTIVO", estadoProducto());
     }
 
     // ------------------------------------------------------------- auxiliares --
 
     private void darReceta(int cantidad) throws SQLException {
-        PlatoInsumo pi = new PlatoInsumo();
-        pi.setPlatoId((int) idProducto);
-        pi.setInsumoId((int) idIngrediente);
-        pi.setCantidadNecesaria(cantidad);
-        new PlatoInsumoRepository().guardar(pi);
+        ProductoIngrediente pi = new ProductoIngrediente();
+        pi.setProductoId(idProducto);
+        pi.setIngredienteId(idIngrediente);
+        pi.setCantidadNecesaria(BigDecimal.valueOf(cantidad));
+
+        new ProductoIngredienteRepository().guardar(pi);
     }
 
     private void fijarStock(int cantidad) throws SQLException {
