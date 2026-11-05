@@ -13,7 +13,7 @@ creadas en `../migrations/`.
 | Archivo | Tabla | Historia | Descripción |
 |---|---|---|---|
 | `unidades_medida.ddl` | `unidades_medida` | HU-04 | Catálogo de unidades (kilogramo, litro, unidad…) con código, abreviatura y tipo. |
-| `ingredientes.ddl` | `ingredientes` | HU-04 · HU-138 | Datos generales del insumo y columnas heredadas de lote/vencimiento, conservadas por compatibilidad. |
+| `ingredientes.ddl` | `ingredientes` | HU-04 · HU-138 · HU-181 | Datos generales del insumo, unidad de medida, costos, existencias y vencimiento.|
 | `lote_ingrediente.ddl` | `lote_ingrediente` | HU-138 | Lotes por ingrediente, cantidad disponible, fecha de ingreso y vencimiento. |
 | `categorias.ddl` | `categorias` | HU-05 · HU-39 | Categorías del menú que administra el restaurante, con su orden de presentación. |
 | `productos.ddl` | `productos` | HU-05 | Catálogo de platos y bebidas: precio vigente, receta (`ingredientes` JSONB) y estado. |
@@ -38,8 +38,6 @@ creadas en `../migrations/`.
 | `detalle_pedido_adicional.ddl` | `detalle_pedido_adicional` | HU-115 | Adicionales aplicados a una línea concreta del pedido. |
 | `plato_insumo.ddl` | `plato_insumo` | HU-115 · HU-134 | Fuente única oficial de recetas: relaciona cada plato con sus insumos y cantidades necesarias. |
 | `regla_descuento.ddl` | `regla_descuento` | HU-115 | Reglas de descuento aplicables al cobrar, por porcentaje o monto fijo. |
-| `proveedores.ddl` | `proveedores` | HU-137 | Catálogo de proveedores de insumos: nombre único y datos de contacto. |
-| `categoria_ingrediente.ddl` | `categoria_ingrediente` | HU-137 | Catálogo de categorías de insumo (distinto de `categorias` del menú). |
 
 ---
 
@@ -50,12 +48,12 @@ El orden importa: hay llaves foráneas entre las tablas. **La lista `TABLAS` de
 escrita para leer.
 
 ```
- 1. roles, tipos_documento, zonas, estados_mesa, unidades_medida, categorias,
-    proveedores, categoria_ingrediente     ← sin dependencias (HU-137: catálogos de insumo)
+ 1. roles, tipos_documento, zonas, estados_mesa, unidades_medida,
+    categorias ← sin dependencias
  2. usuarios                   ← roles, tipos_documento
  3. clientes                   ← tipos_documento, usuarios
  4. mesas                      ← zonas, estados_mesa
- 5. ingredientes               ← unidades_medida (+ FK a proveedores y categoria_ingrediente vía migración HU-137)
+ 5. ingredientes               ← unidades_medida
  6. lote_ingrediente           ← ingredientes (HU-138)
  7. productos                  ← categorias
  8. precios_producto           ← productos
@@ -215,10 +213,7 @@ conexión. El `pom.xml` todavía lo excluye del build, junto con
 - Las tablas de HU-115 usan `id` como llave primaria, igual que `detalle_pedido`,
   porque es el nombre que esperan los repositorios que las consultan. El resto del
   esquema usa `<tabla>_id`. Son dos convenciones conviviendo.
-- HU-137 dejó las columnas de texto `ingredientes.proveedor` e
-    `ingredientes.categoria` para no romper el código que aún las lee. Cuando los
-    repositorios y pantallas usen solo `proveedor_id` y `categoria_ingrediente_id`,
-    esas columnas de texto podrán eliminarse en una Historia posterior.
+- Eliminación de proveedores y categorías de ingredientes (HU-181): el sistema deja de manejar las tablas proveedores y categoria_ingrediente, sus relaciones y la columna categoria de ingredientes. Se mantienen las unidades de medida y los demás atributos del ingrediente.
 - `reservas.nombre_cliente` se conserva de forma permanente: permite reservas de
   personas que no están en la tabla `clientes`. La columna `id_cliente` (nullable)
   es la referencia al catálogo cuando sí existe el cliente registrado.
