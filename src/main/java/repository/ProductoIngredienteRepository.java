@@ -6,7 +6,7 @@ import java.util.*;
 import ConexionBD.ConexionBD;
 import entity.ProductoIngrediente;
 
-public class PlatoInsumoRepository {
+public class ProductoIngredienteRepository {
 
     public void guardar(ProductoIngrediente pi) throws SQLException {
         String sql = "INSERT INTO producto_ingrediente (producto_id, ingrediente_id, cantidad_necesaria) VALUES (?, ?, ?)";
@@ -51,7 +51,8 @@ public class PlatoInsumoRepository {
     }
 
     public void eliminarPorProducto(long productoId) throws SQLException {
-        String sql = "DELETE FROM producto_insumo WHERE producto_id = ?";
+        // Corregido para apuntar a la tabla correcta producto_ingrediente
+        String sql = "DELETE FROM producto_ingrediente WHERE producto_id = ?";
 
         try (Connection cn = ConexionBD.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {

@@ -1,19 +1,21 @@
 package service;
 
-import java.math.BigDecimal;
-import java.sql.*;
-import java.util.*;
 import ConexionBD.ConexionBD;
 import entity.ProductoIngrediente;
-import repository.PlatoInsumoRepository;
+import repository.ProductoIngredienteRepository;
+
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
 
 public class DisponibilidadService {
 
-    private final PlatoInsumoRepository productoIngredienteRepo = new PlatoInsumoRepository();
+    private final ProductoIngredienteRepository productoIngredienteRepo = new ProductoIngredienteRepository();
 
-    /**
-     * Verifica si todos los ingredientes necesarios para un producto tienen stock suficiente.
-     */
+    // Verifica si todos los ingredientes necesarios para un producto tienen stock suficiente.
     public boolean tieneInsumosDisponibles(long productoId) throws SQLException {
         List<ProductoIngrediente> requeridos = productoIngredienteRepo.obtenerPorProducto(productoId);
 
@@ -28,9 +30,7 @@ public class DisponibilidadService {
         return true; // Todos los insumos alcanzan
     }
 
-    /**
-     * Obtiene el stock actual de un ingrediente en formato BigDecimal.
-     */
+    // Obtiene el stock actual de un ingrediente en formato BigDecimal.
     private BigDecimal obtenerStockInsumo(long ingredienteId) throws SQLException {
         String sql = "SELECT stock_actual FROM ingredientes WHERE ingrediente_id = ?";
 
@@ -38,7 +38,6 @@ public class DisponibilidadService {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setLong(1, ingredienteId);
-
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     BigDecimal stock = rs.getBigDecimal("stock_actual");

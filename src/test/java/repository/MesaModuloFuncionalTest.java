@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Los datos son propios: la prueba crea su zona y sus mesas con números a partir
  * de 9000, y los borra al terminar. No toca las mesas del restaurante.
  */
+
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DisplayName("HU-087 · Módulo de mesas")
 class MesaModuloFuncionalTest {
@@ -62,8 +63,12 @@ class MesaModuloFuncionalTest {
     // ------------------------------------------------------------------
 
     @BeforeAll
+
     static void prepararDatos() throws SQLException {
         try (Connection conn = ConexionBD.getConnection()) {
+
+            System.out.println(">>> CONECTADO A: " + conn.getMetaData().getURL());
+
             asegurarEstados(conn);
             idZona = crearZonaDePrueba(conn);
             idMesaCuatro = crearMesa(conn, NUMERO_BASE + 1, 4);

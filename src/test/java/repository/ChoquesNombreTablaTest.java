@@ -41,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Son pruebas de integracion: necesitan PostgreSQL con el esquema creado por
  * scripts/setup.sh. Si no hay base, la clase entera se omite en lugar de fallar.
  */
+
 @DisplayName("HU-115 - consultas contra las tablas correctas")
 class ChoquesNombreTablaTest {
 
@@ -77,7 +78,8 @@ class ChoquesNombreTablaTest {
         try (Connection cn = ConexionBD.getConnection();
              Statement st = cn.createStatement()) {
             st.executeUpdate("DELETE FROM clientes WHERE numero_documento LIKE 'HU115-%'");
-            st.executeUpdate("DELETE FROM plato_insumo WHERE plato_id = " + idProducto);
+            // CORREGIDO: Apuntando a la tabla unificada producto_ingrediente y columna producto_id
+            st.executeUpdate("DELETE FROM producto_ingrediente WHERE producto_id = " + idProducto);
             st.executeUpdate("UPDATE productos SET estado = 'DISPONIBLE' "
                     + "WHERE producto_id = " + idProducto);
         }
@@ -88,7 +90,8 @@ class ChoquesNombreTablaTest {
         try (Connection cn = ConexionBD.getConnection();
              Statement st = cn.createStatement()) {
             st.executeUpdate("DELETE FROM clientes WHERE numero_documento LIKE 'HU115-%'");
-            st.executeUpdate("DELETE FROM plato_insumo WHERE plato_id = " + idProducto);
+            // CORREGIDO: Apuntando a producto_ingrediente
+            st.executeUpdate("DELETE FROM producto_ingrediente WHERE producto_id = " + idProducto);
         } catch (SQLException ignorada) {
             // Si la base se cayo despues de las pruebas no hay nada que limpiar.
         }
@@ -132,33 +135,33 @@ class ChoquesNombreTablaTest {
     @Test
     @DisplayName("con stock suficiente el producto queda DISPONIBLE")
     void hayStock() throws SQLException {
-        darReceta(5);
+        darReceta(new BigDecimal("5"));
         fijarStock(100);
 
         DisponibilidadService servicio = new DisponibilidadService();
-        assertTrue(servicio.tieneInsumosDisponibles((int) idProducto));
+        assertTrue(servicio.tieneInsumosDisponibles(idProducto));
 
-        servicio.actualizarDisponibilidad((int) idProducto);
+        servicio.actualizarDisponibilidad(idProducto);
         assertEquals("DISPONIBLE", estadoProducto());
     }
 
     @Test
     @DisplayName("sin stock suficiente el producto queda AGOTADO")
     void noHayStock() throws SQLException {
-        darReceta(50);
+        darReceta(new BigDecimal("50"));
         fijarStock(1);
 
         DisponibilidadService servicio = new DisponibilidadService();
-        assertFalse(servicio.tieneInsumosDisponibles((int) idProducto));
+        assertFalse(servicio.tieneInsumosDisponibles(idProducto));
 
-        servicio.actualizarDisponibilidad((int) idProducto);
+        servicio.actualizarDisponibilidad(idProducto);
         assertEquals("AGOTADO", estadoProducto());
     }
 
     @Test
     @DisplayName("un producto INACTIVO no se reactiva solo porque haya insumos")
     void noReactivaInactivo() throws SQLException {
-        darReceta(5);
+        darReceta(new BigDecimal("5"));
         fijarStock(100);
 
         try (Connection cn = ConexionBD.getConnection();
@@ -167,7 +170,7 @@ class ChoquesNombreTablaTest {
                     + "WHERE producto_id = " + idProducto);
         }
 
-        new DisponibilidadService().actualizarDisponibilidad((int) idProducto);
+        new DisponibilidadService().actualizarDisponibilidad(idProducto);
         assertEquals("INACTIVO", estadoProducto());
     }
 
@@ -175,10 +178,10 @@ class ChoquesNombreTablaTest {
 
     private void darReceta(BigDecimal cantidad) throws SQLException {
         ProductoIngrediente pi = new ProductoIngrediente();
-        pi.setProductoId((int) idProducto);
-        pi.setIngredienteId((int) idIngrediente);
+        pi.setProductoId(idProducto);
+        pi.setIngredienteId(idIngrediente);
         pi.setCantidadNecesaria(cantidad);
-        new PlatoInsumoRepository().guardar(pi);
+        new ProductoIngredienteRepository().guardar(pi);
     }
 
     private void fijarStock(int cantidad) throws SQLException {

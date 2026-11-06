@@ -23,7 +23,6 @@ public class InventarioService {
 
     // Uso del patron observer para alerta de stock bajo - GoF
     public InventarioService() {
-        // Suscribimos por defecto al administrador para que reciba las alertas
         this.agregarObservador(new AdministradorAlertaObserver());
     }
 
@@ -48,9 +47,7 @@ public class InventarioService {
         }
     }
 
-    /**
-     * Descuenta los ingredientes utilizando una conexión externa (transacción compartida).
-     */
+    // Descuenta los ingredientes utilizando una conexión externa (transacción compartida).
     public void descontarIngredientesConConexion(
             Connection conn,
             long pedidoId,
@@ -61,7 +58,6 @@ public class InventarioService {
         if (productos == null || productos.isEmpty()) {
             return;
         }
-        // Lógica para integrarse en una transacción externa superior si se requiere
     }
 
     public void descontarIngredientes(
@@ -144,8 +140,8 @@ public class InventarioService {
 
                 /*
                  * Segunda fase:
-                 * Realizar los descuentos de stock en la tabla ingredientes
-                 * y registrar los movimientos de salida correspondientes.
+                 * Realizar los descuentos de stock en la tabla ingredientes,
+                 * registrar los movimientos de salida y verificar alertas de stock bajo.
                  */
                 for (Map.Entry<Long, BigDecimal> entry : consumoTotal.entrySet()) {
 
@@ -167,6 +163,19 @@ public class InventarioService {
                             motivo,
                             usuarioId
                     );
+
+                    // Integración del Patrón Observer para alertas de stock bajo
+                    BigDecimal stockActualPostDescuento = inventarioRepository.obtenerStockForUpdate(conn, ingredienteId);
+                    BigDecimal stockMinimo = inventarioRepository.obtenerStockMinimo(conn, ingredienteId);
+
+                    if (stockMinimo != null && stockActualPostDescuento != null) {
+                        String nombreInsumo = inventarioRepository.obtenerNombreIngrediente(conn, ingredienteId);
+                        verificarStockMinimo(
+                                nombreInsumo,
+                                stockActualPostDescuento.doubleValue(),
+                                stockMinimo.doubleValue()
+                        );
+                    }
                 }
                 conn.commit();
             } catch (StockInsuficienteException e) {

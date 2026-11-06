@@ -1,4 +1,5 @@
 package service;
+
 import ConexionBD.ConexionBD;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,9 +23,8 @@ public class EntradaInventarioService {
             conn.setAutoCommit(false);
 
             try {
-                // 1. Guardar la entrada (Nota: si tu repo.guardar requiere la conexión,
-                // asegúrate de pasarle 'conn' como parámetro: repo.guardar(conn, entrada);)
-                repo.guardar(entrada);
+                // 1. Guardar la entrada pasando la conexión compartida
+                repo.guardar(conn, entrada);
 
                 // 2. Actualizar el stock exclusivamente en la tabla 'ingredientes'
                 actualizarStock(conn, entrada.getIngredienteId(), entrada.getCantidad());
@@ -45,7 +45,6 @@ public class EntradaInventarioService {
                 "SET stock_actual = stock_actual + ?, " +
                 "fecha_actualizacion = CURRENT_TIMESTAMP " +
                 "WHERE ingrediente_id = ?";
-
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setDouble(1, cantidad);
             stmt.setLong(2, ingredienteId);
