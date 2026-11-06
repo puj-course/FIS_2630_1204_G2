@@ -87,7 +87,7 @@ de PostgreSQL (`PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`), las mismas que usa
 `psql`; si no están definidas asume `localhost:5432` con el usuario `postgres`.
 
 El script se detiene en el primer error con el archivo y el mensaje de
-PostgreSQL. Si termina, vverifica que estén las 23 tablas declaradas y la tabla de auditoría de HU-134 (24 en total), además de las funciones `fn_*`
+PostgreSQL. Si termina, verifica que estén las 23 tablas declaradas y la tabla de auditoría de HU-134 (24 en total), además de las funciones `fn_*`
 antes de darse por bueno.
 
 Se puede correr dos veces. Sobre una base que ya existe no borra nada: salta las

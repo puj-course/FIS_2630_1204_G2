@@ -2,7 +2,7 @@ package entity;
 
 import java.math.BigDecimal;
 
-public class Producto {
+public class Productos {
     private final long productoId;
     private final String codigo;
     private final String nombre;
@@ -11,8 +11,8 @@ public class Producto {
     private final BigDecimal precioVenta;
     private final String estado;
 
-    public Producto(long productoId, String codigo, String nombre, String descripcion,
-                    String categoria, BigDecimal precioVenta, String estado) {
+    public Productos(long productoId, String codigo, String nombre, String descripcion,
+                     String categoria, BigDecimal precioVenta, String estado) {
         this.productoId = productoId;
         this.codigo = codigo;
         this.nombre = nombre;

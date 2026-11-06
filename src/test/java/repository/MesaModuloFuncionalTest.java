@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Los datos son propios: la prueba crea su zona y sus mesas con números a partir
  * de 9000, y los borra al terminar. No toca las mesas del restaurante.
  */
+
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DisplayName("HU-087 · Módulo de mesas")
 class MesaModuloFuncionalTest {
@@ -62,8 +63,12 @@ class MesaModuloFuncionalTest {
     // ------------------------------------------------------------------
 
     @BeforeAll
+
     static void prepararDatos() throws SQLException {
         try (Connection conn = ConexionBD.getConnection()) {
+
+            System.out.println(">>> CONECTADO A: " + conn.getMetaData().getURL());
+
             asegurarEstados(conn);
             idZona = crearZonaDePrueba(conn);
             idMesaCuatro = crearMesa(conn, NUMERO_BASE + 1, 4);
@@ -96,15 +101,15 @@ class MesaModuloFuncionalTest {
 
             stmt.executeUpdate(
                     "UPDATE mesas SET cantidad_comensales = NULL, capacidad = 4, " +
-                    "    id_estado_mesa = (SELECT id_estado_mesa FROM estados_mesa " +
-                    "                      WHERE UPPER(codigo_estado) = 'LIBRE') " +
-                    "WHERE id_mesa = " + idMesaCuatro);
+                            "    id_estado_mesa = (SELECT id_estado_mesa FROM estados_mesa " +
+                            "                      WHERE UPPER(codigo_estado) = 'LIBRE') " +
+                            "WHERE id_mesa = " + idMesaCuatro);
 
             stmt.executeUpdate(
                     "UPDATE mesas SET cantidad_comensales = NULL, capacidad = 2, " +
-                    "    id_estado_mesa = (SELECT id_estado_mesa FROM estados_mesa " +
-                    "                      WHERE UPPER(codigo_estado) = 'LIBRE') " +
-                    "WHERE id_mesa = " + idMesaDos);
+                            "    id_estado_mesa = (SELECT id_estado_mesa FROM estados_mesa " +
+                            "                      WHERE UPPER(codigo_estado) = 'LIBRE') " +
+                            "WHERE id_mesa = " + idMesaDos);
         }
     }
 
@@ -278,8 +283,8 @@ class MesaModuloFuncionalTest {
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT m.numero_mesa, m.capacidad, m.cantidad_comensales, e.codigo_estado " +
-                     "FROM mesas m JOIN estados_mesa e ON e.id_estado_mesa = m.id_estado_mesa " +
-                     "WHERE m.id_mesa = ?")) {
+                             "FROM mesas m JOIN estados_mesa e ON e.id_estado_mesa = m.id_estado_mesa " +
+                             "WHERE m.id_mesa = ?")) {
 
             stmt.setInt(1, idMesaCuatro);
 
@@ -432,9 +437,9 @@ class MesaModuloFuncionalTest {
 
         try (PreparedStatement insertar = conn.prepareStatement(
                 "INSERT INTO mesas (numero_mesa, codigo_mesa, capacidad, id_zona, " +
-                "                   id_estado_mesa, is_active) " +
-                "VALUES (?, ?, ?, ?, (SELECT id_estado_mesa FROM estados_mesa " +
-                "                     WHERE UPPER(codigo_estado) = 'LIBRE'), 1)",
+                        "                   id_estado_mesa, is_active) " +
+                        "VALUES (?, ?, ?, ?, (SELECT id_estado_mesa FROM estados_mesa " +
+                        "                     WHERE UPPER(codigo_estado) = 'LIBRE'), 1)",
                 Statement.RETURN_GENERATED_KEYS)) {
 
             insertar.setInt(1, numeroMesa);

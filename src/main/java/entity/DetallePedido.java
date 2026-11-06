@@ -23,11 +23,22 @@ public class DetallePedido {
     public void setProductoId(Long productoId) { this.productoId = productoId; }
 
     public int getCantidad() { return cantidad; }
-    public void setCantidad(int cantidad) { this.cantidad = cantidad; }
-
+    public void setCantidad(int cantidad) {
+        this.cantidad = cantidad;
+        recalcularSubtotal();
+    }
     public BigDecimal getPrecioUnitario() { return precioUnitario; }
-    public void setPrecioUnitario(BigDecimal precioUnitario) { this.precioUnitario = precioUnitario; }
-
+    public void setPrecioUnitario(BigDecimal precioUnitario) {
+        this.precioUnitario = precioUnitario;
+        recalcularSubtotal();
+    }
+    private void recalcularSubtotal() {
+        if (this.precioUnitario != null && this.cantidad > 0) {
+            this.subtotal = this.precioUnitario.multiply(BigDecimal.valueOf(this.cantidad));
+        } else {
+            this.subtotal = BigDecimal.ZERO;
+        }
+    }
     public BigDecimal getSubtotal() { return subtotal; }
     public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }
 }

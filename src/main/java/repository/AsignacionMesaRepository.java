@@ -9,8 +9,8 @@ import java.util.Optional;
 public class AsignacionMesaRepository {
 
     public Optional<AsignacionMesa> findActivaByMesaId(long mesaId) throws SQLException {
-        String sql = "SELECT id, mesa_id, usuario_id, fecha_asignacion, is_active " +
-                "FROM asignacion_mesa WHERE mesa_id = ? AND is_active = TRUE LIMIT 1";
+        String sql = "SELECT id_asignacion, id_mesa, id_cliente, id_usuario, cantidad_personas, fecha_asignacion, is_active " +
+                "FROM asignacion_mesa WHERE id_mesa = ? AND is_active = TRUE LIMIT 1";
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, mesaId);
@@ -25,8 +25,8 @@ public class AsignacionMesaRepository {
 
     public AsignacionMesa save(AsignacionMesa a) throws SQLException {
         if (a.getId() == null) {
-            String sql = "INSERT INTO asignacion_mesa (mesa_id, usuario_id, fecha_asignacion, is_active) " +
-                    "VALUES (?, ?, ?, ?) RETURNING id";
+            String sql = "INSERT INTO asignacion_mesa (id_mesa,id_cliente, id_usuario, cantidad_personas, fecha_asignacion, is_active) " +
+                    "VALUES (?, ?, ?, ?, ?, ?) RETURNING id_asignacion";
             try (Connection conn = ConexionBD.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setLong(1, a.getMesaId());
@@ -41,7 +41,7 @@ public class AsignacionMesaRepository {
                 }
             }
         } else {
-            String sql = "UPDATE asignacion_mesa SET mesa_id = ?, usuario_id = ?, is_active = ? WHERE id = ?";
+            String sql = "UPDATE asignacion_mesa SET id_mesa = ?, id_usuario = ?,id_cliente = ?, is_active = ? WHERE id_asignacion = ?";
             try (Connection conn = ConexionBD.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setLong(1, a.getMesaId());
@@ -56,9 +56,9 @@ public class AsignacionMesaRepository {
 
     private AsignacionMesa map(ResultSet rs) throws SQLException {
         AsignacionMesa a = new AsignacionMesa();
-        a.setId(rs.getLong("id"));
-        a.setMesaId(rs.getLong("mesa_id"));
-        a.setUsuarioId(rs.getLong("usuario_id"));
+        a.setId(rs.getLong("id_asignacion"));
+        a.setMesaId(rs.getLong("id_mesa"));
+        a.setUsuarioId(rs.getLong("id_usuario"));
         Timestamp ts = rs.getTimestamp("fecha_asignacion");
         if (ts != null) {
             a.setFechaAsignacion(ts.toLocalDateTime());
