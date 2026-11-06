@@ -1,7 +1,7 @@
 package dao;
 
 import ConexionBD.ConexionBD;
-import entity.Producto;
+import entity.Productos;
 
 import java.sql.*;
 import java.util.*;
@@ -9,7 +9,7 @@ import java.util.*;
 public class ProductoDAO {
     private final DisponibilidadDAO disponibilidadDAO = new DisponibilidadDAO();
 
-    public Map<String, List<Producto>> obtenerMenuPorCategorias() throws SQLException {
+    public Map<String, List<Productos>> obtenerMenuPorCategorias() throws SQLException {
         disponibilidadDAO.recalcularTodos();
 
         String sql = """
@@ -23,12 +23,12 @@ public class ProductoDAO {
                 ORDER BY c.orden_visual, c.nombre, p.nombre
                 """;
 
-        Map<String, List<Producto>> menu = new LinkedHashMap<>();
+        Map<String, List<Productos>> menu = new LinkedHashMap<>();
         try (Connection cn = ConexionBD.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                Producto producto = new Producto(
+                Productos producto = new Productos(
                         rs.getLong("producto_id"),
                         rs.getString("codigo"),
                         rs.getString("nombre"),

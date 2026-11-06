@@ -50,10 +50,6 @@ public class CajeroPagoController {
 
     @FXML
     public void initialize() {
-        // se implementa el patrón Strategy para calcular las formas en que se calcula y el cajero pueda elegir
-
-        // HU-144: la lista muestra algo que el cajero pueda reconocer de un
-        // vistazo (mesa, numero y total), no el codigo a secas.
         cuentaCombo.setConverter(new StringConverter<>() {
             @Override
             public String toString(CuentaPago cuenta) {
@@ -70,12 +66,13 @@ public class CajeroPagoController {
 
             @Override
             public CuentaPago fromString(String texto) {
-                return null;   // la lista no es editable
+                return null;
             }
         });
+
         cuentaCombo.valueProperty().addListener((obs, anterior, seleccionada) -> {
             if (seleccionada == null) {
-                return;        // lo dispara recargar la lista, no el cajero
+                return;
             }
             cuentaActual = seleccionada;
             mostrarCuenta();
@@ -87,8 +84,7 @@ public class CajeroPagoController {
             calculadoraDescuento.setEstrategia(nuevo);
             recalcular();
         });
-        // selectFirst() corre antes de registrar el listener, asi que la
-        // primera seleccion se sincroniza a mano con el contexto.
+
         calculadoraDescuento.setEstrategia(tipoDescuentoCombo.getValue());
         limpiarCuenta();
 
@@ -96,7 +92,7 @@ public class CajeroPagoController {
         propinaField.textProperty().addListener((obs, anterior, nuevo) -> recalcular());
         motivoDescuentoField.textProperty().addListener((obs, anterior, nuevo) -> recalcular());
 
-        if (!SesionUsuario.getInstance().estaAutenticado() || !SesionUsuario.getInstance().esCajero()) { //cambio a instance por singleton
+        if (!SesionUsuario.getInstance().estaAutenticado() || !SesionUsuario.getInstance().esCajero()) {
             cajeroLabel.setText("Sin sesión de Cajero");
             bloquearPantalla(true);
             Platform.runLater(() -> mostrarAlerta(
@@ -105,19 +101,12 @@ public class CajeroPagoController {
                     "Debe iniciar sesión con el rol Cajero para gestionar pagos."
             ));
         } else {
-            cajeroLabel.setText(SesionUsuario.getInstance().getNombre()); //cambio por singleton inicio sesión
+            cajeroLabel.setText(SesionUsuario.getInstance().getNombre());
             bloquearPantalla(false);
             recargarCuentas();
         }
     }
 
-    /**
-     * HU-144: recarga las cuentas de la lista desplegable.
-     *
-     * Se llama al abrir la pantalla, con el boton "Actualizar" y despues de
-     * cerrar un pago, para que la cuenta recien cobrada aparezca ya marcada
-     * como pagada.
-     */
     @FXML
     private void recargarCuentas() {
         try {
@@ -145,7 +134,7 @@ public class CajeroPagoController {
         impuestosLabel.setText(moneda.format(cuentaActual.getImpuestos()));
         subtotalResumenLabel.setText(moneda.format(cuentaActual.getSubtotal()));
         impuestosResumenLabel.setText(moneda.format(cuentaActual.getImpuestos()));
-        // El descuento guardado ya está en pesos: se muestra como monto fijo.
+
         tipoDescuentoCombo.getSelectionModel().selectFirst();
         descuentoField.setText(cuentaActual.getDescuento().setScale(2, RoundingMode.HALF_UP).toPlainString());
         propinaField.setText(cuentaActual.getPropina().setScale(2, RoundingMode.HALF_UP).toPlainString());
@@ -173,18 +162,12 @@ public class CajeroPagoController {
         }
 
         BigDecimal valorDescuento = leerValor(descuentoField.getText());
-        // El valor escrito se convierte a pesos con la estrategia elegida.
-        // Taller de pruebas: antes se llamaba directamente a la estrategia del
-        // combo, de modo que calculadoraDescuento se construia, recibia la
-        // estrategia y nunca se usaba. El contexto del patron Strategy estaba
-        // fuera del camino de ejecucion.
         BigDecimal descuento;
         try {
             descuento = valorDescuento == null
                     ? null
                     : calculadoraDescuento.calcular(cuentaActual.getSubtotal(), valorDescuento);
         } catch (IllegalArgumentException e) {
-            // La estrategia ahora valida el descuento; aqui solo se muestra.
             totalLabel.setText(e.getMessage());
             cerrarPagoButton.setDisable(true);
             return;
@@ -266,7 +249,7 @@ public class CajeroPagoController {
         try {
             pagoDAO.cerrarPago(
                     cuentaActual,
-                    SesionUsuario.getInstance().getUsuarioId(), //cambio por singleton iniciar sesión
+                    SesionUsuario.getInstance().getUsuarioId(),
                     motivoDescuentoField.getText()
             );
 

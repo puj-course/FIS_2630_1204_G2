@@ -20,31 +20,26 @@ public class AlertaInventarioRepository {
             throws SQLException {
 
         String sql = """
-                SELECT id,
-                       ingrediente_id,
-                       producto_id,
+                SELECT id_alerta,
+                       id_ingrediente,
+                       id_producto,
                        stock_actual,
                        stock_minimo,
-                       cantidad_sugerida,
                        estado,
-                       created_at,
-                       resolved_at
+                       created_at
                 FROM alerta_inventario
                 WHERE estado = 'PENDIENTE'
                 ORDER BY created_at DESC
                 """;
 
         List<AlertaInventario> alertas = new ArrayList<>();
-
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
-
             while (rs.next()) {
                 alertas.add(map(rs));
             }
         }
-
         return alertas;
     }
 
@@ -56,15 +51,13 @@ public class AlertaInventarioRepository {
     ) throws SQLException {
 
         String sql = """
-                SELECT id,
-                       ingrediente_id,
-                       producto_id,
+                SELECT id_alerta,
+                       id_ingrediente,
+                       id_producto,
                        stock_actual,
                        stock_minimo,
-                       cantidad_sugerida,
                        estado,
-                       created_at,
-                       resolved_at
+                       created_at
                 FROM alerta_inventario
                 WHERE ingrediente_id = ?
                   AND estado = 'PENDIENTE'
@@ -76,14 +69,12 @@ public class AlertaInventarioRepository {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setLong(1, ingredienteId);
-
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(map(rs));
                 }
             }
         }
-
         return Optional.empty();
     }
 
@@ -102,12 +93,10 @@ public class AlertaInventarioRepository {
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
-
             if (rs.next()) {
                 return rs.getLong(1);
             }
         }
-
         return 0;
     }
 
@@ -120,11 +109,11 @@ public class AlertaInventarioRepository {
 
         String sql = """
                 INSERT INTO alerta_inventario (
-                    ingrediente_id,
-                    producto_id,
+                    id_alerta,
+                    id_ingrediente,
+                    id_producto,
                     stock_actual,
                     stock_minimo,
-                    cantidad_sugerida,
                     estado
                 )
                 VALUES (?, ?, ?, ?, ?, ?)
@@ -163,11 +152,6 @@ public class AlertaInventarioRepository {
                     alerta.getStockMinimo()
             );
 
-            stmt.setBigDecimal(
-                    5,
-                    alerta.getCantidadSugerida()
-            );
-
             stmt.setString(
                     6,
                     alerta.getEstado() != null
@@ -185,7 +169,6 @@ public class AlertaInventarioRepository {
                 }
             }
         }
-
         return alerta;
     }
 
@@ -218,18 +201,18 @@ public class AlertaInventarioRepository {
                 new AlertaInventario();
 
         alerta.setId(
-                rs.getLong("id")
+                rs.getLong("id_alerta")
         );
 
         long ingredienteId =
-                rs.getLong("ingrediente_id");
+                rs.getLong("id_ingrediente");
 
         if (!rs.wasNull()) {
             alerta.setIngredienteId(ingredienteId);
         }
 
         long productoId =
-                rs.getLong("producto_id");
+                rs.getLong("id_producto");
 
         if (!rs.wasNull()) {
             alerta.setProductoId(productoId);
@@ -241,10 +224,6 @@ public class AlertaInventarioRepository {
 
         alerta.setStockMinimo(
                 rs.getBigDecimal("stock_minimo")
-        );
-
-        alerta.setCantidadSugerida(
-                rs.getBigDecimal("cantidad_sugerida")
         );
 
         alerta.setEstado(
@@ -264,7 +243,6 @@ public class AlertaInventarioRepository {
                             .toLocalDateTime()
             );
         }
-
         return alerta;
     }
 }

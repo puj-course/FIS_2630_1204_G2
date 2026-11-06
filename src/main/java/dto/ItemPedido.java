@@ -1,24 +1,24 @@
 package dto;
 
-import entity.Producto;
+import entity.Productos;
 
 import java.math.BigDecimal;
 
 public class ItemPedido {
 
-    private final Producto producto;
+    private final Productos producto;
     private int cantidad = 1;
 
-    public ItemPedido(Producto producto) {
+    public ItemPedido(Productos producto) {
         this.producto = producto;
     }
 
-    public ItemPedido(Producto producto, int cantidad) {
+    public ItemPedido(Productos producto, int cantidad) {
         this.producto = producto;
         this.cantidad = cantidad;
     }
 
-    public Producto getProducto() {
+    public Productos getProducto() {
         return producto;
     }
 

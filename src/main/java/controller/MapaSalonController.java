@@ -260,8 +260,8 @@ public class MapaSalonController {
         Integer personas = mesa.getCantidadComensales();
         if (personas != null && personas > 0) {
             detalle.append("\n")
-                   .append(personas)
-                   .append(personas == 1 ? " persona" : " personas");
+                    .append(personas)
+                    .append(personas == 1 ? " persona" : " personas");
         }
 
         return detalle.toString();
