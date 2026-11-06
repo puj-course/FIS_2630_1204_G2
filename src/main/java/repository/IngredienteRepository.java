@@ -12,10 +12,9 @@ import java.util.Optional;
 public class IngredienteRepository {
 
     private static final String SELECT_BASE =
-            "SELECT i.ingrediente_id, i.nombre, i.descripcion, i.unidad_medida_id, " +
+            "SELECT i.ingrediente_id, i.nombre, i.descripcion, i.unidad_medida, " +
                     "i.costo_unitario, i.stock_actual, i.stock_minimo, i.stock_maximo, " +
-                    "i.lote, i.fecha_vencimiento, i.estado, " +
-                    "i.fecha_creacion, i.fecha_actualizacion " +
+                    "i.estado, i.fecha_creacion, i.fecha_actualizacion " +
                     "FROM ingredientes i ";
 
     public Optional<Ingrediente> findById(long id) throws SQLException {
@@ -88,9 +87,9 @@ public class IngredienteRepository {
     }
 
     public Ingrediente save(Connection conn, Ingrediente i) throws SQLException {
-        if (i.getUnidadMedidaId() == null) {
+        if (i.getUnidadMedida() == null || i.getUnidadMedida().isBlank()) {
             throw new SQLException(
-                    "unidad_medida_id es obligatorio para guardar un ingrediente"
+                    "La unidad de medida es obligatoria para guardar un ingrediente"
             );
         }
 
@@ -100,16 +99,14 @@ public class IngredienteRepository {
                     INSERT INTO ingredientes (
                         nombre,
                         descripcion,
-                        unidad_medida_id,
+                        unidad_medida,
                         costo_unitario,
                         stock_actual,
                         stock_minimo,
                         stock_maximo,
-                        lote,
-                        fecha_vencimiento,
                         estado
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     RETURNING ingrediente_id
                     """;
 
@@ -127,13 +124,11 @@ public class IngredienteRepository {
                     UPDATE ingredientes
                     SET nombre = ?,
                         descripcion = ?,
-                        unidad_medida_id = ?,
+                        unidad_medida = ?,
                         costo_unitario = ?,
                         stock_actual = ?,
                         stock_minimo = ?,
                         stock_maximo = ?,
-                        lote = ?,
-                        fecha_vencimiento = ?,
                         estado = ?,
                         fecha_actualizacion = CURRENT_TIMESTAMP
                     WHERE ingrediente_id = ?
@@ -141,14 +136,16 @@ public class IngredienteRepository {
 
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 bindCampos(stmt, i);
-                stmt.setLong(11, i.getId());
+                stmt.setLong(9, i.getId());
                 stmt.executeUpdate();
             }
         }
         return i;
     }
 
-    public void actualizarStock(Connection conn, long id, BigDecimal nuevoStock) throws SQLException {
+    public void actualizarStock(Connection conn, long id, BigDecimal nuevoStock)
+            throws SQLException {
+
         String sql = """
                 UPDATE ingredientes
                 SET stock_actual = ?,
@@ -169,18 +166,17 @@ public class IngredienteRepository {
     private void bindCampos(PreparedStatement stmt, Ingrediente i) throws SQLException {
         stmt.setString(1, i.getNombre());
         stmt.setString(2, i.getDescripcion());
-        stmt.setLong(3, i.getUnidadMedidaId());
+        stmt.setString(3, i.getUnidadMedida());
         stmt.setBigDecimal(4, i.getCostoUnitario());
         stmt.setBigDecimal(5, i.getStockActual());
         stmt.setBigDecimal(6, i.getStockMinimo());
-        stmt.setBigDecimal(7, i.getStockMaximo());
-        stmt.setString(8, i.getLote());
-        if (i.getFechaVencimiento() != null) {
-            stmt.setDate(9, Date.valueOf(i.getFechaVencimiento()));
+        if (i.getStockMaximo() != null) {
+            stmt.setBigDecimal(7, i.getStockMaximo());
         } else {
-            stmt.setNull(9, Types.DATE);
+            stmt.setNull(7, Types.NUMERIC);
         }
-        stmt.setString(10, i.getEstado());
+
+        stmt.setString(8, i.getEstado());
     }
 
     private Ingrediente map(ResultSet rs) throws SQLException {
@@ -188,17 +184,11 @@ public class IngredienteRepository {
         i.setId(rs.getLong("ingrediente_id"));
         i.setNombre(rs.getString("nombre"));
         i.setDescripcion(rs.getString("descripcion"));
-        i.setUnidadMedidaId(rs.getLong("unidad_medida_id"));
+        i.setUnidadMedida(rs.getString("unidad_medida"));
         i.setCostoUnitario(rs.getBigDecimal("costo_unitario"));
         i.setStockActual(rs.getBigDecimal("stock_actual"));
         i.setStockMinimo(rs.getBigDecimal("stock_minimo"));
         i.setStockMaximo(rs.getBigDecimal("stock_maximo"));
-        i.setLote(rs.getString("lote"));
-        Date fv = rs.getDate("fecha_vencimiento");
-        if (fv != null) {
-            i.setFechaVencimiento(fv.toLocalDate());
-        }
-
         i.setEstado(rs.getString("estado"));
         Timestamp fc = rs.getTimestamp("fecha_creacion");
         if (fc != null) {

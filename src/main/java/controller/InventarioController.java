@@ -127,9 +127,24 @@ public class InventarioController {
 
                         if (empty || valor == null) {
                             setText(null);
-                        } else {
-                            setText(valor.stripTrailingZeros().toPlainString());
+                            return;
                         }
+
+                        Ingrediente ingrediente = getTableRow().getItem();
+
+                        if (ingrediente == null) {
+                            setText(valor.stripTrailingZeros().toPlainString());
+                            return;
+                        }
+
+                        String unidad = ingrediente.getUnidadMedida();
+
+                        setText(
+                                valor.stripTrailingZeros().toPlainString()
+                                        + (unidad == null || unidad.isBlank()
+                                        ? ""
+                                        : " " + unidad)
+                        );
                     }
                 }
         );

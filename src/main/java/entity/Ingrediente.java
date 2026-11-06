@@ -1,8 +1,6 @@
-
 package entity;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class Ingrediente {
@@ -13,13 +11,11 @@ public class Ingrediente {
     private Long id;
     private String nombre;
     private String descripcion;
-    private Long unidadMedidaId;
+    private String unidadMedida;
     private BigDecimal costoUnitario = BigDecimal.ZERO;
     private BigDecimal stockActual = BigDecimal.ZERO;
     private BigDecimal stockMinimo = BigDecimal.ZERO;
     private BigDecimal stockMaximo;
-    private String lote;
-    private LocalDate fechaVencimiento;
     private String estado = ESTADO_ACTIVO;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
@@ -35,8 +31,8 @@ public class Ingrediente {
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
-    public Long getUnidadMedidaId() { return unidadMedidaId; }
-    public void setUnidadMedidaId(Long unidadMedidaId) { this.unidadMedidaId = unidadMedidaId; }
+    public String getUnidadMedida() { return unidadMedida; }
+    public void setUnidadMedida(String unidadMedida) { this.unidadMedida = unidadMedida; }
 
     public BigDecimal getCostoUnitario() { return costoUnitario; }
     public void setCostoUnitario(BigDecimal costoUnitario) { this.costoUnitario = costoUnitario; }
@@ -50,16 +46,11 @@ public class Ingrediente {
     public BigDecimal getStockMaximo() { return stockMaximo; }
     public void setStockMaximo(BigDecimal stockMaximo) { this.stockMaximo = stockMaximo; }
 
-    public String getLote() { return lote; }
-    public void setLote(String lote) { this.lote = lote; }
-
-    public LocalDate getFechaVencimiento() { return fechaVencimiento; }
-    public void setFechaVencimiento(LocalDate fechaVencimiento) { this.fechaVencimiento = fechaVencimiento; }
-
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+
     public boolean estaActivo() {
-        return "ACTIVO".equalsIgnoreCase(estado);
+        return ESTADO_ACTIVO.equalsIgnoreCase(estado);
     }
 
     public boolean tieneStockBajo() {

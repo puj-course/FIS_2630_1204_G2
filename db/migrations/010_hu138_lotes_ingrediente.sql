@@ -24,20 +24,37 @@ CREATE TABLE IF NOT EXISTS lote_ingrediente (
 CREATE INDEX IF NOT EXISTS ix_lote_ingrediente_fecha_vencimiento
     ON lote_ingrediente (fecha_vencimiento);
 
--- Se conserva un registro por ingrediente con datos heredados relevantes.
--- Si no había código de lote pero sí stock o vencimiento, se usa un código
--- identificable LEGACY-<ingrediente_id>. El stock agregado pasa a cantidad.
--- ON CONFLICT DO NOTHING evita sobrescribir lotes que ya se hayan gestionado.
-INSERT INTO lote_ingrediente (
-    ingrediente_id,
-    codigo_lote,
-    cantidad,
-    fecha_vencimiento,
-    fecha_ingreso
-)
+-- Migración de datos heredados, solo cuando existen las columnas antiguas.
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'ingredientes'
+          AND column_name = 'lote'
+    )
+    AND EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'ingredientes'
+          AND column_name = 'fecha_vencimiento'
+    ) THEN
+
+        INSERT INTO lote_ingrediente (
+            ingrediente_id,
+            codigo_lote,
+            cantidad,
+            fecha_vencimiento,
+            fecha_ingreso
+        )
 SELECT
     i.ingrediente_id,
-    COALESCE(NULLIF(BTRIM(i.lote), ''), 'LEGACY-' || i.ingrediente_id::TEXT),
+    COALESCE(
+            NULLIF(BTRIM(i.lote), ''),
+            'LEGACY-' || i.ingrediente_id::TEXT
+    ),
     i.stock_actual,
     i.fecha_vencimiento,
     i.fecha_creacion::DATE
@@ -45,6 +62,10 @@ FROM ingredientes i
 WHERE NULLIF(BTRIM(i.lote), '') IS NOT NULL
    OR i.fecha_vencimiento IS NOT NULL
    OR i.stock_actual > 0
-ON CONFLICT (ingrediente_id, codigo_lote) DO NOTHING;
+    ON CONFLICT (ingrediente_id, codigo_lote) DO NOTHING;
+
+END IF;
+END
+$$;
 
 COMMIT;
