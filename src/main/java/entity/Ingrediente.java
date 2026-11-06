@@ -11,15 +11,12 @@ public class Ingrediente {
 
     private Long id;
     private String nombre;
-    private Long unidadMedidaId;
+    private String descripcion;
+    private String unidadMedida;
     private BigDecimal costoUnitario = BigDecimal.ZERO;
     private BigDecimal stockActual = BigDecimal.ZERO;
     private BigDecimal stockMinimo = BigDecimal.ZERO;
     private BigDecimal stockMaximo;
-    private String proveedor;
-    private String lote;
-    private LocalDate fechaVencimiento;
-    private String categoria;
     private String estado = ESTADO_ACTIVO;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
@@ -32,8 +29,11 @@ public class Ingrediente {
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public Long getUnidadMedidaId() { return unidadMedidaId; }
-    public void setUnidadMedidaId(Long unidadMedidaId) { this.unidadMedidaId = unidadMedidaId; }
+    public String getDescripcion() { return descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+
+    public String getUnidadMedida() { return unidadMedida; }
+    public void setUnidadMedida(String unidadMedida) { this.unidadMedida = unidadMedida; }
 
     public BigDecimal getCostoUnitario() { return costoUnitario; }
     public void setCostoUnitario(BigDecimal costoUnitario) { this.costoUnitario = costoUnitario; }
@@ -47,22 +47,11 @@ public class Ingrediente {
     public BigDecimal getStockMaximo() { return stockMaximo; }
     public void setStockMaximo(BigDecimal stockMaximo) { this.stockMaximo = stockMaximo; }
 
-    public String getProveedor() { return proveedor; }
-    public void setProveedor(String proveedor) { this.proveedor = proveedor; }
-
-    public String getLote() { return lote; }
-    public void setLote(String lote) { this.lote = lote; }
-
-    public LocalDate getFechaVencimiento() { return fechaVencimiento; }
-    public void setFechaVencimiento(LocalDate fechaVencimiento) { this.fechaVencimiento = fechaVencimiento; }
-
-    public String getCategoria() { return categoria; }
-    public void setCategoria(String categoria) { this.categoria = categoria; }
-
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+
     public boolean estaActivo() {
-        return "ACTIVO".equalsIgnoreCase(estado);
+        return ESTADO_ACTIVO.equalsIgnoreCase(estado);
     }
 
     public boolean tieneStockBajo() {
@@ -79,5 +68,12 @@ public class Ingrediente {
     public LocalDateTime getFechaActualizacion() { return fechaActualizacion; }
     public void setFechaActualizacion(LocalDateTime fechaActualizacion) { this.fechaActualizacion = fechaActualizacion; }
 
-    public boolean isActivo() { return ESTADO_ACTIVO.equals(estado); }
+    public boolean isActivo() {
+        return ESTADO_ACTIVO.equals(estado);
+    }
+
+    @Override
+    public String toString() {
+        return nombre;
+    }
 }

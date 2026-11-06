@@ -84,8 +84,8 @@
                                  prefWidth="250"/>
 
                     <TableColumn fx:id="columnaStock"
-                                 text="Stock actual"
-                                 prefWidth="150"/>
+                                 text="Stock actual (unidad)"
+                                 prefWidth="180"/>
 
                     <TableColumn fx:id="columnaStockMinimo"
                                  text="Stock mínimo"

@@ -51,7 +51,6 @@ package "entity · HistorialEstadoMesa–NotaMesa" {
     - stockActual : BigDecimal
     - stockMinimo : BigDecimal
     - stockMaximo : BigDecimal
-    - proveedor : String
     - lote : String
     - fechaVencimiento : LocalDate
     - categoria : String
@@ -76,8 +75,6 @@ package "entity · HistorialEstadoMesa–NotaMesa" {
     + setStockMinimo(stockMinimo : BigDecimal) : void
     + getStockMaximo() : BigDecimal
     + setStockMaximo(stockMaximo : BigDecimal) : void
-    + getProveedor() : String
-    + setProveedor(proveedor : String) : void
     + getLote() : String
     + setLote(lote : String) : void
     + getFechaVencimiento() : LocalDate
