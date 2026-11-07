@@ -10,7 +10,7 @@ CREATE TABLE clientes (
     is_active         SMALLINT DEFAULT 1 NOT NULL,
     created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    created_by        VARCHAR(50),
+
     CONSTRAINT pk_clientes PRIMARY KEY (id_cliente),
     CONSTRAINT uk_clientes_num_doc UNIQUE (numero_documento),
     CONSTRAINT uk_clientes_correo UNIQUE (correo),
@@ -21,7 +21,5 @@ CREATE TABLE clientes (
     CONSTRAINT chk_clientes_active CHECK (is_active IN (0, 1))
 );
 
--- Búsqueda rápida de clientes al emitir facturas/pagos o buscar por identificación
 CREATE INDEX ix_clientes_documento ON clientes (id_tipo_documento, numero_documento);
-
-
+CREATE INDEX ix_clientes_id_usuario_cuenta ON clientes (id_usuario_cuenta);

@@ -12,15 +12,11 @@ creadas en `../migrations/`.
 
 | Archivo | Tabla | Historia | Descripción |
 |---|---|---|---|
-| `unidades_medida.ddl` | `unidades_medida` | HU-04 | Catálogo de unidades (kilogramo, litro, unidad…) con código, abreviatura y tipo. |
 | `ingredientes.ddl` | `ingredientes` | HU-04 · HU-138 | Datos generales del insumo y columnas heredadas de lote/vencimiento, conservadas por compatibilidad. |
-| `lote_ingrediente.ddl` | `lote_ingrediente` | HU-138 | Lotes por ingrediente, cantidad disponible, fecha de ingreso y vencimiento. |
 | `categorias.ddl` | `categorias` | HU-05 · HU-39 | Categorías del menú que administra el restaurante, con su orden de presentación. |
 | `productos.ddl` | `productos` | HU-05 | Catálogo de platos y bebidas: precio vigente, receta (`ingredientes` JSONB) y estado. |
-| `precios_producto.ddl` | `precios_producto` | HU-05 | Historial de precios. `productos.precio_venta` sigue siendo el precio vigente. |
 | `pedidos.ddl` | `pedidos` | HU-07 | Pedidos: mesa, mesero, líneas (`productos` JSONB), estado, totales y propina. |
 | `movimientos_inventario.ddl` | `movimientos_inventario` | HU-022 | Kardex de entradas y salidas, con el usuario responsable de cada movimiento. |
-| `pagos.ddl` | `pagos` | HU-35 | Cobros: subtotal, descuento con motivo, impuestos, propina y total pagado. |
 | `roles.ddl` | `roles` | HU-003 (#22) | Catálogo de roles del sistema (Administrador, Mesero, Cocinero…). |
 | `tipos_documento.ddl` | `tipos_documento` | HU-003 (#22) | Catálogo de tipos de documento de identidad (CC, CE, Pasaporte, NIT). |
 | `usuarios.ddl` | `usuarios` | HU-003 (#22) | Empleados y usuarios del sistema con credenciales e información de contacto. |
@@ -36,10 +32,8 @@ creadas en `../migrations/`.
 | `adicional.ddl` | `adicional` | HU-115 | Adicionales que se suman a una línea del pedido (extra de queso, porción aparte). |
 | `asignacion_mesa.ddl` | `asignacion_mesa` | HU-115 | Qué mesero atiende cada mesa. Una asignación activa por mesa; las anteriores quedan como historial. |
 | `detalle_pedido_adicional.ddl` | `detalle_pedido_adicional` | HU-115 | Adicionales aplicados a una línea concreta del pedido. |
-| `plato_insumo.ddl` | `plato_insumo` | HU-115 · HU-134 | Fuente única oficial de recetas: relaciona cada plato con sus insumos y cantidades necesarias. |
+| `producto_ingrediente.ddl` | `plato_insumo` | HU-115 · HU-134 | Fuente única oficial de recetas: relaciona cada plato con sus insumos y cantidades necesarias. |
 | `regla_descuento.ddl` | `regla_descuento` | HU-115 | Reglas de descuento aplicables al cobrar, por porcentaje o monto fijo. |
-| `proveedores.ddl` | `proveedores` | HU-137 | Catálogo de proveedores de insumos: nombre único y datos de contacto. |
-| `categoria_ingrediente.ddl` | `categoria_ingrediente` | HU-137 | Catálogo de categorías de insumo (distinto de `categorias` del menú). |
 
 ---
 
@@ -50,30 +44,26 @@ El orden importa: hay llaves foráneas entre las tablas. **La lista `TABLAS` de
 escrita para leer.
 
 ```
- 1. roles, tipos_documento, zonas, estados_mesa, unidades_medida, categorias,
-    proveedores, categoria_ingrediente     ← sin dependencias (HU-137: catálogos de insumo)
+ 1. roles, tipos_documento, zonas, estados_mesa, categorias     ← sin dependencias (HU-137: catálogos de insumo)
  2. usuarios                   ← roles, tipos_documento
  3. clientes                   ← tipos_documento, usuarios
  4. mesas                      ← zonas, estados_mesa
  5. ingredientes               ← unidades_medida (+ FK a proveedores y categoria_ingrediente vía migración HU-137)
- 6. lote_ingrediente           ← ingredientes (HU-138)
- 7. productos                  ← categorias
- 8. precios_producto           ← productos
- 9. pedidos                    ← clientes, mesas, usuarios
-10. detalle_pedido             ← pedidos, productos
-11. movimientos_inventario     ← productos, ingredientes, usuarios
-12. alerta_inventario          ← ingredientes, productos
-13. pagos                      ← pedidos, usuarios
-14. historial_estado_mesa      ← mesas, estados_mesa
-15. nota_mesa                  ← mesas
-16. reservas                   ← mesas (+ FK opcional a clientes vía migración HU-137)
-17. adicional
-18. asignacion_mesa            ← mesas, usuarios
-19. detalle_pedido_adicional   ← detalle_pedido, adicional
-20. plato_insumo               ← productos, ingredientes
-21. regla_descuento
-22. ../functions/hu28_disponibilidad.sql
-23. ../migrations/*.sql en orden numérico
+ 6. productos                  ← categorias
+ 7. pedidos                    ← clientes, mesas, usuarios
+ 8. detalle_pedido             ← pedidos, productos
+ 9. movimientos_inventario     ← productos, ingredientes, usuarios
+10. alerta_inventario          ← ingredientes, productos
+11. historial_estado_mesa      ← mesas, estados_mesa
+12. nota_mesa                  ← mesas
+13. reservas                   ← mesas (+ FK opcional a clientes vía migración HU-137)
+14. adicional
+15. asignacion_mesa            ← mesas, usuarios
+16. detalle_pedido_adicional   ← detalle_pedido, adicional
+17. producto_ingrediente       ← productos, ingredientes
+18. regla_descuento
+19. ../functions/hu28_disponibilidad.sql
+20. ../migrations/*.sql en orden numérico
 ```
 
 ---
@@ -125,21 +115,6 @@ psql -d gastroflow -c '\df fn_*'
 | `fn_producto_disponible_cantidad(producto_id, cantidad)` | `BOOLEAN` | ¿Alcanza el inventario para N unidades? |
 | `fn_motivo_receta(producto_id)` | `TEXT` | Nombres de los ingredientes faltantes, o `NULL` si no falta ninguno. Consulta `plato_insumo`. |
 
-Formato heredado de `productos.ingredientes` (JSONB), conservado temporalmente
-por compatibilidad. No es la fuente oficial de recetas. La cantidad corresponde
-a **una** unidad del producto:
-
-```json
-[
-  {"ingrediente_id": 1, "cantidad": 2},
-  {"ingrediente_id": 2, "cantidad": 0.250}
-]
-```
-
-Un producto con receta `NULL` o `[]` no depende del inventario de ingredientes y se
-evalúa por su propio `productos.stock_actual`.
-
----
 
 ## Convenciones
 
@@ -189,13 +164,10 @@ conexión. El `pom.xml` todavía lo excluye del build, junto con
 
 ---
 
-## Lotes de ingredientes (HU-138)
-
-`lote_ingrediente` es la tabla para registrar lotes por insumo. La migración `012_hu138_lotes_ingrediente.sql` crea la tabla si falta y copia los datos heredados de `ingredientes.lote`, `ingredientes.fecha_vencimiento` y `ingredientes.stock_actual` cuando existe información relevante. Si hay stock o vencimiento pero no código de lote, genera un código `LEGACY-<ingrediente_id>`. La migración es idempotente y no sobrescribe lotes existentes. Las columnas antiguas `ingredientes.lote` y `ingredientes.fecha_vencimiento` se conservan; su eliminación queda pendiente y no forma parte de HU-138.
 
 ## Pendientes conocidos
 
-- Fuente única de recetas (HU-134): `plato_insumo` es la fuente oficial para Java y las funciones SQL de disponibilidad e inventario. La migración `009_hu134_unificar_recetas.sql` migra las recetas JSONB válidas y registra referencias inválidas y discrepancias detectadas. La columna `productos.ingredientes` se conserva temporalmente por compatibilidad y solo se eliminará cuando se verifique que ningún componente depende de ella.
+- Fuente única de recetas (HU-134): `producto_ingrediente` es la fuente oficial para Java y las funciones SQL de disponibilidad e inventario. La migración `009_hu134_unificar_recetas.sql` migra las recetas JSONB válidas y registra referencias inválidas y discrepancias detectadas. La columna `productos.ingredientes` se conserva temporalmente por compatibilidad y solo se eliminará cuando se verifique que ningún componente depende de ella.
 - Productos sin receta: si un producto no tiene registros en `plato_insumo`, su disponibilidad se calcula con su propio `stock_actual`. Los productos con estado `INACTIVO` no deben reactivarse ni modificarse por la migración.
 - Unificar las dos convenciones de restricciones: este README usa `uq_`, y las tablas que
   llegaron del módulo de usuarios y mesas usan `uk_`.

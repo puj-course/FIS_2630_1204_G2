@@ -10,15 +10,11 @@ CREATE TABLE regla_descuento (
     is_active       BOOLEAN DEFAULT TRUE NOT NULL,
     fecha_creacion  TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 
-    CONSTRAINT pk_regla_descuento
-    PRIMARY KEY (id),
-
-    CONSTRAINT ck_regla_descuento_valor
-    CHECK (valor >= 0),
-
-    -- Un descuento porcentual por encima de 100 dejaria el total en negativo.
-    CONSTRAINT ck_regla_descuento_porcentaje
-    CHECK (NOT es_porcentaje OR valor <= 100)
+    CONSTRAINT pk_regla_descuento PRIMARY KEY (id),
+    CONSTRAINT ck_regla_descuento_valor CHECK (valor >= 0),
+    CONSTRAINT ck_regla_descuento_porcentaje CHECK (
+        NOT es_porcentaje OR valor <= 100
+        )
 );
 
 CREATE INDEX ix_regla_descuento_activa
