@@ -191,7 +191,7 @@ conexión. El `pom.xml` todavía lo excluye del build, junto con
 
 ## Lotes de ingredientes (HU-138)
 
-`lote_ingrediente` es la tabla para registrar lotes por insumo. La migración `010_hu138_lotes_ingrediente.sql` crea la tabla si falta y copia los datos heredados de `ingredientes.lote`, `ingredientes.fecha_vencimiento` y `ingredientes.stock_actual` cuando existe información relevante. Si hay stock o vencimiento pero no código de lote, genera un código `LEGACY-<ingrediente_id>`. La migración es idempotente y no sobrescribe lotes existentes. Las columnas antiguas `ingredientes.lote` y `ingredientes.fecha_vencimiento` se conservan; su eliminación queda pendiente y no forma parte de HU-138.
+`lote_ingrediente` es la tabla para registrar lotes por insumo. La migración `012_hu138_lotes_ingrediente.sql` crea la tabla si falta y copia los datos heredados de `ingredientes.lote`, `ingredientes.fecha_vencimiento` y `ingredientes.stock_actual` cuando existe información relevante. Si hay stock o vencimiento pero no código de lote, genera un código `LEGACY-<ingrediente_id>`. La migración es idempotente y no sobrescribe lotes existentes. Las columnas antiguas `ingredientes.lote` y `ingredientes.fecha_vencimiento` se conservan; su eliminación queda pendiente y no forma parte de HU-138.
 
 ## Pendientes conocidos
 

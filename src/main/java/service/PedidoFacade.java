@@ -29,7 +29,6 @@ import java.util.*;
  */
 public class PedidoFacade {
 
-    private static final BigDecimal TASA_IVA = new BigDecimal("0.19");
     private final PedidoService pedidoService;
     private final InventarioService inventarioService;
     private final DisponibilidadDAO disponibilidadDAO;
@@ -54,7 +53,7 @@ public class PedidoFacade {
      * @return lo que falta; lista vacía si el pedido se puede preparar
      */
     public List<String> validarDisponibilidad(Collection<ItemPedido> items) throws SQLException {
-        return disponibilidadDAO.faltantesDelPedido(aLineas(items));
+        return disponibilidadDAO.faltantesDelPedido(aMapaProductos(items));
     }
 
     /**
@@ -70,7 +69,7 @@ public class PedidoFacade {
 
         BigDecimal subtotal = calcularSubtotal(items);
         List<DetallePedido> detalles = aDetalles(items);
-                
+
         try (Connection conn = ConexionBD.getConnection()) {
             conn.setAutoCommit(false);
             try {
@@ -94,7 +93,7 @@ public class PedidoFacade {
                                     + "No se puede volver a confirmar para evitar un descuento duplicado.");
                 }
 
-                // 2. Guardar los detalles en la tabla relacional detalle_pedido
+                // 2. Guardar los detalles de manera relacional en la tabla detalle_pedido
                 for (DetallePedido detalle : detalles) {
                     detalle.setPedidoId(pedido.getId());
                 }
@@ -129,6 +128,7 @@ public class PedidoFacade {
             }
         }
     }
+
     /** Total del pedido, para mostrarlo en pantalla. */
     public BigDecimal calcularSubtotal(Collection<ItemPedido> items) {
         BigDecimal subtotal = BigDecimal.ZERO;
@@ -140,8 +140,8 @@ public class PedidoFacade {
 
     // ------------------------------------------------------------------
 
-    /** producto_id -> cantidad pedida. */
-    private Map<Long, Integer> aLineas(Collection<ItemPedido> items) {
+    /** producto_id -> cantidad pedida (método auxiliar requerido por DisponibilidadDAO). */
+    private Map<Long, Integer> aMapaProductos(Collection<ItemPedido> items) {
         Map<Long, Integer> lineas = new LinkedHashMap<>();
         for (ItemPedido item : items) {
             lineas.put(item.getProducto().getProductoId(), item.getCantidad());
@@ -149,6 +149,7 @@ public class PedidoFacade {
         return lineas;
     }
 
+    /** Convierte los ítems de la vista en entidades DetallePedido relacionales. */
     private List<DetallePedido> aDetalles(Collection<ItemPedido> items) {
         List<DetallePedido> detalles = new ArrayList<>();
         for (ItemPedido item : items) {
@@ -166,17 +167,13 @@ public class PedidoFacade {
         StringBuilder json = new StringBuilder("[");
         boolean primero = true;
         for (ItemPedido item : items) {
-            if (!primero) {
-                json.append(",");
-            }
-            json.append("{")
-                    .append("\"producto_id\":").append(item.getProducto().getProductoId()).append(",")
-                    .append("\"cantidad\":").append(item.getCantidad()).append(",")
-                    .append("\"precio_unitario\":").append(item.getProducto().getPrecioVenta()).append(",")
-                    .append("\"subtotal\":").append(item.getSubtotal())
-                    .append("}");
-            primero = false;
+            DetallePedido d = new DetallePedido();
+            d.setProductoId(item.getProducto().getProductoId());
+            d.setCantidad(item.getCantidad()); // Cantidad manejada estrictamente como int
+            d.setPrecioUnitario(item.getProducto().getPrecioVenta());
+            d.setSubtotal(item.getSubtotal());
+            detalles.add(d);
         }
-        return json.append("]").toString();
+        return detalles;
     }
 }
