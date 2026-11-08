@@ -1,5 +1,35 @@
 # Postmortem · Milestone Definición arquitectónica y gestión funcional
 
+<<<<<<< HEAD
+![Retrospectiva Starfish del milestone Definición arquitectónica y gestión funcional](Imagenes/DiagramaPostmortem_Starfish.png)
+
+## Continuar
+
+- Revisar el código entre compañeros antes de integrar.
+- Mantener la comunicación del grupo en las dailys, plannings, reviews y retrospectivas.
+
+## Hacer más
+
+- Probar contra la base antes de dar una historia por terminada.
+- Revisar la coherencia entre los diagramas, el modelo de datos y la implementación.
+
+## Empezar a hacer
+
+- Crear los diagramas aplicando la notación estándar UML.
+- Actualizar la documentación junto con el código.
+- Hacer menos uso de la inteligencia artificial.
+
+## Hacer menos
+
+- Integrar cuando el proyecto no compila.
+- Dar por terminada una historia sin haberla ejecutado.
+
+## Dejar de hacer
+
+- Rehacer trabajo que otro compañero ya hizo.
+- Dar por cerrada la documentación antes de que el código deje de moverse.
+- Subestimar tareas con alta complejidad técnica.
+=======
 ![Retrospectiva Starfish del milestone Definición arquitectónica y gestión funcional](Imagenes/DiagramaPostmortem.jpeg)
 
 # Postmortem · Milestone Definición arquitectónica y gestión funcional
@@ -131,4 +161,5 @@ La documentación de patrones de diseño, la estructuración de la base de datos
 Asimismo, la aplicación de Scrum, la distribución de roles y las revisiones de código entre compañeros permitieron consolidar una dinámica de trabajo colaborativa, organizada y orientada al cumplimiento de objetivos.
 
 **Como equipo, este milestone nos permitió fortalecer nuestros conocimientos, mejorar nuestras prácticas de desarrollo y construir una base arquitectónica más sólida para continuar con la evolución de GastroFlow.**
+>>>>>>> 32ca0592f8af15f7346e888e4d0425f3cc444b34
 

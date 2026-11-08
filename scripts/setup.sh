@@ -152,19 +152,17 @@ paso "creando las tablas"
 
 TABLAS=(
     # catalogos, sin dependencias
-    roles tipos_documento zonas estados_mesa unidades_medida categorias proveedores categoria_ingrediente
+    roles tipos_documento zonas estados_mesa categorias
     # dependen de los catalogos
     usuarios                  # roles, tipos_documento
     clientes                  # tipos_documento, usuarios
     mesas                     # zonas, estados_mesa
-    ingredientes              # unidades_medida
-    lote_ingrediente          # ingredientes (HU-138)
+    ingredientes              # unidad_medida como texto libre
     productos                 # categorias
-    precios_producto          # productos
     pedidos                   # clientes, mesas, usuarios
     detalle_pedido            # pedidos, productos
     movimientos_inventario    # productos, ingredientes, usuarios
-    alerta_inventario         # ingredientes, productos
+    alerta_inventario          # ingredientes, productos
     pagos                     # pedidos, usuarios
     historial_estado_mesa     # mesas, estados_mesa
     nota_mesa                 # mesas
@@ -214,7 +212,6 @@ if [ "$CON_DATOS" -eq 1 ]; then
         generar_tipos_documento_prueba
         generar_zonas_prueba
         generar_estado_mesa_prueba
-        generar_unidades_de_medida
         generar_categorias_pruebas
         generar_ingredientes_pruebas
         generar_productos_prueba    # necesita categorias
