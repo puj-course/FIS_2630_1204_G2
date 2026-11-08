@@ -10,7 +10,6 @@ import repository.PedidoRepository;
 import repository.DetallePedidoRepository;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
@@ -104,7 +103,7 @@ public class PedidoFacade {
                 // 3. Mapear productos para el descuento de inventario
                 Map<Long, Integer> lineas = new HashMap<>();
                 for (DetallePedido detalle : detalles) {
-                    lineas.put(detalle.getPlatoId(), detalle.getCantidad());
+                    lineas.put(detalle.getProductoId(), detalle.getCantidad());
                 }
 
                 // 4. Actualizar totales del pedido
@@ -151,16 +150,16 @@ public class PedidoFacade {
     }
 
     private List<DetallePedido> aDetalles(Collection<ItemPedido> items) {
-    List<DetallePedido> detalles = new ArrayList<>();
-    for (ItemPedido item : items) {
-        DetallePedido d = new DetallePedido();
-        d.setPlatoId(item.getProducto().getProductoId());
-        d.setCantidad(item.getCantidad());
-        d.setPrecioUnitario(item.getProducto().getPrecioVenta());
-        d.setSubtotal(item.getSubtotal());
-        detalles.add(d);
-    }
-    return detalles;
+        List<DetallePedido> detalles = new ArrayList<>();
+        for (ItemPedido item : items) {
+            DetallePedido d = new DetallePedido();
+            d.setProductoId(item.getProducto().getProductoId());
+            d.setCantidad(item.getCantidad()); // Cantidad manejada estrictamente como int
+            d.setPrecioUnitario(item.getProducto().getPrecioVenta());
+            d.setSubtotal(item.getSubtotal());
+            detalles.add(d);
+        }
+        return detalles;
 }
     
     private String construirJson(Collection<ItemPedido> items) {
