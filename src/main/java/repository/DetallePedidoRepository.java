@@ -43,7 +43,7 @@ public class DetallePedidoRepository {
             return;
         }
 
-        String sql = "INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             for (DetallePedido detalle : detalles) {
