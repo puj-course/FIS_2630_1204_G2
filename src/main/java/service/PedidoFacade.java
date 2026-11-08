@@ -161,19 +161,5 @@ public class PedidoFacade {
             detalles.add(d);
         }
         return detalles;
-}
-    
-    private String construirJson(Collection<ItemPedido> items) {
-        StringBuilder json = new StringBuilder("[");
-        boolean primero = true;
-        for (ItemPedido item : items) {
-            DetallePedido d = new DetallePedido();
-            d.setProductoId(item.getProducto().getProductoId());
-            d.setCantidad(item.getCantidad()); // Cantidad manejada estrictamente como int
-            d.setPrecioUnitario(item.getProducto().getPrecioVenta());
-            d.setSubtotal(item.getSubtotal());
-            detalles.add(d);
-        }
-        return detalles;
     }
 }
