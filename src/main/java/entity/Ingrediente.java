@@ -11,6 +11,7 @@ public class Ingrediente {
 
     private Long id;
     private String nombre;
+    private String descripcion;
     private Long unidadMedidaId;
     private BigDecimal costoUnitario = BigDecimal.ZERO;
     private BigDecimal stockActual = BigDecimal.ZERO;
@@ -31,6 +32,9 @@ public class Ingrediente {
 
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
+
+    public String getDescripcion() { return descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
     public Long getUnidadMedidaId() { return unidadMedidaId; }
     public void setUnidadMedidaId(Long unidadMedidaId) { this.unidadMedidaId = unidadMedidaId; }
@@ -80,4 +84,8 @@ public class Ingrediente {
     public void setFechaActualizacion(LocalDateTime fechaActualizacion) { this.fechaActualizacion = fechaActualizacion; }
 
     public boolean isActivo() { return ESTADO_ACTIVO.equals(estado); }
+    @Override
+    public String toString() {
+        return nombre;
+    }
 }

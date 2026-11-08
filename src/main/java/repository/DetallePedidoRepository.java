@@ -48,7 +48,7 @@ public class DetallePedidoRepository {
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             for (DetallePedido detalle : detalles) {
                 stmt.setLong(1, detalle.getPedidoId());
-                stmt.setLong(2, detalle.getProductoId());
+                stmt.setLong(2, detalle.getPlatoId());
                 stmt.setInt(3, detalle.getCantidad());
                 stmt.setBigDecimal(4, detalle.getPrecioUnitario());
                 stmt.setBigDecimal(5, detalle.getSubtotal());

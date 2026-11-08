@@ -47,22 +47,23 @@ public class MesaService {
         mesaRepository.quitarMesa(idMesa);
     }
 
-    // Cambia el estado de una mesa y deja registro auditado en historial_estado_mesa,
+    // Cambia el estado de una mesa y deja registro auditado en historial_estado_mesa.ddl,
     // todo dentro de una única transacción: si el registro de auditoría falla,
     // el cambio de estado de la mesa también se revierte.
     public void cambiarEstado(long mesaId, String codigoEstadoNuevo, String motivo) throws SQLException {
+
+        Mesa mesaActual = mesaRepository.findById((int) mesaId)
+                .orElseThrow(() -> new MesaNotFoundException("Mesa no encontrada con id " + mesaId));
+
+        EstadoMesa nuevo = estadoMesaRepository.findByCodigoEstado(codigoEstadoNuevo)
+                .orElseThrow(() -> new MesaNotFoundException(
+                        "Estado no encontrado: " + codigoEstadoNuevo));
+
         try (Connection conn = ConexionBD.getConnection()) {
+
             conn.setAutoCommit(false);
 
             try {
-                // Se usa la versión con conexión para asegurar la misma transacción
-                Mesa mesaActual = mesaRepository.findById(conn, (int) mesaId)
-                        .orElseThrow(() -> new MesaNotFoundException("Mesa no encontrada con id " + mesaId));
-
-                EstadoMesa nuevo = estadoMesaRepository.findByCodigoEstado(conn, codigoEstadoNuevo)
-                        .orElseThrow(() -> new MesaNotFoundException(
-                                "Estado no encontrado: " + codigoEstadoNuevo));
-
                 mesaRepository.cambiarEstadoMesa(conn, (int) mesaId, codigoEstadoNuevo);
 
                 HistorialEstadoMesa h = new HistorialEstadoMesa();
@@ -75,7 +76,7 @@ public class MesaService {
 
                 conn.commit();
 
-            } catch (SQLException | RuntimeException e) {
+            } catch (SQLException e) {
                 conn.rollback();
                 throw e;
             }
@@ -133,11 +134,8 @@ public class MesaService {
     }
 
     public EstadoMesa obtenerEstadoPorCodigo(String codigo) throws SQLException {
-        // Al ser un método independiente, abre su propia conexión para pasársela al repositorio
-        try (Connection conn = ConexionBD.getConnection()) {
-            return estadoMesaRepository.findByCodigoEstado(conn, codigo)
-                    .orElseThrow(() -> new MesaNotFoundException("Estado no encontrado: " + codigo));
-        }
+        return estadoMesaRepository.findByCodigoEstado(codigo)
+                .orElseThrow(() -> new MesaNotFoundException("Estado no encontrado: " + codigo));
     }
 
     public void actualizarCantidadComensales(long mesaId, int nuevaCantidad) throws SQLException {

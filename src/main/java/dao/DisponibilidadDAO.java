@@ -50,7 +50,7 @@ public class DisponibilidadDAO {
     /**
      * Valida el pedido COMPLETO en una sola consulta, sumando el consumo de los
      * productos que comparten ingrediente.
-     * <p>
+     *
      * Preguntar producto por producto no sirve: con 400 g de carne, una
      * hamburguesa de 200 g y una lasana de 300 g pasan las dos por separado,
      * pero juntas no alcanzan.
@@ -69,7 +69,7 @@ public class DisponibilidadDAO {
         for (Map.Entry<Long, Integer> linea : lineas.entrySet()) {
             if (json.length() > 1) json.append(',');
             json.append("{\"producto_id\":").append(linea.getKey())
-                    .append(",\"cantidad\":").append(linea.getValue()).append('}');
+                .append(",\"cantidad\":").append(linea.getValue()).append('}');
         }
         json.append(']');
 
@@ -94,17 +94,18 @@ public class DisponibilidadDAO {
 
     public List<ProductoDisponibilidad> listarProductos() throws SQLException {
         String sql = """
-            SELECT
-                p.id_producto,
-                p.nombre,
-                c.nombre AS categoria,
-                CASE WHEN p.is_active THEN 'ACTIVO' ELSE 'INACTIVO' END AS estado,
-                fn_motivo_faltantes_producto(p.id_producto, 1) AS motivo
-            FROM producto p
-            INNER JOIN categoria c ON c.id_categoria = p.id_categoria
-            WHERE p.is_active = TRUE
-            ORDER BY c.orden_visual, c.nombre, p.nombre
-            """;
+                SELECT
+                    p.producto_id,
+                    p.codigo,
+                    p.nombre,
+                    c.nombre AS categoria,
+                    p.estado,
+                    fn_motivo_receta(p.producto_id) AS motivo
+                FROM productos p
+                INNER JOIN categorias c ON c.categoria_id = p.categoria_id
+                WHERE p.estado <> 'INACTIVO'
+                ORDER BY c.orden_visual, c.nombre, p.nombre
+                """;
 
         List<ProductoDisponibilidad> resultado = new ArrayList<>();
         try (Connection cn = ConexionBD.getConnection();
@@ -112,7 +113,8 @@ public class DisponibilidadDAO {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 resultado.add(new ProductoDisponibilidad(
-                        rs.getLong("id_producto"),
+                        rs.getLong("producto_id"),
+                        rs.getString("codigo"),
                         rs.getString("nombre"),
                         rs.getString("categoria"),
                         rs.getString("estado"),

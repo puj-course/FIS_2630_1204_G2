@@ -7,19 +7,19 @@ import java.math.BigDecimal;
 
 public class ItemPedido {
 
-    private final Productos producto;
+    private final Producto producto;
     private int cantidad = 1;
 
-    public ItemPedido(Productos producto) {
+    public ItemPedido(Producto producto) {
         this.producto = producto;
     }
 
-    public ItemPedido(Productos producto, int cantidad) {
+    public ItemPedido(Producto producto, int cantidad) {
         this.producto = producto;
         this.cantidad = cantidad;
     }
 
-    public Productos getProducto() {
+    public Producto getProducto() {
         return producto;
     }
 

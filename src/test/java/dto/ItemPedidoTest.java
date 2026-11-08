@@ -1,6 +1,6 @@
 package dto;
 
-import entity.Productos;
+import entity.Producto;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,8 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("HU-28 y HU-39 — líneas del pedido y estado del producto")
 class ItemPedidoTest {
 
-    private Productos producto(String precio, String estado) {
-        return new Productos(1L, "H1", "Hamburguesa", "Con queso",
+    private Producto producto(String precio, String estado) {
+        return new Producto(1L, "H1", "Hamburguesa", "Con queso",
                 "Platos fuertes", new BigDecimal(precio), estado);
     }
 

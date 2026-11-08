@@ -7,7 +7,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assumptions;
 
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,7 +16,7 @@ import java.sql.Statement;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DisplayName("HU-134 - disponibilidad basada en producto_ingrediente")
+@DisplayName("HU-134 - disponibilidad basada en plato_insumo")
 class DisponibilidadHu134Test {
 
     private Connection cn;
@@ -85,17 +84,16 @@ class DisponibilidadHu134Test {
     }
 
     @Test
-    @DisplayName("Un producto sin receta se evalúa correctamente bajo el modelo de ingredientes")
+    @DisplayName("Un producto sin receta se evalúa por su propio stock")
     void productoSinReceta() throws SQLException {
         eliminarReceta();
+        actualizarStockProducto(3);
 
-        // Nota: Como la columna stock_actual fue eliminada de la tabla 'productos'
-        // y el stock ahora se gestiona de forma centralizada en 'ingredientes',
-        // adaptamos la prueba para verificar el comportamiento con el ingrediente asociado.
-        actualizarStockIngrediente(3);
+        assertTrue(disponible(2),
+                "Debe estar disponible si su stock alcanza para dos unidades.");
 
-        assertTrue(disponible(1),
-                "Debe estar disponible si el stock alcanza.");
+        assertFalse(disponible(4),
+                "No debe estar disponible si se solicitan más unidades que su stock.");
     }
 
     @Test
@@ -115,10 +113,9 @@ class DisponibilidadHu134Test {
 
         eliminarReceta();
 
-        // CORREGIDO: Usando la tabla unificada producto_ingrediente
         try (PreparedStatement ps = cn.prepareStatement("""
-                INSERT INTO producto_ingrediente
-                    (producto_id, ingrediente_id, cantidad_necesaria)
+                INSERT INTO plato_insumo
+                    (plato_id, insumo_id, cantidad_necesaria)
                 VALUES (?, ?, ?)
                 """)) {
             ps.setLong(1, productoId);
@@ -141,23 +138,21 @@ class DisponibilidadHu134Test {
     }
 
     private void eliminarReceta() throws SQLException {
-        // CORREGIDO: Apuntando a producto_ingrediente y producto_id
         try (PreparedStatement ps = cn.prepareStatement(
-                "DELETE FROM producto_ingrediente WHERE producto_id = ?")) {
+                "DELETE FROM plato_insumo WHERE plato_id = ?")) {
             ps.setLong(1, productoId);
             ps.executeUpdate();
         }
     }
 
-    private void actualizarStockIngrediente(int stock) throws SQLException {
-        // CORREGIDO: Se actualiza la tabla 'ingredientes' en lugar de 'productos.stock_actual'
+    private void actualizarStockProducto(int stock) throws SQLException {
         try (PreparedStatement ps = cn.prepareStatement("""
-                UPDATE ingredientes
+                UPDATE productos
                    SET stock_actual = ?
-                 WHERE ingrediente_id = ?
+                 WHERE producto_id = ?
                 """)) {
             ps.setInt(1, stock);
-            ps.setLong(2, ingredienteId);
+            ps.setLong(2, productoId);
             ps.executeUpdate();
         }
 
