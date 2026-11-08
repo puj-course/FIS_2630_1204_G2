@@ -20,7 +20,7 @@ public class DetallePedido {
     public void setPedidoId(Long pedidoId) { this.pedidoId = pedidoId; }
 
     public Long getProductoId() { return productoId; }
-    public void setProductoId(Long platoId) { this.productoId = platoId; }
+    public void setProductoId(Long productoId) { this.productoId = productoId; }
 
     public int getCantidad() { return cantidad; }
     public void setCantidad(int cantidad) {
@@ -41,5 +41,4 @@ public class DetallePedido {
     }
     public BigDecimal getSubtotal() { return subtotal; }
     public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }
-
 }

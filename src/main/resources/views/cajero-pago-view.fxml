@@ -9,7 +9,7 @@
     <top>
         <HBox spacing="20" alignment="CENTER_LEFT" styleClass="header">
             <VBox spacing="6">
-                <Label text="Facturación" styleClass="titulo"/>
+                <Label text="Gestión de cuenta" styleClass="titulo"/>
                 <Label text="Propina voluntaria y descuentos" styleClass="subtitulo"/>
             </VBox>
             <Region HBox.hgrow="ALWAYS"/>
