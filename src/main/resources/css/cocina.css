@@ -1,40 +1,39 @@
 /*
- * Tablero de comandas de cocina de GastroFlow.
- *
- * A diferencia del resto del sistema, utiliza una paleta de tema oscuro
- * (Dark Mode) optimizada para visibilidad y contraste en monitores de cocina.
+ * Tablero de comandas — alineado al resto de GastroFlow
+ * (navegación: fondos claros, acento verde).
  *
  * Paleta
- *   Fondo general      #1b1d22   fondo de baja fatiga visual
- *   Encabezado         #25272e
- *   Tarjetas comanda   #2b2e37
- *   Texto principal    #ffffff
- *   Texto secundario   #9a9ca5
- *   Alerta pendiente   #ff8a73 / #3a2420
- *   Alerta preparación #6fb3ff / #20303f
- *   Alerta listo       #7fe0a0 / #1f3328
+ *   Fondo general      #f4f6f5
+ *   Encabezado         #ffffff
+ *   Tarjetas comanda   #ffffff
+ *   Texto principal    #1f2933
+ *   Texto secundario   #6b7280
+ *   Acento marca       #1f7a4d / #2d9b64
+ *   Pendiente          #fef3f2 / #b42318
+ *   En preparación     #eff6ff / #175cd3
+ *   Listos             #ecfdf3 / #027a48
  */
 
 .root {
     -fx-font-family: "Segoe UI", "Arial";
-    -fx-background-color: #1b1d22;
+    -fx-background-color: #f4f6f5;
 }
 
 .header {
     -fx-padding: 18 26 18 26;
-    -fx-background-color: #25272e;
-    -fx-border-color: transparent transparent #34363e transparent;
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #e5e7eb transparent;
 }
 
 .titulo {
     -fx-font-size: 26px;
     -fx-font-weight: bold;
-    -fx-text-fill: white;
+    -fx-text-fill: #1f2933;
 }
 
 .subtitulo {
     -fx-font-size: 13px;
-    -fx-text-fill: #9a9ca5;
+    -fx-text-fill: #6b7280;
 }
 
 .tablero {
@@ -50,7 +49,7 @@
 .columna-titulo {
     -fx-font-size: 18px;
     -fx-font-weight: bold;
-    -fx-text-fill: white;
+    -fx-text-fill: #1f2933;
     -fx-padding: 4 0 4 4;
 }
 
@@ -62,46 +61,48 @@
 }
 
 .columna-pendiente {
-    -fx-background-color: #3a2420;
+    -fx-background-color: #fef3f2;
 }
 .columna-pendiente .columna-titulo {
-    -fx-text-fill: #ff8a73;
+    -fx-text-fill: #b42318;
 }
 
 .columna-preparacion {
-    -fx-background-color: #20303f;
+    -fx-background-color: #eff6ff;
 }
 .columna-preparacion .columna-titulo {
-    -fx-text-fill: #6fb3ff;
+    -fx-text-fill: #175cd3;
 }
 
 .columna-listo {
-    -fx-background-color: #1f3328;
+    -fx-background-color: #ecfdf3;
 }
 .columna-listo .columna-titulo {
-    -fx-text-fill: #7fe0a0;
+    -fx-text-fill: #027a48;
 }
 
 /* ===== Tarjetas de comanda ===== */
 .comanda-card {
-    -fx-background-color: #2b2e37;
+    -fx-background-color: #ffffff;
     -fx-background-radius: 10;
     -fx-padding: 14;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 6, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(16, 24, 40, 0.08), 8, 0, 0, 2);
+    -fx-border-color: #e5e7eb;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
 }
 
 .comanda-numero {
     -fx-font-size: 18px;
     -fx-font-weight: bold;
-    -fx-text-fill: white;
+    -fx-text-fill: #1f2933;
 }
 
 .comanda-mesa {
     -fx-font-size: 14px;
-    -fx-text-fill: #c7c9d1;
+    -fx-text-fill: #6b7280;
 }
 
-/* Indicador de tiempo: cambia de color según la espera (alerta) */
 .comanda-tiempo {
     -fx-font-size: 15px;
     -fx-font-weight: bold;
@@ -111,20 +112,20 @@
 }
 
 .alerta-normal {
-    -fx-text-fill: #0f3d1f;
-    -fx-background-color: #7fe0a0;
+    -fx-text-fill: #027a48;
+    -fx-background-color: #d1fadf;
 }
 .alerta-media {
-    -fx-text-fill: #4a3400;
-    -fx-background-color: #ffd166;
+    -fx-text-fill: #b54708;
+    -fx-background-color: #fef0c7;
 }
 .alerta-alta {
-    -fx-text-fill: white;
-    -fx-background-color: #e5484d;
+    -fx-text-fill: #ffffff;
+    -fx-background-color: #d92d20;
 }
 
 .comanda-avanzar {
-    -fx-background-color: #4c6ef5;
+    -fx-background-color: #1f7a4d;
     -fx-text-fill: white;
     -fx-background-radius: 8;
     -fx-padding: 10;
@@ -133,5 +134,5 @@
     -fx-cursor: hand;
 }
 .comanda-avanzar:hover {
-    -fx-background-color: #3b5bdb;
+    -fx-background-color: #196740;
 }
