@@ -151,7 +151,7 @@ public class MesaRepository {
                 .append(idMesaColumna)
                 .append(" = ?");
         if (estadoColumna != null) {
-            sql.append(" AND UPPER(").append(estadoColumna).append(") NOT IN " + "('PAGADO', 'CANCELADO', 'CERRADO', 'FINALIZADO')");
+            sql.append(" AND UPPER(").append(estadoColumna).append(") NOT IN ('CANCELADO', 'ENTREGADO', 'COMPLETADO')");
         }
         sql.append(" ORDER BY ")
                 .append(idPedidoColumna)
@@ -251,7 +251,7 @@ public class MesaRepository {
                 .append(idMesaColumna)
                 .append(" = ?");
         if (estadoColumna != null) {
-            sql.append(" AND UPPER(p.").append(estadoColumna).append(") NOT IN " + "('PAGADO', 'CANCELADO', 'CERRADO', 'FINALIZADO')");
+            sql.append(" AND UPPER(p.").append(estadoColumna).append(") NOT IN ('CANCELADO', 'ENTREGADO', 'COMPLETADO')");
         }
 
         sql.append(" ORDER BY p.")
@@ -598,8 +598,7 @@ public class MesaRepository {
                 "SELECT 1 FROM pedidos " +
                         "WHERE mesa_id = ? " +
                         "AND UPPER(estado) NOT IN " +
-                        "('CANCELADO', 'COMPLETADO', 'ENTREGADO', " +
-                        "'PAGADO', 'CERRADO', 'FINALIZADO') " +
+                        "('CANCELADO', 'COMPLETADO', 'ENTREGADO') " +
                         "LIMIT 1";
 
         String sqlDesactivar =

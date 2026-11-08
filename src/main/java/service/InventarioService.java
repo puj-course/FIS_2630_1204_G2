@@ -1,6 +1,7 @@
 package service;
 
 import ConexionBD.ConexionBD;
+import entity.ProductoIngrediente;
 import exceptions.StockInsuficienteException;
 import repository.InventarioRepository;
 import Interface.InsumoObserver;
@@ -19,11 +20,34 @@ public class InventarioService {
             new InventarioRepository();
 
     private final List<InsumoObserver> observadores = new ArrayList<>(); // GoF - AlertaInventario
-    /**
-     * Descuenta los ingredientes correspondientes a una comanda.
-     * El cálculo se realiza utilizando la receta oficial
-     * almacenada en plato_insumo.
-     */
+
+    // Uso del patron observer para alerta de stock bajo - GoF
+    public InventarioService() {
+        this.agregarObservador(new AdministradorAlertaObserver());
+    }
+
+    public void agregarObservador(InsumoObserver observer) {
+        observadores.add(observer);
+    }
+
+    public void eliminarObservador(InsumoObserver observer) {
+        observadores.remove(observer);
+    }
+
+    private void notificarObservadores(String nombreInsumo, double stockActual, double stockMinimo) {
+        for (InsumoObserver observer : observadores) {
+            observer.actualizar(nombreInsumo, stockActual, stockMinimo);
+        }
+    }
+
+    // Método donde validas el stock (ej: al descontar ingredientes por un pedido)
+    public void verificarStockMinimo(String nombreInsumo, double stockActual, double stockMinimo) {
+        if (stockActual <= stockMinimo) {
+            notificarObservadores(nombreInsumo, stockActual, stockMinimo);
+        }
+    }
+
+    // Descuenta los ingredientes utilizando una conexión externa (transacción compartida).
     public void descontarIngredientesConConexion(
             Connection conn,
             long pedidoId,
@@ -35,7 +59,7 @@ public class InventarioService {
             return;
         }
     }
-    
+
     public void descontarIngredientes(
             long pedidoId,
             Map<Long, Integer> productos,
@@ -58,7 +82,6 @@ public class InventarioService {
             conn.setAutoCommit(false);
 
             try {
-
                 /*
                  * Evita descontar nuevamente el inventario
                  * si la misma comanda ya fue procesada.
@@ -76,17 +99,13 @@ public class InventarioService {
 
                 /*
                  * Primera fase:
-                 * validar que todos los ingredientes tengan
-                 * suficiente stock.
+                 * Validar que todos los ingredientes tengan suficiente stock
+                 * bloqueando la fila exclusivamente en la tabla ingredientes.
                  */
-                for (Map.Entry<Long, BigDecimal> entry
-                        : consumoTotal.entrySet()) {
+                for (Map.Entry<Long, BigDecimal> entry : consumoTotal.entrySet()) {
 
-                    long ingredienteId =
-                            entry.getKey();
-
-                    BigDecimal cantidadNecesaria =
-                            entry.getValue();
+                    long ingredienteId = entry.getKey();
+                    BigDecimal cantidadNecesaria = entry.getValue();
 
                     BigDecimal stockActual =
                             inventarioRepository.obtenerStockForUpdate(
@@ -95,17 +114,12 @@ public class InventarioService {
                             );
 
                     if (stockActual == null) {
-
                         throw new StockInsuficienteException(
-                                "No se encontró el ingrediente con ID "
-                                        + ingredienteId
+                                "No se encontró el ingrediente con ID " + ingredienteId
                         );
                     }
 
-                    if (stockActual.compareTo(
-                            cantidadNecesaria
-                    ) < 0) {
-
+                    if (stockActual.compareTo(cantidadNecesaria) < 0) {
                         String nombre =
                                 inventarioRepository.obtenerNombreIngrediente(
                                         conn,
@@ -126,17 +140,13 @@ public class InventarioService {
 
                 /*
                  * Segunda fase:
-                 * realizar los descuentos y registrar
-                 * los movimientos de salida.
+                 * Realizar los descuentos de stock en la tabla ingredientes,
+                 * registrar los movimientos de salida y verificar alertas de stock bajo.
                  */
-                for (Map.Entry<Long, BigDecimal> entry
-                        : consumoTotal.entrySet()) {
+                for (Map.Entry<Long, BigDecimal> entry : consumoTotal.entrySet()) {
 
-                    long ingredienteId =
-                            entry.getKey();
-
-                    BigDecimal cantidad =
-                            entry.getValue();
+                    long ingredienteId = entry.getKey();
+                    BigDecimal cantidad = entry.getValue();
 
                     inventarioRepository.descontarStock(
                             conn,
@@ -144,9 +154,7 @@ public class InventarioService {
                             cantidad
                     );
 
-                    String motivo =
-                            "CONSUMO_COMANDA - PEDIDO_ID="
-                                    + pedidoId;
+                    String motivo = "CONSUMO_COMANDA - PEDIDO_ID=" + pedidoId;
 
                     inventarioRepository.registrarSalidaIngrediente(
                             conn,
@@ -155,22 +163,28 @@ public class InventarioService {
                             motivo,
                             usuarioId
                     );
+
+                    // Integración del Patrón Observer para alertas de stock bajo
+                    BigDecimal stockActualPostDescuento = inventarioRepository.obtenerStockForUpdate(conn, ingredienteId);
+                    BigDecimal stockMinimo = inventarioRepository.obtenerStockMinimo(conn, ingredienteId);
+
+                    if (stockMinimo != null && stockActualPostDescuento != null) {
+                        String nombreInsumo = inventarioRepository.obtenerNombreIngrediente(conn, ingredienteId);
+                        verificarStockMinimo(
+                                nombreInsumo,
+                                stockActualPostDescuento.doubleValue(),
+                                stockMinimo.doubleValue()
+                        );
+                    }
                 }
-
                 conn.commit();
-
             } catch (StockInsuficienteException e) {
-
                 conn.rollback();
                 throw e;
-
             } catch (SQLException e) {
-
                 conn.rollback();
                 throw e;
-
             } catch (RuntimeException e) {
-
                 conn.rollback();
                 throw e;
             }
@@ -178,8 +192,7 @@ public class InventarioService {
     }
 
     /**
-     * Revierte el descuento de inventario de una comanda.
-     *
+     * Revierte el descuento de inventario de una comanda
      * Se utiliza cuando una comanda que ya descontó ingredientes
      * es posteriormente anulada.
      */
@@ -193,52 +206,29 @@ public class InventarioService {
             conn.setAutoCommit(false);
 
             try {
-
-                /*
-                 * Si ya existe una reversión para este pedido,
-                 * no se vuelve a devolver el stock.
-                 */
                 if (inventarioRepository.existeReversionPorPedido(
                         conn,
                         pedidoId
                 )) {
-
                     conn.rollback();
                     return;
                 }
 
-                /*
-                 * Recuperamos todos los movimientos SALIDA
-                 * generados originalmente por la comanda.
-                 */
                 List<InventarioRepository.MovimientoPedido> movimientos =
                         inventarioRepository.obtenerSalidasPorPedido(
                                 conn,
                                 pedidoId
                         );
 
-                /*
-                 * Si no existen salidas, no hay nada que revertir.
-                 */
                 if (movimientos.isEmpty()) {
-
                     conn.rollback();
                     return;
                 }
 
-                /*
-                 * Agrupamos por ingrediente por seguridad.
-                 *
-                 * Esto permite devolver correctamente el stock
-                 * incluso si un ingrediente aparece en más de
-                 * un movimiento.
-                 */
                 Map<Long, BigDecimal> cantidadesPorIngrediente =
                         new LinkedHashMap<>();
 
-                for (InventarioRepository.MovimientoPedido movimiento
-                        : movimientos) {
-
+                for (InventarioRepository.MovimientoPedido movimiento : movimientos) {
                     cantidadesPorIngrediente.merge(
                             movimiento.getIngredienteId(),
                             movimiento.getCantidad(),
@@ -246,30 +236,16 @@ public class InventarioService {
                     );
                 }
 
-                /*
-                 * Bloqueamos las filas antes de modificarlas.
-                 */
-                for (Long ingredienteId :
-                        cantidadesPorIngrediente.keySet()) {
-
+                for (Long ingredienteId : cantidadesPorIngrediente.keySet()) {
                     inventarioRepository.obtenerStockForUpdate(
                             conn,
                             ingredienteId
                     );
                 }
 
-                /*
-                 * Devolvemos el stock y registramos
-                 * cada reversión como ENTRADA.
-                 */
-                for (Map.Entry<Long, BigDecimal> entry :
-                        cantidadesPorIngrediente.entrySet()) {
-
-                    long ingredienteId =
-                            entry.getKey();
-
-                    BigDecimal cantidad =
-                            entry.getValue();
+                for (Map.Entry<Long, BigDecimal> entry : cantidadesPorIngrediente.entrySet()) {
+                    long ingredienteId = entry.getKey();
+                    BigDecimal cantidad = entry.getValue();
 
                     inventarioRepository.devolverStock(
                             conn,
@@ -277,9 +253,7 @@ public class InventarioService {
                             cantidad
                     );
 
-                    String motivo =
-                            "REVERSO_COMANDA - PEDIDO_ID="
-                                    + pedidoId;
+                    String motivo = "REVERSO_COMANDA - PEDIDO_ID=" + pedidoId;
 
                     inventarioRepository.registrarEntradaIngrediente(
                             conn,
@@ -289,16 +263,8 @@ public class InventarioService {
                             usuarioId
                     );
                 }
-
                 conn.commit();
-
-            } catch (SQLException e) {
-
-                conn.rollback();
-                throw e;
-
-            } catch (RuntimeException e) {
-
+            } catch (SQLException | RuntimeException e) {
                 conn.rollback();
                 throw e;
             }
@@ -322,12 +288,8 @@ public class InventarioService {
 
         try (Connection conn = ConexionBD.getConnection()) {
 
-            for (Map.Entry<Long, Integer> producto :
-                    productos.entrySet()) {
-
-                long productoId =
-                        producto.getKey();
-
+            for (Map.Entry<Long, Integer> producto : productos.entrySet()) {
+                long productoId = producto.getKey();
                 int cantidadProductos =
                         producto.getValue() != null
                                 ? producto.getValue()
@@ -337,17 +299,15 @@ public class InventarioService {
                     continue;
                 }
 
-                List<InventarioRepository.IngredienteReceta> receta =
+                List<ProductoIngrediente> receta =
                         inventarioRepository.obtenerReceta(
                                 conn,
                                 productoId
                         );
 
-                for (InventarioRepository.IngredienteReceta ingrediente :
-                        receta) {
-
+                for (ProductoIngrediente itemReceta : receta) {
                     BigDecimal cantidadReceta =
-                            ingrediente.getCantidad();
+                            itemReceta.getCantidadNecesaria();
 
                     BigDecimal cantidadNecesaria =
                             cantidadReceta.multiply(
@@ -357,14 +317,13 @@ public class InventarioService {
                             );
 
                     consumoTotal.merge(
-                            ingrediente.getIngredienteId(),
+                            itemReceta.getIngredienteId(),
                             cantidadNecesaria,
                             BigDecimal::add
                     );
                 }
             }
         }
-
         return consumoTotal;
     }
 
@@ -375,7 +334,6 @@ public class InventarioService {
             long productoId,
             int cantidad
     ) throws SQLException {
-
         Map<Long, Integer> productos =
                 new LinkedHashMap<>();
 
@@ -383,34 +341,6 @@ public class InventarioService {
                 productoId,
                 cantidad
         );
-
         return calcularConsumoEstimado(productos);
-    }
-
-    // Uso del patron observer para alerta de stock bajo - GoF
-    public InventarioService() {
-        // Suscribimos por defecto al administrador para que reciba las alertas
-        this.agregarObservador(new AdministradorAlertaObserver());
-    }
-
-    public void agregarObservador(InsumoObserver observer) {
-        observadores.add(observer);
-    }
-
-    public void eliminarObservador(InsumoObserver observer) {
-        observadores.remove(observer);
-    }
-
-    private void notificarObservadores(String nombreInsumo, double stockActual, double stockMinimo) {
-        for (InsumoObserver observer : observadores) {
-            observer.actualizar(nombreInsumo, stockActual, stockMinimo);
-        }
-    }
-
-    // Método donde validas el stock (ej: al descontar ingredientes por un pedido)
-    public void verificarStockMinimo(String nombreInsumo, double stockActual, double stockMinimo) {
-        if (stockActual <= stockMinimo) {
-            notificarObservadores(nombreInsumo, stockActual, stockMinimo);
-        }
     }
 }

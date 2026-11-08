@@ -8,22 +8,16 @@ import entity.EntradaInventario; //importa el modelo de EntradaInventario
 
 public class EntradaInventarioRepository {
 
-    public void guardar(EntradaInventario entrada) throws SQLException {
-        String sql = "INSERT INTO movimientos_inventario (ingrediente_id, tipo_movimiento, cantidad, motivo) " +
-                "VALUES (?, ?, ?, ?)"; //variable que contiene la consulta en sql
+    // Método que acepta la conexión transaccional
+    public void guardar(Connection conn, EntradaInventario entrada) throws SQLException {
+        String sql = "INSERT INTO movimientos_inventario (ingrediente_id, cantidad, motivo, tipo_movimiento, fecha_movimiento) " +
+                "VALUES (?, ?, ?, 'ENTRADA', CURRENT_TIMESTAMP)";
 
-        try (Connection conn = ConexionBD.getConnection(); //conecta con la base de datos
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            //coloca el contenido del plato en el ?
-            //el numero significa la posición en que va
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, entrada.getIngredienteId());
-            stmt.setString(2, entrada.getTipoMovimiento());
-            stmt.setDouble(3, entrada.getCantidad());
-            stmt.setString(4, entrada.getMotivo());
-
+            stmt.setDouble(2, entrada.getCantidad());
+            stmt.setString(3, entrada.getMotivo());
             stmt.executeUpdate();
         }
     }
-    
 }

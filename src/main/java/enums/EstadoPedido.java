@@ -7,5 +7,16 @@ public enum EstadoPedido {
     PAGADO,
     COMPLETADO,
     ENTREGADO,
-    CANCELADO
+    CANCELADO;
+
+    /**
+     * Regla única para determinar un pedido cerrado,
+     * impidiendo que reciba modificaciones posteriores o reaperturas.
+     */
+    public static boolean esEstadoCierre(EstadoPedido estado) {
+        if (estado == null) {
+            return false;
+        }
+        return estado == PAGADO || estado == COMPLETADO || estado == ENTREGADO || estado == CANCELADO;
+    }
 }
