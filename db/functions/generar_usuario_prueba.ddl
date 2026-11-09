@@ -10,13 +10,10 @@ INSERT INTO usuarios (
     apellido,
     correo,
     password_hash,
-    pin_acceso_hash,
     id_rol,
-    is_on_shift,
     is_active,
     created_at,
-    updated_at,
-    created_by
+    updated_at
 )
 SELECT
     'HU088-001',
@@ -26,13 +23,10 @@ SELECT
     'Prueba',
     'hu088.prueba@restaurante.com',
     'HU088_TEST',
-    'HU088_TEST',
     (SELECT id_rol FROM roles WHERE nombre_rol = 'MESERO'),
     1,
-    1,
     CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP,
-    'HU-088'
+    CURRENT_TIMESTAMP
 WHERE NOT EXISTS (
     SELECT 1 FROM usuarios u WHERE u.codigo_empleado = 'HU088-001'
 )

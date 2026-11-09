@@ -33,12 +33,12 @@ WHERE NOT EXISTS (SELECT 1 FROM tipos_documento t WHERE t.codigo = 'CC');
 -- ------------------------------------------------------------ usuarios
 INSERT INTO usuarios (codigo_empleado, id_tipo_documento, numero_documento,
                       nombre, apellido, correo, password_hash, id_rol,
-                      is_on_shift, is_active, created_by)
+                      is_active)
 SELECT v.codigo,
        (SELECT t.id_tipo_documento FROM tipos_documento AS t WHERE t.codigo = 'CC'),
        v.documento, v.nombre, v.apellido, v.correo, v.hash,
        (SELECT r.id_rol FROM roles AS r WHERE r.nombre_rol = v.rol),
-       0, 1, 'hu095'
+       1
 FROM (VALUES
         ('ADM-001', '1001', 'Ana',   'Restrepo', 'ana.restrepo@gastroflow.local',
          'sha256$gfadm001$be0a002aeb6496ee19a8b5ff31b88110b93e8759cc457e7e1c0ec166f3140020',

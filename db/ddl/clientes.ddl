@@ -10,7 +10,6 @@ CREATE TABLE clientes (
     is_active         SMALLINT DEFAULT 1 NOT NULL,
     created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    created_by        VARCHAR(50),
     CONSTRAINT pk_clientes PRIMARY KEY (id_cliente),
     CONSTRAINT uk_clientes_num_doc UNIQUE (numero_documento),
     CONSTRAINT uk_clientes_correo UNIQUE (correo),
