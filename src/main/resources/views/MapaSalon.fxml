@@ -7,28 +7,32 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 
-<Pane fx:id="panelMesas" prefHeight="660.0" prefWidth="720.0"
-      styleClass="root"
-      xmlns="http://javafx.com/javafx/21"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="controller.MapaSalonController">
+<Pane fx:id="panelMesas" prefHeight="580.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.MapaSalonController">
    <children>
       <VBox fx:id="leyendaEstados" layoutX="24.0" layoutY="18.0" prefWidth="220.0" spacing="6.0" />
-
-      <VBox layoutX="456.0" layoutY="18.0" prefWidth="240.0" spacing="4.0" styleClass="panel-detalle">
+      <VBox layoutX="456.0" layoutY="18.0" prefWidth="220.0" spacing="4.0" style="-fx-border-color: #D0D0D0; -fx-border-radius: 6; -fx-padding: 8;">
          <children>
-            <Label fx:id="tituloDetalleMesa" styleClass="titulo-detalle" text="Seleccione una mesa" wrapText="true" />
-            <Label fx:id="detalleNumero" styleClass="detalle-linea" text="Numero: -" wrapText="true" />
-            <Label fx:id="detalleEstado" styleClass="detalle-linea" text="Estado: -" wrapText="true" />
-            <Label fx:id="detalleCapacidad" styleClass="detalle-linea" text="Capacidad maxima: -" wrapText="true" />
-            <Label fx:id="detalleComensales" styleClass="detalle-linea" text="Comensales: -" wrapText="true" />
-            <Label fx:id="detallePedido" styleClass="detalle-linea" text="Pedido activo: -" wrapText="true" />
-            <Label fx:id="detalleMesero" styleClass="detalle-linea" text="Mesero responsable: -" wrapText="true" />
-            <Label fx:id="detalleCodigo" styleClass="detalle-linea" text="Codigo: -" wrapText="true" />
+            <Label fx:id="tituloDetalleMesa" style="-fx-font-weight: bold;" text="Seleccione una mesa" wrapText="true" />
+            <Label fx:id="detalleNumero" text="Numero: -" wrapText="true" />
+            <Label fx:id="detalleEstado" text="Estado: -" wrapText="true" />
+            <Label fx:id="detalleCapacidad" text="Capacidad maxima: -" wrapText="true" />
+            <Label fx:id="detalleComensales" text="Comensales: -" wrapText="true" />
+            <Label fx:id="detallePedido" text="Pedido activo: -" wrapText="true" />
+            <Label fx:id="detalleMesero" text="Mesero responsable: -" wrapText="true" />
+            <Label fx:id="detalleCodigo" text="Codigo: -" wrapText="true" />
          </children>
       </VBox>
 
-      <HBox layoutX="24.0" layoutY="155.0" spacing="8.0" styleClass="filtros">
+      <HBox spacing="16">
+         <Label fx:id="contadorTotal" text="Total: 0" />
+         <Label fx:id="contadorDisponibles" text="Disponibles: 0" />
+         <Label fx:id="contadorOcupadas" text="Ocupadas: 0" />
+         <Label fx:id="contadorReservadas" text="Reservadas: 0" />
+         <Label fx:id="contadorPendientePago" text="Pendiente de pago: 0" />
+         <Label fx:id="contadorInhabilitadas" text="Fuera de servicio: 0" />
+      </HBox>
+
+      <HBox layoutX="24.0" layoutY="150.0" spacing="8.0">
          <children>
             <ToggleButton fx:id="filtroTodas" mnemonicParsing="false" prefWidth="84.0" text="Todas" />
             <ToggleButton fx:id="filtroLibres" mnemonicParsing="false" prefWidth="84.0" text="Libres" />
@@ -36,43 +40,53 @@
             <ToggleButton fx:id="filtroReservadas" mnemonicParsing="false" prefWidth="104.0" text="Reservadas" />
          </children>
       </HBox>
-
       <Label fx:id="mensajeFiltro" layoutX="24.0" layoutY="184.0" prefWidth="400.0" textFill="#B00020" visible="false" />
+      <Button alignment="CENTER" layoutX="24.0" layoutY="530.0"
+              mnemonicParsing="false"
+              onAction="#agregarMesa"
+              prefHeight="30.0"
+              prefWidth="125.0"
+              text="Agregar Mesa" />
 
-      <!-- Fila 1 de acciones -->
-      <HBox layoutX="24.0" layoutY="500.0" spacing="10.0" styleClass="acciones">
-         <children>
-            <Button mnemonicParsing="false" onAction="#agregarMesa" prefWidth="140.0" prefHeight="34.0" text="Agregar Mesa" />
-            <Button mnemonicParsing="false" onAction="#asignarComensales" prefWidth="140.0" prefHeight="34.0" text="Asignar comensales" />
-            <Button mnemonicParsing="false" onAction="#liberarMesaSeleccionada" prefWidth="140.0" prefHeight="34.0" text="Liberar Mesa" />
-            <Button mnemonicParsing="false" onAction="#quitarMesa" prefWidth="140.0" prefHeight="34.0" text="Quitar Mesa" />
-         </children>
-      </HBox>
+      <Button alignment="CENTER" layoutX="157.0" layoutY="530.0"
+              mnemonicParsing="false"
+              onAction="#asignarComensales"
+              prefHeight="30.0"
+              prefWidth="145.0"
+              text="Asignar comensales" />
 
-      <!-- Fila 2 de acciones -->
-      <HBox layoutX="24.0" layoutY="542.0" spacing="10.0" styleClass="acciones">
-         <children>
-            <Button mnemonicParsing="false" onAction="#abrirPedidoMesa" prefWidth="140.0" prefHeight="34.0" text="Abrir pedido" />
-            <Button mnemonicParsing="false" onAction="#cambiarEstadoMesaSeleccionada" prefWidth="140.0" prefHeight="34.0" text="Cambiar estado" />
-            <Button mnemonicParsing="false" onAction="#cambiarCapacidadMesaSeleccionada" prefWidth="140.0" prefHeight="34.0" text="Capacidad" />
-         </children>
-      </HBox>
+      <Button alignment="CENTER" layoutX="310.0" layoutY="530.0"
+              mnemonicParsing="false"
+              onAction="#liberarMesaSeleccionada"
+              prefHeight="30.0"
+              prefWidth="110.0"
+              text="Liberar Mesa" />
 
-      <!-- Contadores abajo, barra verde -->
-      <HBox fx:id="barraContadores"
-            layoutX="24.0"
-            layoutY="590.0"
-            prefWidth="670.0"
-            spacing="18.0"
-            styleClass="barra-contadores">
-         <children>
-            <Label fx:id="contadorTotal" styleClass="contador" text="Total: 0" />
-            <Label fx:id="contadorDisponibles" styleClass="contador" text="Disponibles: 0" />
-            <Label fx:id="contadorOcupadas" styleClass="contador" text="Ocupadas: 0" />
-            <Label fx:id="contadorReservadas" styleClass="contador" text="Reservadas: 0" />
-            <Label fx:id="contadorPendientePago" styleClass="contador" text="Pendiente de pago: 0" />
-            <Label fx:id="contadorInhabilitadas" styleClass="contador" text="Fuera de servicio: 0" />
-         </children>
-      </HBox>
+      <Button alignment="CENTER" layoutX="426.0" layoutY="530.0"
+              mnemonicParsing="false"
+              onAction="#quitarMesa"
+              prefHeight="30.0"
+              prefWidth="110.0"
+              text="Quitar Mesa" />
+
+      <Button alignment="CENTER" layoutX="24.0" layoutY="565.0"
+              mnemonicParsing="false"
+              onAction="#abrirPedidoMesa"
+              prefHeight="30.0"
+              prefWidth="145.0"
+              text="Abrir pedido" />
+
+      <Button alignment="CENTER" layoutX="177.0" layoutY="565.0"
+              mnemonicParsing="false"
+              onAction="#cambiarEstadoMesaSeleccionada"
+              prefHeight="30.0"
+              prefWidth="145.0"
+              text="Cambiar estado" />
+      <Button alignment="CENTER" layoutX="330.0" layoutY="565.0"
+              mnemonicParsing="false"
+              onAction="#cambiarCapacidadMesaSeleccionada"
+              prefHeight="30.0"
+              prefWidth="145.0"
+              text="Capacidad" />
    </children>
 </Pane>

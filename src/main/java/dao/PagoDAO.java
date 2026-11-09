@@ -150,7 +150,7 @@ public class PagoDAO {
         SET descuento = ?,
             propina = ?,
             total = ?,
-            estado = 'ENTREGADO',
+            estado = 'PAGADO',
             fecha_actualizacion = CURRENT_TIMESTAMP
         WHERE pedido_id = ?
         """;
