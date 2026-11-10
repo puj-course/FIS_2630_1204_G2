@@ -1,6 +1,7 @@
 package dto;
 
-import entity.Productos;
+import entity.Producto;
+
 
 import java.math.BigDecimal;
 
