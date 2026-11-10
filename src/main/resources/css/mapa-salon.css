@@ -19,6 +19,20 @@
     -fx-font-weight: bold;
 }
 
+.barra-contadores {
+    -fx-background-color: #1f7a4d;
+    -fx-background-radius: 10;
+    -fx-padding: 10 16;
+    -fx-alignment: center-left;
+    -fx-effect: dropshadow(gaussian, rgba(16, 24, 40, 0.12), 6, 0, 0, 2);
+}
+
+.barra-contadores .contador {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffffff;
+}
+
 /* Panel de detalle */
 .panel-detalle {
     -fx-background-color: #ffffff;
