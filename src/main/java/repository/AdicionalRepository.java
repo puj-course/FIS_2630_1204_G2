@@ -12,7 +12,7 @@ import java.util.Optional;
 public class AdicionalRepository {
 
     public Optional<Adicional> findById(long id) throws SQLException {
-        String sql = "SELECT id_adicional, nombre, precio_adicional, is_active FROM adicional WHERE id = ?";
+        String sql = "SELECT id, nombre, precio_adicional, is_active FROM adicional WHERE id = ?";
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
@@ -26,7 +26,7 @@ public class AdicionalRepository {
     }
 
     public List<Adicional> findAllActivos() throws SQLException {
-        String sql = "SELECT id_adicional, nombre, precio_adicional, is_active FROM adicional WHERE is_active = TRUE";
+        String sql = "SELECT id, nombre, precio_adicional, is_active FROM adicional WHERE is_active = TRUE";
         List<Adicional> lista = new ArrayList<>();
         try (Connection conn = ConexionBD.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);

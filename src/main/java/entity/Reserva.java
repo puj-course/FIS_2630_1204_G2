@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 public class Reserva {
     private int idReserva;
-    private int idCliente;
     private int idMesa;
     private int numeroMesa;
     private String nombreZona;
@@ -19,9 +18,6 @@ public class Reserva {
     public int getIdReserva() { return idReserva; }
     public void setIdReserva(int idReserva) { this.idReserva = idReserva; }
 
-    public Integer getIdCliente() {return idCliente;}
-    public void setIdCliente(Integer idCliente) {this.idCliente = idCliente;
-    }
     public int getIdMesa() { return idMesa; }
     public void setIdMesa(int idMesa) { this.idMesa = idMesa; }
 

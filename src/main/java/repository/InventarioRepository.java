@@ -1,6 +1,6 @@
 package repository;
 
-import entity.ProductoIngrediente;
+import ConexionBD.ConexionBD;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -12,11 +12,18 @@ import java.util.List;
 
 public class InventarioRepository {
 
-    public static class MovimientoPedido {
+    /**
+     * Representa una receta asociada a un producto.
+     */
+    public static class IngredienteReceta {
+
         private final long ingredienteId;
         private final BigDecimal cantidad;
 
-        public MovimientoPedido(long ingredienteId, BigDecimal cantidad) {
+        public IngredienteReceta(
+                long ingredienteId,
+                BigDecimal cantidad
+        ) {
             this.ingredienteId = ingredienteId;
             this.cantidad = cantidad;
         }
@@ -24,127 +31,237 @@ public class InventarioRepository {
         public long getIngredienteId() {
             return ingredienteId;
         }
+
         public BigDecimal getCantidad() {
             return cantidad;
         }
     }
 
     /**
-     * Obtiene la receta de un producto utilizando la entidad unificada ProductoIngrediente
-     * y consultando exclusivamente la tabla producto_ingrediente.
+     * Representa una salida de inventario asociada
+     * a un pedido.
      */
-    public List<ProductoIngrediente> obtenerReceta(
+    public static class MovimientoPedido {
+
+        private final long ingredienteId;
+        private final BigDecimal cantidad;
+
+        public MovimientoPedido(
+                long ingredienteId,
+                BigDecimal cantidad
+        ) {
+            this.ingredienteId = ingredienteId;
+            this.cantidad = cantidad;
+        }
+
+        public long getIngredienteId() {
+            return ingredienteId;
+        }
+
+        public BigDecimal getCantidad() {
+            return cantidad;
+        }
+    }
+
+    /**
+     * Obtiene la receta almacenada en plato_insumo.
+     */
+    public List<IngredienteReceta> obtenerReceta(
             Connection conn,
             long productoId
     ) throws SQLException {
-        String sql = "SELECT producto_id, ingrediente_id, cantidad_necesaria " +
-                "FROM producto_ingrediente " +
-                "WHERE producto_id = ? " +
-                "ORDER BY ingrediente_id";
 
-        List<ProductoIngrediente> receta = new ArrayList<>();
+        String sql =
+                "SELECT p.producto_id, " +
+                        "pi.insumo_id AS ingrediente_id, " +
+                        "pi.cantidad_necesaria AS cantidad " +
+                        "FROM productos p " +
+                        "LEFT JOIN plato_insumo pi " +
+                        "ON pi.plato_id = p.producto_id " +
+                        "WHERE p.producto_id = ? " +
+                        "ORDER BY pi.insumo_id";
+
+        List<IngredienteReceta> receta = new ArrayList<>();
+
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setLong(1, productoId);
 
             try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    long prodId = rs.getLong("producto_id");
-                    long ingredienteId = rs.getLong("ingrediente_id");
-                    BigDecimal cantidad = rs.getBigDecimal("cantidad_necesaria");
 
-                    if (cantidad == null || cantidad.compareTo(BigDecimal.ZERO) <= 0) {
+                if (!rs.next()) {
+                    throw new SQLException(
+                            "No existe el producto con ID " + productoId
+                    );
+                }
+
+                do {
+                    long ingredienteId = rs.getLong("ingrediente_id");
+
+                    if (rs.wasNull()) {
+                        // El producto existe, pero no tiene receta.
+                        continue;
+                    }
+
+                    BigDecimal cantidad =
+                            rs.getBigDecimal("cantidad");
+
+                    if (cantidad == null
+                            || cantidad.compareTo(BigDecimal.ZERO) <= 0) {
+
                         throw new SQLException(
-                                "La cantidad necesaria del ingrediente " + ingredienteId +
-                                        " para el producto " + productoId + " debe ser mayor que cero."
+                                "La cantidad de receta del ingrediente "
+                                        + ingredienteId
+                                        + " debe ser mayor que cero."
                         );
                     }
-                    receta.add(new ProductoIngrediente(prodId, ingredienteId, cantidad));
-                }
-            }
-        }
 
-        if (receta.isEmpty()) {
-            String checkProducto = "SELECT 1 FROM productos WHERE producto_id = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(checkProducto)) {
-                stmt.setLong(1, productoId);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (!rs.next()) {
-                        throw new SQLException("No existe el producto con ID " + productoId);
-                    }
-                }
+                    receta.add(
+                            new IngredienteReceta(
+                                    ingredienteId,
+                                    cantidad
+                            )
+                    );
+
+                } while (rs.next());
             }
         }
 
         return receta;
     }
 
-    /* Obtiene el stock actual bloqueando la fila */
+    /**
+     * Obtiene el stock actual bloqueando la fila.
+     */
     public BigDecimal obtenerStockForUpdate(
             Connection conn,
             long ingredienteId
     ) throws SQLException {
 
-        String sql = "SELECT stock_actual " +
-                "FROM ingredientes " +
-                "WHERE ingrediente_id = ? " +
-                "FOR UPDATE";
+        String sql =
+                "SELECT stock_actual " +
+                        "FROM ingredientes " +
+                        "WHERE ingrediente_id = ? " +
+                        "FOR UPDATE";
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt =
+                     conn.prepareStatement(sql)) {
+
             stmt.setLong(1, ingredienteId);
 
-            try (ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet rs =
+                         stmt.executeQuery()) {
+
                 if (!rs.next()) {
-                    throw new SQLException("No existe el ingrediente con ID " + ingredienteId);
+
+                    throw new SQLException(
+                            "No existe el ingrediente con ID "
+                                    + ingredienteId
+                    );
                 }
-                BigDecimal stock = rs.getBigDecimal("stock_actual");
+
+                BigDecimal stock =
+                        rs.getBigDecimal(
+                                "stock_actual"
+                        );
+
                 if (stock == null) {
-                    throw new SQLException("El ingrediente " + ingredienteId + " tiene stock nulo.");
+
+                    throw new SQLException(
+                            "El ingrediente "
+                                    + ingredienteId
+                                    + " tiene stock nulo."
+                    );
                 }
+
                 return stock;
             }
         }
     }
 
-    /* Descuenta stock de manera exclusiva en la tabla ingredientes. */
+    /**
+     * Descuenta una cantidad del stock.
+     */
     public void descontarStock(
             Connection conn,
             long ingredienteId,
             BigDecimal cantidad
     ) throws SQLException {
 
-        String sql = "UPDATE ingredientes " +
-                "SET stock_actual = stock_actual - ?, " +
-                "fecha_actualizacion = CURRENT_TIMESTAMP " +
-                "WHERE ingrediente_id = ?";
+        String sql =
+                "UPDATE ingredientes " +
+                        "SET stock_actual = stock_actual - ?, " +
+                        "fecha_actualizacion = CURRENT_TIMESTAMP " +
+                        "WHERE ingrediente_id = ?";
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setBigDecimal(1, cantidad);
-            stmt.setLong(2, ingredienteId);
-            int filasActualizadas = stmt.executeUpdate();
+        try (PreparedStatement stmt =
+                     conn.prepareStatement(sql)) {
+
+            stmt.setBigDecimal(
+                    1,
+                    cantidad
+            );
+
+            stmt.setLong(
+                    2,
+                    ingredienteId
+            );
+
+            int filasActualizadas =
+                    stmt.executeUpdate();
+
             if (filasActualizadas != 1) {
-                throw new SQLException("No se pudo actualizar (descontar) el stock del ingrediente " + ingredienteId);
+
+                throw new SQLException(
+                        "No se pudo actualizar el stock "
+                                + "del ingrediente "
+                                + ingredienteId
+                );
             }
         }
     }
 
-    /* Devuelve stock a la tabla ingredientes (reversiones). */
+    /**
+     * Suma nuevamente una cantidad al stock.
+     *
+     * Se utiliza cuando se revierte la anulación
+     * de una comanda cuyo inventario ya había sido descontado.
+     */
     public void devolverStock(
             Connection conn,
             long ingredienteId,
             BigDecimal cantidad
     ) throws SQLException {
 
-        String sql = "UPDATE ingredientes " +
-                "SET stock_actual = stock_actual + ?, " +
-                "fecha_actualizacion = CURRENT_TIMESTAMP " +
-                "WHERE ingrediente_id = ?";
+        String sql =
+                "UPDATE ingredientes " +
+                        "SET stock_actual = stock_actual + ?, " +
+                        "fecha_actualizacion = CURRENT_TIMESTAMP " +
+                        "WHERE ingrediente_id = ?";
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setBigDecimal(1, cantidad);
-            stmt.setLong(2, ingredienteId);
-            int filasActualizadas = stmt.executeUpdate();
+        try (PreparedStatement stmt =
+                     conn.prepareStatement(sql)) {
+
+            stmt.setBigDecimal(
+                    1,
+                    cantidad
+            );
+
+            stmt.setLong(
+                    2,
+                    ingredienteId
+            );
+
+            int filasActualizadas =
+                    stmt.executeUpdate();
+
             if (filasActualizadas != 1) {
-                throw new SQLException("No se pudo devolver el stock del ingrediente " + ingredienteId);
+
+                throw new SQLException(
+                        "No se pudo devolver el stock "
+                                + "del ingrediente "
+                                + ingredienteId
+                );
             }
         }
     }
@@ -159,17 +276,36 @@ public class InventarioRepository {
             String motivo,
             long usuarioId
     ) throws SQLException {
+
         String sql =
                 "INSERT INTO movimientos_inventario " +
                         "(producto_id, ingrediente_id, tipo_movimiento, " +
                         "cantidad, motivo, usuario_id, fecha_movimiento) " +
                         "VALUES (NULL, ?, 'SALIDA', ?, ?, ?, CURRENT_TIMESTAMP)";
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, ingredienteId);
-            stmt.setBigDecimal(2, cantidad);
-            stmt.setString(3, motivo);
-            stmt.setLong(4, usuarioId);
+        try (PreparedStatement stmt =
+                     conn.prepareStatement(sql)) {
+
+            stmt.setLong(
+                    1,
+                    ingredienteId
+            );
+
+            stmt.setBigDecimal(
+                    2,
+                    cantidad
+            );
+
+            stmt.setString(
+                    3,
+                    motivo
+            );
+
+            stmt.setLong(
+                    4,
+                    usuarioId
+            );
+
             stmt.executeUpdate();
         }
     }
@@ -186,45 +322,89 @@ public class InventarioRepository {
             long usuarioId
     ) throws SQLException {
 
-        String sql = "INSERT INTO movimientos_inventario " +
-                "(producto_id, ingrediente_id, tipo_movimiento, cantidad, motivo, usuario_id, fecha_movimiento) " +
-                "VALUES (NULL, ?, 'ENTRADA', ?, ?, ?, CURRENT_TIMESTAMP)";
+        String sql =
+                "INSERT INTO movimientos_inventario " +
+                        "(producto_id, ingrediente_id, tipo_movimiento, " +
+                        "cantidad, motivo, usuario_id, fecha_movimiento) " +
+                        "VALUES (NULL, ?, 'ENTRADA', ?, ?, ?, CURRENT_TIMESTAMP)";
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, ingredienteId);
-            stmt.setBigDecimal(2, cantidad);
-            stmt.setString(3, motivo);
-            stmt.setLong(4, usuarioId);
+        try (PreparedStatement stmt =
+                     conn.prepareStatement(sql)) {
+
+            stmt.setLong(
+                    1,
+                    ingredienteId
+            );
+
+            stmt.setBigDecimal(
+                    2,
+                    cantidad
+            );
+
+            stmt.setString(
+                    3,
+                    motivo
+            );
+
+            stmt.setLong(
+                    4,
+                    usuarioId
+            );
+
             stmt.executeUpdate();
         }
     }
 
     /**
-     * Obtiene las salidas de ingredientes asociadas a un pedido.
+     * Obtiene las salidas de ingredientes asociadas
+     * a un pedido.
+     *
+     * Como movimientos_inventario no tiene una columna
+     * pedido_id, el ID se encuentra dentro del motivo.
      */
     public List<MovimientoPedido> obtenerSalidasPorPedido(
             Connection conn,
             long pedidoId
     ) throws SQLException {
 
-        String sql = "SELECT ingrediente_id, cantidad " +
-                "FROM movimientos_inventario " +
-                "WHERE tipo_movimiento = 'SALIDA' " +
-                "AND ingrediente_id IS NOT NULL " +
-                "AND motivo = ? " +
-                "ORDER BY id_movimiento";
+        String sql =
+                "SELECT ingrediente_id, cantidad " +
+                        "FROM movimientos_inventario " +
+                        "WHERE tipo_movimiento = 'SALIDA' " +
+                        "AND ingrediente_id IS NOT NULL " +
+                        "AND motivo = ? " +
+                        "ORDER BY id_movimiento";
 
-        List<MovimientoPedido> movimientos = new ArrayList<>();
-        String motivo = "CONSUMO_COMANDA - PEDIDO_ID=" + pedidoId;
+        List<MovimientoPedido> movimientos =
+                new ArrayList<>();
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, motivo);
-            try (ResultSet rs = stmt.executeQuery()) {
+        String motivo =
+                "CONSUMO_COMANDA - PEDIDO_ID="
+                        + pedidoId;
+
+        try (PreparedStatement stmt =
+                     conn.prepareStatement(sql)) {
+
+            stmt.setString(
+                    1,
+                    motivo
+            );
+
+            try (ResultSet rs =
+                         stmt.executeQuery()) {
+
                 while (rs.next()) {
-                    movimientos.add(new MovimientoPedido(
-                            rs.getLong("ingrediente_id"),
-                            rs.getBigDecimal("cantidad")
-                    ));
+
+                    movimientos.add(
+                            new MovimientoPedido(
+                                    rs.getLong(
+                                            "ingrediente_id"
+                                    ),
+                                    rs.getBigDecimal(
+                                            "cantidad"
+                                    )
+                            )
+                    );
                 }
             }
         }
@@ -233,69 +413,112 @@ public class InventarioRepository {
     }
 
     /**
-     * Verifica si ya existe una reversión de inventario para un pedido.
+     * Verifica si ya existe una reversión para un pedido.
      */
     public boolean existeReversionPorPedido(
             Connection conn,
             long pedidoId
     ) throws SQLException {
 
-        String sql = "SELECT 1 " +
-                "FROM movimientos_inventario " +
-                "WHERE tipo_movimiento = 'ENTRADA' " +
-                "AND motivo = ? " +
-                "LIMIT 1";
+        String sql =
+                "SELECT 1 " +
+                        "FROM movimientos_inventario " +
+                        "WHERE tipo_movimiento = 'ENTRADA' " +
+                        "AND motivo = ? " +
+                        "LIMIT 1";
 
-        String motivo = "REVERSO_COMANDA - PEDIDO_ID=" + pedidoId;
+        String motivo =
+                "REVERSO_COMANDA - PEDIDO_ID="
+                        + pedidoId;
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, motivo);
-            try (ResultSet rs = stmt.executeQuery()) {
+        try (PreparedStatement stmt =
+                     conn.prepareStatement(sql)) {
+
+            stmt.setString(
+                    1,
+                    motivo
+            );
+
+            try (ResultSet rs =
+                         stmt.executeQuery()) {
+
                 return rs.next();
             }
         }
     }
 
     /**
-     * Obtiene el nombre del ingrediente desde la tabla maestra.
+     * Obtiene el nombre de un ingrediente.
      */
     public String obtenerNombreIngrediente(
             Connection conn,
             long ingredienteId
     ) throws SQLException {
 
-        String sql = "SELECT nombre FROM ingredientes WHERE ingrediente_id = ?";
+        String sql =
+                "SELECT nombre " +
+                        "FROM ingredientes " +
+                        "WHERE ingrediente_id = ?";
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, ingredienteId);
+        try (PreparedStatement stmt =
+                     conn.prepareStatement(sql)) {
 
-            try (ResultSet rs = stmt.executeQuery()) {
+            stmt.setLong(
+                    1,
+                    ingredienteId
+            );
+
+            try (ResultSet rs =
+                         stmt.executeQuery()) {
+
                 if (!rs.next()) {
-                    return "Ingrediente #" + ingredienteId;
+
+                    return "Ingrediente #"
+                            + ingredienteId;
                 }
-                return rs.getString("nombre");
+
+                return rs.getString(
+                        "nombre"
+                );
             }
         }
     }
 
     /**
-     * Obtiene el stock mínimo configurado para las alertas del ingrediente.
+     * Obtiene el stock mínimo de un ingrediente.
      */
     public BigDecimal obtenerStockMinimo(
             Connection conn,
             long ingredienteId
     ) throws SQLException {
 
-        String sql = "SELECT stock_minimo FROM ingredientes WHERE ingrediente_id = ?";
+        String sql =
+                "SELECT stock_minimo " +
+                        "FROM ingredientes " +
+                        "WHERE ingrediente_id = ?";
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, ingredienteId);
+        try (PreparedStatement stmt =
+                     conn.prepareStatement(sql)) {
 
-            try (ResultSet rs = stmt.executeQuery()) {
+            stmt.setLong(
+                    1,
+                    ingredienteId
+            );
+
+            try (ResultSet rs =
+                         stmt.executeQuery()) {
+
                 if (!rs.next()) {
-                    throw new SQLException("No existe el ingrediente con ID " + ingredienteId);
+
+                    throw new SQLException(
+                            "No existe el ingrediente con ID "
+                                    + ingredienteId
+                    );
                 }
-                return rs.getBigDecimal("stock_minimo");
+
+                return rs.getBigDecimal(
+                        "stock_minimo"
+                );
             }
         }
     }

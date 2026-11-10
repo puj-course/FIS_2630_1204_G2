@@ -1,10 +1,9 @@
 package controller;
 
+
 import dao.ProductoDAO;
 import dto.ItemPedido;
-import entity.DetallePedido;
-import entity.Productos;
-import repository.DetallePedidoRepository;
+import entity.Producto;
 import util.TextoBusqueda;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
@@ -20,8 +19,8 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.util.*;
-import java.util.Map;
-import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MenuMeseroController {
 
@@ -37,23 +36,27 @@ public class MenuMeseroController {
 
     private final PedidoService pedidoService = new PedidoService();
     private final PedidoFacade pedidoFacade = new PedidoFacade();
-    private final DetallePedidoRepository detallePedidoRepository = new DetallePedidoRepository();
     private Long mesaId;
     private Long usuarioId;
     private Pedido pedidoActual;
 
     private static final String TODAS_LAS_CATEGORIAS = "Todas";
+
     private final ProductoDAO productoDAO = new ProductoDAO();
+
     private final Map<Long, ItemPedido> pedido =
             new LinkedHashMap<>();
+
     private final NumberFormat moneda =
             NumberFormat.getCurrencyInstance(Locale.of("es", "CO"));
 
     /** Menú completo cargado desde la base de datos. */
-    private Map<String, List<Productos>> menuCompleto =
+    private Map<String, List<Producto>> menuCompleto =
             new LinkedHashMap<>();
 
-    // Evita cargar varias veces el mismo pedido activo.
+    /**
+     * Evita cargar varias veces el mismo pedido activo.
+     */
     private boolean pedidoActivoCargado = false;
 
     public void configurarMesa(long mesaId, long usuarioId) {
@@ -67,6 +70,15 @@ public class MenuMeseroController {
         System.out.println(" Usuario: " + usuarioId);
         System.out.println("======================================");
 
+        /*
+         * initialize() se ejecuta antes de configurarMesa().
+         *
+         * Por eso puede ocurrir que el menú todavía no haya terminado
+         * de cargarse cuando llegamos aquí.
+         *
+         * Si el menú ya está disponible, cargamos inmediatamente
+         * el pedido activo.
+         */
         if (!menuCompleto.isEmpty()) {
             cargarPedidoActivo();
         }
@@ -82,31 +94,46 @@ public class MenuMeseroController {
         actualizarPedido();
     }
 
-    // Carga el menú desde la base de datos.
+    /**
+     * Carga el menú desde la base de datos.
+     */
     @FXML
     private void cargarMenu() {
 
-        Task<Map<String, List<Productos>>> tarea = new Task<>() {
+        Task<Map<String, List<Producto>>> tarea = new Task<>() {
             @Override
-            protected Map<String, List<Productos>> call()
+            protected Map<String, List<Producto>> call()
                     throws SQLException {
-                System.out.println(">>> INICIANDO CARGA DEL MENU");
-                Map<String, List<Productos>> resultado = productoDAO.obtenerMenuPorCategorias();
-                System.out.println(">>> MENU CARGADO CORRECTAMENTE");
-                return resultado;
-            }
-        };
+                        System.out.println(">>> INICIANDO CARGA DEL MENU");
+                        Map<String, List<Producto>> resultado = productoDAO.obtenerMenuPorCategorias();
+                        System.out.println(">>> MENU CARGADO CORRECTAMENTE");
+                        System.out.println(">>> CATEGORIAS: " + resultado.keySet());
+                        return resultado;
+                    }
+                };
 
         tarea.setOnSucceeded(e -> {
+            System.out.println(">>> ENTRANDO A setOnSucceeded");
             menuCompleto = tarea.getValue();
+            System.out.println(">>> menuCompleto asignado");
             actualizarCategorias();
+            System.out.println(">>> actualizarCategorias TERMINO");
             mostrarMenuFiltrado();
-            if (mesaId != null && !pedidoActivoCargado) {
-                cargarPedidoActivo();
+            System.out.println(">>> mostrarMenuFiltrado TERMINO");
+            /*
+             * IMPORTANTE:
+             *
+             * configurarMesa() puede haberse ejecutado antes
+             * de que termine esta carga.
+             *
+             * Cuando el menú ya está disponible podemos buscar
+             * el pedido activo.
+             */
+            if (mesaId != null && !pedidoActivoCargado) {cargarPedidoActivo();
             }
         });
 
-        tarea.setOnFailed(e -> {
+        tarea.setOnFailed(e -> {System.out.println(">>> TASK FALLO");
             if (e.getSource().getException() != null) {
                 e.getSource().getException().printStackTrace();
             }
@@ -123,37 +150,51 @@ public class MenuMeseroController {
      */
     private void cargarPedidoActivo() {
 
-        if (pedidoActivoCargado || mesaId == null || menuCompleto.isEmpty()) {
+        if (pedidoActivoCargado) {
+            return;
+        }
+
+        if (mesaId == null) {
+            return;
+        }
+
+        /*
+         * El menú debe estar disponible porque necesitamos
+         * encontrar los objetos Producto correspondientes
+         * a los IDs almacenados en el JSON.
+         */
+        if (menuCompleto.isEmpty()) {
             return;
         }
 
         pedidoActivoCargado = true;
+
         Task<Optional<Pedido>> tarea = new Task<>() {
             @Override
-            protected Optional<Pedido> call() throws SQLException {
-                System.out.println(">>> BUSCANDO PEDIDO ACTIVO");
-                return pedidoService.obtenerPedidoActivo(mesaId);
-            }
-        };
+            protected Optional<Pedido> call()
+                    throws SQLException {
+                        System.out.println(">>> BUSCANDO PEDIDO ACTIVO");
+                        return pedidoService.obtenerPedidoActivo(mesaId);
+                    }
+                };
 
-        tarea.setOnSucceeded(e -> {
-            Optional<Pedido> resultado = tarea.getValue();
+        tarea.setOnSucceeded(e -> {Optional<Pedido> resultado = tarea.getValue();
             if (resultado.isEmpty()) {
                 System.out.println(">>> NO HAY PEDIDO ACTIVO PARA LA MESA " + mesaId);
                 return;
             }
 
             pedidoActual = resultado.get();
-            System.out.println(">>> PEDIDO ACTIVO ENCONTRADO: " + pedidoActual.getId());
+            System.out.println(">>> PEDIDO ACTIVO ENCONTRADO: " + pedidoActual.getNumeroPedido());
+            System.out.println(">>> PRODUCTOS GUARDADOS: " + pedidoActual.getProductos());
 
             try {
-                List<DetallePedido> detalles = detallePedidoRepository.findByPedidoId(pedidoActual.getId());
-                cargarProductosDesdeRelacion(detalles);
+                cargarProductosDesdeJson(pedidoActual.getProductos());
                 actualizarPedido();
                 System.out.println(">>> PEDIDO ACTIVO CARGADO EN LA INTERFAZ");
             } catch (Exception ex) {
                 pedidoActivoCargado = false;
-                System.out.println(">>> ERROR CARGANDO DETALLES DEL PEDIDO");
+                System.out.println(">>> ERROR CARGANDO PRODUCTOS DEL PEDIDO");
                 ex.printStackTrace();
                 mostrarError(ex);
             }
@@ -173,33 +214,60 @@ public class MenuMeseroController {
     }
 
     /**
-     * Convierte los registros de la tabla relacional DetallePedido
-     * en objetos ItemPedido para la interfaz.
+     * Convierte el JSON almacenado en pedidos.productos
+     * nuevamente en ItemPedido.
+     * El JSON que manejamos actualmente tiene esta estructura:
+     * [
+     *   {
+     *     "producto_id":1,
+     *     "cantidad":2,
+     *     "precio_unitario":18000,
+     *     "subtotal":36000
+     *   }
+     * ]
      */
-    private void cargarProductosDesdeRelacion(List<DetallePedido> detalles) {
+    private void cargarProductosDesdeJson(String json) {
+
         pedido.clear();
-        if (detalles == null || detalles.isEmpty()) {
+        if (json == null || json.isBlank()) {
             return;
         }
-
-        for (DetallePedido detalle : detalles) {
-            Productos producto = buscarProductoEnMenu(detalle.getProductoId());
-            if (producto == null) {
-                System.out.println(">>> PRODUCTO " + detalle.getProductoId() + " NO ENCONTRADO EN EL MENU");
+        String contenido = json.trim();
+        if (contenido.equals("[]")) {
+            return;
+        }
+        /*
+         * Busca cada objeto individual dentro del arreglo.
+         */
+        Pattern objetoPattern = Pattern.compile("\\{([^}]*)\\}");
+        Matcher objetos = objetoPattern.matcher(contenido);
+        while (objetos.find()) {
+            String objeto = objetos.group(1);
+            Long productoId = extraerLong(objeto, "\"producto_id\"\\s*:\\s*(\\d+)");
+            Integer cantidad = extraerInteger(objeto, "\"cantidad\"\\s*:\\s*(\\d+)");
+            if (productoId == null || cantidad == null || cantidad <= 0) {
                 continue;
             }
 
-            ItemPedido item = new ItemPedido(producto, detalle.getCantidad());
-            pedido.put(detalle.getProductoId(), item);
-            System.out.println(">>> CARGADO RELACIONAL: " + producto.getNombre() + " x " + detalle.getCantidad());
+            Producto producto = buscarProductoEnMenu(productoId);
+            if (producto == null) {
+                System.out.println(">>> PRODUCTO " + productoId + " NO ENCONTRADO EN EL MENU");
+                continue;
+            }
+
+            ItemPedido item = new ItemPedido(producto, cantidad);
+            pedido.put(productoId, item);
+            System.out.println(">>> CARGADO: " + producto.getNombre() + " x " + cantidad);
         }
     }
 
-    // Busca un producto por ID dentro del menú completo.
-    private Productos buscarProductoEnMenu(long productoId) {
+    /**
+     * Busca un producto por ID dentro del menú completo.
+     */
+    private Producto buscarProductoEnMenu(long productoId) {
 
-        for (List<Productos> productos : menuCompleto.values()) {
-            for (Productos producto : productos) {
+        for (List<Producto> productos : menuCompleto.values()) {
+            for (Producto producto : productos) {
                 if (producto.getProductoId() == productoId) {
                     return producto;
                 }
@@ -208,8 +276,34 @@ public class MenuMeseroController {
         return null;
     }
 
+    private Long extraerLong(String texto, String expresion) {
+        Pattern pattern = Pattern.compile(expresion);
+        Matcher matcher = pattern.matcher(texto);
+        if (matcher.find()) {
+            try {
+                return Long.parseLong(matcher.group(1));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return null;
+    }
+    private Integer extraerInteger(String texto, String expresion) {
+        Pattern pattern = Pattern.compile(expresion);
+        Matcher matcher = pattern.matcher(texto);
+        if (matcher.find()) {
+            try {
+                return Integer.parseInt(
+                        matcher.group(1)
+                );
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return null;
+    }
+
     @FXML
     private void limpiarFiltros() {
+
         busquedaField.clear();
         soloDisponiblesCheck.setSelected(false);
         categoriaCombo.setValue(TODAS_LAS_CATEGORIAS);
@@ -231,6 +325,7 @@ public class MenuMeseroController {
 
     /** Pinta el menú aplicando búsqueda, categoría y el filtro de disponibilidad. */
     private void mostrarMenuFiltrado() {
+
         categoriasBox.getChildren().clear();
 
         String busqueda = busquedaField.getText();
@@ -239,12 +334,12 @@ public class MenuMeseroController {
 
         int visibles = 0;
 
-        for (Map.Entry<String, List<Productos>> entrada : menuCompleto.entrySet()) {
+        for (Map.Entry<String, List<Producto>> entrada : menuCompleto.entrySet()) {
             if (categoria != null && !TODAS_LAS_CATEGORIAS.equals(categoria) && !categoria.equals(entrada.getKey())) {
                 continue;
             }
-            List<Productos> coincidencias = new ArrayList<>();
-            for (Productos p : entrada.getValue()) {
+            List<Producto> coincidencias = new ArrayList<>();
+            for (Producto p : entrada.getValue()) {
                 if (soloDisponibles && !p.isDisponible()) continue;
                 if (TextoBusqueda.coincide(p.getNombre(), p.getDescripcion(), busqueda)) {
                     coincidencias.add(p);
@@ -258,7 +353,7 @@ public class MenuMeseroController {
             pane.setHgap(14);
             pane.setVgap(14);
             pane.setPrefColumns(3);
-            for (Productos p : coincidencias) pane.getChildren().add(crearTarjeta(p));
+            for (Producto p : coincidencias) pane.getChildren().add(crearTarjeta(p));
             categoriasBox.getChildren().addAll(titulo, pane);
             visibles += coincidencias.size();
         }
@@ -276,7 +371,7 @@ public class MenuMeseroController {
         categoriasBox.getChildren().setAll(etiqueta);
     }
 
-    private VBox crearTarjeta(Productos producto) {
+    private VBox crearTarjeta(Producto producto) {
         VBox card = new VBox(8);
         card.setPrefWidth(205);
         card.setMinHeight(155);
@@ -293,8 +388,11 @@ public class MenuMeseroController {
         agregar.setMaxWidth(Double.MAX_VALUE);
         agregar.setDisable(!producto.isDisponible());
         agregar.setOnAction(e -> agregarProducto(producto));
-
+        // HU-142: el nombre y el precio se construian arriba y nunca se
+        // agregaban a la tarjeta, asi que el mesero veia la carta sin saber
+        // que plato era ni cuanto costaba.
         card.getChildren().addAll(nombre, precio);
+        // HU-39: la descripción ya venía del DAO pero no se mostraba.
         if (producto.getDescripcion() != null && !producto.getDescripcion().isBlank()) {
             Label descripcion = new Label(producto.getDescripcion());
             descripcion.setWrapText(true);
@@ -308,12 +406,19 @@ public class MenuMeseroController {
     /**
      * Agrega una unidad de un producto al pedido.
      */
-    private void agregarProducto(Productos producto) {
+    private void agregarProducto(Producto producto) {
+        /*
+         * Una vez descontado el inventario, no permitimos
+         * modificar las cantidades del pedido.
+         *
+         * Esto evita que el pedido y el inventario queden
+         * desincronizados.
+         */
         if (pedidoActual != null && pedidoActual.isInventarioDescontado()) {
             Alert alerta = new Alert(Alert.AlertType.WARNING);
             alerta.setTitle("Pedido confirmado");
             alerta.setHeaderText("No se puede modificar el pedido");
-            alerta.setContentText("El inventario de este pedido ya fue descontado. No puedes agregar más productos.");
+            alerta.setContentText("El inventario de este pedido ya fue descontado. " + "No puedes agregar más productos.");
             alerta.showAndWait();
             return;
         }
@@ -324,7 +429,7 @@ public class MenuMeseroController {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setHeaderText("No hay inventario suficiente");
                 if (existente == null) {
-                    alert.setContentText(producto.getNombre() + " ya no tiene ingredientes suficientes y no puede agregarse.");
+                    alert.setContentText(producto.getNombre() + " ya no tiene ingredientes " + "suficientes y no puede agregarse.");
                     cargarMenu();
                 } else {
                     alert.setContentText("No alcanza para " + cantidadSolicitada + " unidades de " + producto.getNombre() + ". Se mantienen las " + existente.getCantidad() + " que ya tenía en el pedido.");
@@ -332,10 +437,8 @@ public class MenuMeseroController {
                 alert.showAndWait();
                 return;
             }
-            if (existente == null) {
-                pedido.put(producto.getProductoId(), new ItemPedido(producto));
-            } else {
-                existente.aumentarCantidad();
+            if (existente == null) {pedido.put(producto.getProductoId(), new ItemPedido(producto));
+            } else {existente.aumentarCantidad();
             }
             actualizarPedido();
         } catch (SQLException e) {
@@ -343,8 +446,11 @@ public class MenuMeseroController {
         }
     }
 
-    // Actualiza visualmente el pedido actual.
+    /**
+     * Actualiza visualmente el pedido actual.
+     */
     private void actualizarPedido() {
+
         pedidoBox.getChildren().clear();
         BigDecimal total = BigDecimal.ZERO;
         if (pedido.isEmpty()) {
@@ -395,27 +501,36 @@ public class MenuMeseroController {
         totalLabel.setText(moneda.format(total));
     }
 
-    // Valida y guarda el pedido completo.
+    /**
+     * Valida y guarda el pedido completo.
+     */
     @FXML
     private void confirmarPedido() {
+
         if (pedido.isEmpty()) {
             new Alert(Alert.AlertType.WARNING, "Debe agregar al menos un producto.").showAndWait();
             return;
         }
         if (mesaId == null || usuarioId == null) {
-            mostrarError(new IllegalStateException("El pedido no tiene una mesa o usuario asociado."));
+            mostrarError(new IllegalStateException("El pedido no tiene una mesa " + "o usuario asociado."));
             return;
         }
+        /*
+         * Si el inventario ya fue descontado, no permitimos
+         * volver a confirmar el pedido.
+         *
+         * Esto evita descontar dos veces los mismos ingredientes.
+         */
         if (pedidoActual != null && pedidoActual.isInventarioDescontado()) {
             Alert alerta = new Alert(Alert.AlertType.WARNING);
             alerta.setTitle("Inventario ya descontado");
             alerta.setHeaderText("Este pedido ya fue confirmado");
-            alerta.setContentText("El inventario de este pedido ya fue descontado. No se puede volver a confirmar.");
+            alerta.setContentText("El inventario de este pedido ya fue descontado. " + "No se puede volver a confirmar para evitar " + "un descuento duplicado.");
             alerta.showAndWait();
             return;
         }
-
-        final BigDecimal subtotalFinal = pedidoFacade.calcularSubtotal(pedido.values());
+        
+final BigDecimal subtotalFinal = pedidoFacade.calcularSubtotal(pedido.values());
         Task<List<String>> tarea = new Task<>() {
             @Override
             protected List<String> call() throws SQLException {
@@ -426,15 +541,16 @@ public class MenuMeseroController {
             List<String> faltantes = tarea.getValue();
             if (!faltantes.isEmpty()) {
                 Alert alerta = new Alert(Alert.AlertType.WARNING);
-                alerta.setHeaderText("El pedido completo no se puede preparar");
+                alerta.setHeaderText("El pedido completo " + "no se puede preparar");
                 alerta.setContentText("Falta inventario para:\n\n• " + String.join("\n• ", faltantes));
                 alerta.showAndWait();
                 cargarMenu();
                 return;
             }
             try {
+                // Una sola llamada: la fachada coordina pedido, inventario y rollback.
                 pedidoActual = pedidoFacade.confirmarPedido(mesaId, usuarioId, pedido.values());
-
+ 
                 Alert alerta = new Alert(Alert.AlertType.INFORMATION);
                 alerta.setTitle("Pedido actualizado");
                 alerta.setHeaderText("Pedido registrado correctamente");
@@ -466,7 +582,6 @@ public class MenuMeseroController {
         tarea.setOnFailed(e -> mostrarError(tarea.getException()));
         iniciar(tarea, "validar-pedido");
     }
-
     private void iniciar(Task<?> tarea, String nombreHilo) {
         Thread hilo = new Thread(tarea, nombreHilo);
         hilo.setDaemon(true);
@@ -488,8 +603,7 @@ public class MenuMeseroController {
         confirmacion.setHeaderText("¿Deseas anular este pedido?");
         confirmacion.setContentText("El pedido se marcará como cancelado y la mesa quedará disponible.");
         Optional<ButtonType> resultado = confirmacion.showAndWait();
-        if (resultado.isEmpty() || resultado.get() != ButtonType.OK) {
-            return;
+        if (resultado.isEmpty() || resultado.get() != ButtonType.OK) {return;
         }
         try {
             pedidoService.cancelarPedido(pedidoActual.getId(), "DISPONIBLE");
@@ -505,7 +619,6 @@ public class MenuMeseroController {
             mostrarError(ex);
         }
     }
-
     @FXML
     private void cerrarPedido() {
         if (pedidoActual == null || pedidoActual.getId() == null) {
@@ -522,8 +635,7 @@ public class MenuMeseroController {
         confirmacion.setHeaderText("¿Deseas cerrar este pedido?");
         confirmacion.setContentText("El pedido se marcará como completado y se liberará la mesa.");
         Optional<ButtonType> resultado = confirmacion.showAndWait();
-        if (resultado.isEmpty() || resultado.get() != ButtonType.OK) {
-            return;
+        if (resultado.isEmpty() || resultado.get() != ButtonType.OK) {return;
         }
 
         try {

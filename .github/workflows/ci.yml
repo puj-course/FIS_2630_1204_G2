@@ -108,39 +108,4 @@
           run: >
             mvn --batch-mode
             org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar
-    notificar:
-      name: Avisar por Telegram
-      runs-on: ubuntu-latest
-      needs: build-and-test
-      if: always() && ((github.event_name == 'push' && github.ref == 'refs/heads/develop') || github.event_name == 'pull_request')
-      steps:
-        - name: Enviar resultado a Telegram
-          env:
-            TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-            CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-            RESULTADO: ${{ needs.build-and-test.result }}
-            REPO: ${{ github.repository }}
-            EVENTO: ${{ github.event_name == 'pull_request' && 'PR hacia develop' || 'push a develop' }}
-            AUTOR: ${{ github.event.head_commit.author.name || github.actor }}
-            MENSAJE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
-            URL_COMMIT: ${{ github.event.head_commit.url || github.event.pull_request.html_url }}
-            URL_RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          run: |
-            if [ "$RESULTADO" = "success" ]; then
-              ESTADO="✅ Pruebas OK"
-            elif [ "$RESULTADO" = "cancelled" ]; then
-              ESTADO="⚪ Ejecución cancelada"
-            else
-              ESTADO="❌ Pruebas FALLARON"
-            fi
 
-            TEXTO="${ESTADO} (${EVENTO})
-            Repo: ${REPO}
-            Autor: ${AUTOR}
-            Detalle: ${MENSAJE}
-            ${URL_COMMIT}
-            Ejecución: ${URL_RUN}"
-
-            curl -sS -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
-              --data-urlencode "chat_id=${CHAT_ID}" \
-              --data-urlencode "text=${TEXTO}"
