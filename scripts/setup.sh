@@ -42,7 +42,7 @@ while [ $# -gt 0 ]; do
         --con-datos-prueba) CON_DATOS=1; shift ;;
         --recrear)          RECREAR=1;  shift ;;
         --help|-h)
-            sed -n '2,28p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+            sed -n '2,19p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
             exit 0 ;;
         *)
             echo "Opcion desconocida: $1" >&2
@@ -83,12 +83,20 @@ if ! psql -d postgres -c 'SELECT 1' >/dev/null 2>&1; then
 fi
 
 [ -d "$DB_DIR/ddl" ] || { error "no existe $DB_DIR/ddl. Corra el script desde el repositorio."; exit 1; }
-
+[ -f "$DB_DIR/ddl/Gastroflow_Database.sql" ] || {
+    error "falta db/ddl/Gastroflow_Database.sql. Ese archivo es la fuente unica del esquema."
+    exit 1
+}
+[ -d "$DB_DIR/ddl/funciones" ] || {
+    error "falta la carpeta db/ddl/funciones con los archivos unitarios."
+    exit 1
+}
 # --------------------------------------------------------------- aplicar sql --
 
 # Corre un archivo .sql o .ddl contra la base. ON_ERROR_STOP hace que psql
 # devuelva un codigo distinto de cero ante cualquier error, que es lo que
 # convierte un fallo silencioso en un fallo visible.
+
 aplicar() {
     local archivo="$1"
     local nombre="${archivo#$DB_DIR/}"
@@ -103,40 +111,18 @@ aplicar() {
     ok "$nombre"
 }
 
-# Crea la tabla solo si no esta. Los .ddl usan CREATE TABLE a secas, asi que
-# correrlos sobre una base ya armada fallaria; saltarlos permite volver a correr
-# el script para completar lo que falte sin tocar lo que ya existe.
-crear_tabla_si_falta() {
-    local tabla="$1"
-
-    hay=$(psql -At -d "$DB_NOMBRE" -c \
-          "SELECT 1 FROM information_schema.tables
-            WHERE table_schema = 'public' AND table_name = '$tabla'" 2>/dev/null || true)
-
-    if [ "$hay" = "1" ]; then
-        printf '   %s--%s   ddl/%s.ddl (ya existe)\n' "$GRIS" "$FIN" "$tabla"
-    else
-        aplicar "$DB_DIR/ddl/$tabla.ddl"
-    fi
-}
-
-# ------------------------------------------------------------- crear la base --
-
 existe=$(psql -At -d postgres \
          -c "SELECT 1 FROM pg_database WHERE datname = '$DB_NOMBRE'" 2>/dev/null || true)
 
 if [ "$existe" = "1" ]; then
-    if [ "$RECREAR" -eq 1 ]; then
-        paso "borrando la base '$DB_NOMBRE'"
-        dropdb "$DB_NOMBRE"
-        createdb "$DB_NOMBRE"
-        ok "base '$DB_NOMBRE' recreada"
-    else
-        # La base ya existe: se completa lo que falte en lugar de fallar. Correr
-        # el script dos veces seguidas tiene que ser seguro.
-        paso "la base '$DB_NOMBRE' ya existe: se completa lo que falte"
-        echo "   (use --recrear para borrarla y empezar de cero)"
+    if [ "$RECREAR" -ne 1 ]; then
+        error "la base '$DB_NOMBRE' ya existe. Use --recrear para reconstruirla desde el snapshot canónico."
+        exit 1
     fi
+    paso "borrando la base '$DB_NOMBRE'"
+    dropdb --if-exists "$DB_NOMBRE"
+    createdb "$DB_NOMBRE"
+    ok "base '$DB_NOMBRE' recreada"
 else
     paso "creando la base '$DB_NOMBRE'"
     createdb "$DB_NOMBRE"
@@ -144,89 +130,15 @@ else
 fi
 
 # ---------------------------------------------------------------------- DDL --
-#
-# El orden importa: hay llaves foraneas entre las tablas. Esta lista es la unica
-# fuente del orden; el README de db/ddl la refleja.
 
-paso "creando las tablas"
+paso "creando el esquema general y datos"
+aplicar "$DB_DIR/ddl/Gastroflow_Database.sql"
 
-TABLAS=(
-    # catalogos, sin dependencias
-    roles tipos_documento zonas estados_mesa unidades_medida categorias proveedores categoria_ingrediente
-    # dependen de los catalogos
-    usuarios                  # roles, tipos_documento
-    clientes                  # tipos_documento, usuarios
-    mesas                     # zonas, estados_mesa
-    ingredientes              # unidades_medida
-    lote_ingrediente          # ingredientes (HU-138)
-    productos                 # categorias
-    precios_producto          # productos
-    pedidos                   # clientes, mesas, usuarios
-    detalle_pedido            # pedidos, productos
-    movimientos_inventario    # productos, ingredientes, usuarios
-    alerta_inventario         # ingredientes, productos
-    pagos                     # pedidos, usuarios
-    historial_estado_mesa     # mesas, estados_mesa
-    nota_mesa                 # mesas
-    reservas                  # mesas
-    # HU-115
-    adicional
-    asignacion_mesa           # mesas, usuarios
-    detalle_pedido_adicional  # detalle_pedido, adicional
-    plato_insumo              # productos, ingredientes
-    regla_descuento
-)
-
-for t in "${TABLAS[@]}"; do
-    crear_tabla_si_falta "$t"
+paso "aplicando funciones unitarias desde la carpeta funciones/"
+# Se usa 'LC_ALL=C sort' para garantizar un orden determinista de ejecución si llevan prefijos numéricos (ej. 01_, 02_)
+for func_file in $(LC_ALL=C sort <(find "$DB_DIR/ddl/funciones" -name "*.sql")); do
+    aplicar "$func_file"
 done
-
-# --------------------------------------------------------------- funciones --
-#
-# db-hu082-login.sql queda fuera a proposito: inserta en una tabla "usuario" que
-# creaba Hibernate cuando el proyecto iba a usar Spring. Con la arquitectura JDBC
-# esa tabla no existe. Los usuarios de acceso los siembra la migracion 008.
-
-# Las cinco funciones se declaran con CREATE OR REPLACE, asi que volver a
-# aplicarlas sobre una base ya armada es seguro.
-paso "creando las funciones almacenadas"
-aplicar "$DB_DIR/functions/hu28_disponibilidad.sql"
-
-# ------------------------------------------------------------- migraciones --
-#
-# Todas son idempotentes. En una base recien creada varias no cambian nada,
-# porque el DDL ya trae la columna; se corren igual para que el resultado sea el
-# mismo que en una base que venia de antes.
-
-paso "aplicando las migraciones"
-for m in "$DB_DIR"/migrations/[0-9]*.sql; do
-    [ -e "$m" ] || break
-    aplicar "$m"
-done
-
-# ----------------------------------------------------------- datos de prueba --
-
-if [ "$CON_DATOS" -eq 1 ]; then
-    paso "sembrando catalogos y datos de prueba"
-
-    SEMILLAS=(
-        generar_roles_pruebas
-        generar_tipos_documento_prueba
-        generar_zonas_prueba
-        generar_estado_mesa_prueba
-        generar_unidades_de_medida
-        generar_categorias_pruebas
-        generar_ingredientes_pruebas
-        generar_productos_prueba    # necesita categorias
-        generar_usuario_prueba      # necesita roles y tipos_documento
-        generar_mesa_prueba         # necesita zonas y estados_mesa
-    )
-
-    for s in "${SEMILLAS[@]}"; do
-        aplicar "$DB_DIR/functions/$s.ddl"
-    done
-fi
-
 # ------------------------------------------------------------ verificacion --
 
 paso "verificando"
@@ -234,13 +146,7 @@ paso "verificando"
 tablas=$(psql -At -d "$DB_NOMBRE" -c \
     "SELECT count(*) FROM information_schema.tables
       WHERE table_schema = 'public' AND table_type = 'BASE TABLE'")
-
-funciones=$(psql -At -d "$DB_NOMBRE" -c \
-    "SELECT count(*) FROM pg_proc p
-       JOIN pg_namespace n ON n.oid = p.pronamespace
-      WHERE n.nspname = 'public' AND p.proname LIKE 'fn\\_%'")
-
-esperadas=$((${#TABLAS[@]} + 1)) # auditoria_recetas_hu134 (HU-134)
+esperadas=22
 
 if [ "$tablas" -ne "$esperadas" ]; then
     error "se esperaban $esperadas tablas y hay $tablas."
@@ -248,13 +154,26 @@ if [ "$tablas" -ne "$esperadas" ]; then
     exit 1
 fi
 
-if [ "$funciones" -lt 4 ]; then
-    error "se esperaban 4 funciones fn_* y hay $funciones."
+funciones=$(psql -At -d "$DB_NOMBRE" -c \
+    "SELECT count(*) FROM pg_proc p
+       JOIN pg_namespace n ON n.oid = p.pronamespace
+      WHERE n.nspname = 'public' AND p.proname LIKE 'fn\\_%'")
+
+if [ "$funciones" -lt 5 ]; then
+    error "se esperaban al menos 5 funciones fn_* y hay $funciones."
+    exit 1
+fi
+
+usuarios=$(psql -At -d "$DB_NOMBRE" -c "SELECT count(*) FROM usuarios")
+
+if [ "$usuarios" -lt 5 ]; then
+    error "se esperaban al menos 5 usuarios y hay $usuarios."
     exit 1
 fi
 
 ok "$tablas tablas"
 ok "$funciones funciones fn_*"
+ok "$usuarios usuarios"
 
 if [ "$CON_DATOS" -eq 1 ]; then
     psql -d "$DB_NOMBRE" -At -F' ' -c "
@@ -273,6 +192,4 @@ echo
 echo "Conectarse:   psql -d $DB_NOMBRE"
 if [ "$CON_DATOS" -eq 1 ]; then
     echo "Usuarios:     ADM-001/admin123  MES-001/mesero123  COC-001/cocina123  CAJ-001/cajero123"
-else
-    echo "Datos:        vuelva a correrlo con --recrear --con-datos-prueba para sembrar datos de ejemplo"
 fi
