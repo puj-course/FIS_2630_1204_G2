@@ -7,6 +7,7 @@ import java.math.RoundingMode;
  * Patrón Strategy: cada constante es una forma distinta de calcular el
  * descuento. Todas responden al mismo método, calcular(), y el cajero elige
  * cuál usar en la pantalla de pago.
+ *
  * Para agregar otro tipo de descuento basta con añadir una constante más.
  */
 public enum TipoDescuento {

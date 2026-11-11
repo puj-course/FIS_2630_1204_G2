@@ -2,7 +2,7 @@ package repository;
 
 import ConexionBD.ConexionBD;
 import entity.Cliente;
-import entity.ProductoIngrediente;
+import entity.PlatoInsumo;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
@@ -11,7 +11,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import service.DisponibilidadService;
 
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,16 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Son pruebas de integracion: necesitan PostgreSQL con el esquema creado por
  * scripts/setup.sh. Si no hay base, la clase entera se omite en lugar de fallar.
  */
-/**
- * HU-115. Tres consultas apuntaban a tablas que no existen: "cliente" en vez de
- * "clientes", "insumo" en vez de "ingredientes" y "producto_menu" en vez de
- * "productos". Estas pruebas corren las consultas corregidas contra la base real
- * para que el error no vuelva sin que nadie se entere.
- *
- * Son pruebas de integracion: necesitan PostgreSQL con el esquema creado por
- * scripts/setup.sh. Si no hay base, la clase entera se omite en lugar de fallar.
- */
-
 @DisplayName("HU-115 - consultas contra las tablas correctas")
 class ChoquesNombreTablaTest {
 
@@ -78,10 +67,9 @@ class ChoquesNombreTablaTest {
         try (Connection cn = ConexionBD.getConnection();
              Statement st = cn.createStatement()) {
             st.executeUpdate("DELETE FROM clientes WHERE numero_documento LIKE 'HU115-%'");
-            // CORREGIDO: Apuntando a la tabla unificada producto_ingrediente y columna producto_id
-            st.executeUpdate("DELETE FROM producto_ingrediente WHERE producto_id = " + idProducto);
+            st.executeUpdate("DELETE FROM plato_insumo WHERE plato_id = " + idProducto);
             st.executeUpdate("UPDATE productos SET estado = 'DISPONIBLE' "
-                    + "WHERE producto_id = " + idProducto);
+                           + "WHERE producto_id = " + idProducto);
         }
     }
 
@@ -90,8 +78,7 @@ class ChoquesNombreTablaTest {
         try (Connection cn = ConexionBD.getConnection();
              Statement st = cn.createStatement()) {
             st.executeUpdate("DELETE FROM clientes WHERE numero_documento LIKE 'HU115-%'");
-            // CORREGIDO: Apuntando a producto_ingrediente
-            st.executeUpdate("DELETE FROM producto_ingrediente WHERE producto_id = " + idProducto);
+            st.executeUpdate("DELETE FROM plato_insumo WHERE plato_id = " + idProducto);
         } catch (SQLException ignorada) {
             // Si la base se cayo despues de las pruebas no hay nada que limpiar.
         }
@@ -102,12 +89,12 @@ class ChoquesNombreTablaTest {
     void guardarCliente() throws SQLException {
         new ClienteRepository().guardar(
                 new Cliente("CC", DOCUMENTO, "Ana", "Perez",
-                        "hu115.ana@prueba.com", "3001112233"));
+                            "hu115.ana@prueba.com", "3001112233"));
 
         try (Connection cn = ConexionBD.getConnection();
              PreparedStatement st = cn.prepareStatement(
                      "SELECT nombre, apellido, telefono, id_tipo_documento "
-                             + "FROM clientes WHERE numero_documento = ?")) {
+                   + "FROM clientes WHERE numero_documento = ?")) {
             st.setString(1, DOCUMENTO);
             ResultSet rs = st.executeQuery();
 
@@ -126,7 +113,7 @@ class ChoquesNombreTablaTest {
         SQLException e = assertThrows(SQLException.class, () ->
                 new ClienteRepository().guardar(
                         new Cliente("NO-EXISTE", DOCUMENTO, "Ana", "Perez",
-                                "hu115.ana@prueba.com", "3001112233")));
+                                    "hu115.ana@prueba.com", "3001112233")));
 
         assertTrue(e.getMessage().contains("no existe"),
                 "El mensaje deberia decir que el tipo de documento no existe: " + e.getMessage());
@@ -135,60 +122,60 @@ class ChoquesNombreTablaTest {
     @Test
     @DisplayName("con stock suficiente el producto queda DISPONIBLE")
     void hayStock() throws SQLException {
-        darReceta(new BigDecimal("5"));
+        darReceta(5);
         fijarStock(100);
 
         DisponibilidadService servicio = new DisponibilidadService();
-        assertTrue(servicio.tieneInsumosDisponibles(idProducto));
+        assertTrue(servicio.tieneInsumosDisponibles((int) idProducto));
 
-        servicio.actualizarDisponibilidad(idProducto);
+        servicio.actualizarDisponibilidad((int) idProducto);
         assertEquals("DISPONIBLE", estadoProducto());
     }
 
     @Test
     @DisplayName("sin stock suficiente el producto queda AGOTADO")
     void noHayStock() throws SQLException {
-        darReceta(new BigDecimal("50"));
+        darReceta(50);
         fijarStock(1);
 
         DisponibilidadService servicio = new DisponibilidadService();
-        assertFalse(servicio.tieneInsumosDisponibles(idProducto));
+        assertFalse(servicio.tieneInsumosDisponibles((int) idProducto));
 
-        servicio.actualizarDisponibilidad(idProducto);
+        servicio.actualizarDisponibilidad((int) idProducto);
         assertEquals("AGOTADO", estadoProducto());
     }
 
     @Test
     @DisplayName("un producto INACTIVO no se reactiva solo porque haya insumos")
     void noReactivaInactivo() throws SQLException {
-        darReceta(new BigDecimal("5"));
+        darReceta(5);
         fijarStock(100);
 
         try (Connection cn = ConexionBD.getConnection();
              Statement st = cn.createStatement()) {
             st.executeUpdate("UPDATE productos SET estado = 'INACTIVO' "
-                    + "WHERE producto_id = " + idProducto);
+                           + "WHERE producto_id = " + idProducto);
         }
 
-        new DisponibilidadService().actualizarDisponibilidad(idProducto);
+        new DisponibilidadService().actualizarDisponibilidad((int) idProducto);
         assertEquals("INACTIVO", estadoProducto());
     }
 
     // ------------------------------------------------------------- auxiliares --
 
-    private void darReceta(BigDecimal cantidad) throws SQLException {
-        ProductoIngrediente pi = new ProductoIngrediente();
-        pi.setProductoId(idProducto);
-        pi.setIngredienteId(idIngrediente);
+    private void darReceta(int cantidad) throws SQLException {
+        PlatoInsumo pi = new PlatoInsumo();
+        pi.setPlatoId((int) idProducto);
+        pi.setInsumoId((int) idIngrediente);
         pi.setCantidadNecesaria(cantidad);
-        new ProductoIngredienteRepository().guardar(pi);
+        new PlatoInsumoRepository().guardar(pi);
     }
 
     private void fijarStock(int cantidad) throws SQLException {
         try (Connection cn = ConexionBD.getConnection();
              Statement st = cn.createStatement()) {
             st.executeUpdate("UPDATE ingredientes SET stock_actual = " + cantidad
-                    + " WHERE ingrediente_id = " + idIngrediente);
+                           + " WHERE ingrediente_id = " + idIngrediente);
         }
     }
 

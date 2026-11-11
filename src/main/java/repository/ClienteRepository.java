@@ -18,10 +18,10 @@ public class ClienteRepository {
     // sembrado el catalogo.
     private static final String SQL_INSERTAR =
             "INSERT INTO clientes "
-                    + "(id_tipo_documento, numero_documento, nombre, apellido, correo, telefono) "
-                    + "SELECT td.id_tipo_documento, ?, ?, ?, ?, ? "
-                    + "  FROM tipos_documento td "
-                    + " WHERE td.codigo = ?";
+          + "(id_tipo_documento, numero_documento, nombre, apellido, correo, telefono) "
+          + "SELECT td.id_tipo_documento, ?, ?, ?, ?, ? "
+          + "  FROM tipos_documento td "
+          + " WHERE td.codigo = ?";
 
     public void guardar(Cliente cliente) throws SQLException {
 
@@ -43,7 +43,7 @@ public class ClienteRepository {
                 // simplemente no se guardaba y nadie se enteraba.
                 throw new SQLException(
                         "No se guardo el cliente: el tipo de documento '"
-                                + cliente.getTipoDocumento() + "' no existe en tipos_documento.");
+                        + cliente.getTipoDocumento() + "' no existe en tipos_documento.");
             }
         }
     }
