@@ -902,7 +902,7 @@ FROM (VALUES
          JOIN ingredientes i
               ON i.nombre = v.nombre_ingrediente
     ON CONFLICT (producto_id, ingrediente_id) DO NOTHING;
-/*
+/
 -- ===== 11.9 Usuarios de acceso (HU-095) =====
 INSERT INTO usuarios (
     codigo_empleado,
