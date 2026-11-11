@@ -8,19 +8,16 @@ CREATE TABLE detalle_pedido_adicional (
     adicional_id        BIGINT NOT NULL,
     cantidad            NUMERIC(12,4) NOT NULL,
 
-    CONSTRAINT pk_detalle_pedido_adicional
-    PRIMARY KEY (id),
-
-    CONSTRAINT fk_detalle_pedido_adicional_detalle
-    FOREIGN KEY (detalle_pedido_id) REFERENCES detalle_pedido(id) ON DELETE CASCADE,
-
-    CONSTRAINT fk_detalle_pedido_adicional_adicional
-    FOREIGN KEY (adicional_id) REFERENCES adicional(id),
-
-    CONSTRAINT ck_detalle_pedido_adicional_cantidad
-    CHECK (cantidad > 0)
+    CONSTRAINT pk_detalle_pedido_adicional PRIMARY KEY (id),
+    CONSTRAINT fk_detalle_pedido_adicional_detalle FOREIGN KEY (detalle_pedido_id)
+        REFERENCES detalle_pedido(id) ON DELETE CASCADE,
+    CONSTRAINT fk_detalle_pedido_adicional_adicional FOREIGN KEY (adicional_id)
+        REFERENCES adicional(id),
+    CONSTRAINT ck_detalle_pedido_adicional_cantidad CHECK (cantidad > 0)
 );
 
--- El mismo adicional no se repite en una linea: se sube la cantidad.
 CREATE UNIQUE INDEX uq_detalle_pedido_adicional
     ON detalle_pedido_adicional (detalle_pedido_id, adicional_id);
+
+CREATE INDEX ix_detalle_pedido_adicional_adicional_id
+    ON detalle_pedido_adicional (adicional_id);

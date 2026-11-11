@@ -8,17 +8,9 @@ CREATE TABLE adicional (
     precio_adicional    NUMERIC(12,2) NOT NULL,
     is_active           BOOLEAN DEFAULT TRUE NOT NULL,
     fecha_creacion      TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-
-    CONSTRAINT pk_adicional
-    PRIMARY KEY (id),
-
-    CONSTRAINT uq_adicional_nombre
-    UNIQUE (nombre),
-
-    CONSTRAINT ck_adicional_precio
-    CHECK (precio_adicional >= 0)
+    CONSTRAINT pk_adicional PRIMARY KEY (id),
+    CONSTRAINT uq_adicional_nombre UNIQUE (nombre),
+    CONSTRAINT ck_adicional_precio CHECK (precio_adicional >= 0)
 );
 
--- El catalogo se consulta filtrando los activos (AdicionalRepository.listarActivos).
-CREATE INDEX ix_adicional_activo
-    ON adicional (is_active, nombre);
+CREATE INDEX ix_adicional_activo ON adicional (is_active, nombre);

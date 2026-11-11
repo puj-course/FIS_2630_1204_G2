@@ -9,22 +9,16 @@ CREATE TABLE asignacion_mesa (
     fecha_asignacion    TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     is_active           BOOLEAN DEFAULT TRUE NOT NULL,
 
-    CONSTRAINT pk_asignacion_mesa
-    PRIMARY KEY (id),
-
-    CONSTRAINT fk_asignacion_mesa_mesa
-    FOREIGN KEY (mesa_id) REFERENCES mesas(id_mesa),
-
-    CONSTRAINT fk_asignacion_mesa_usuario
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id_usuario)
+    CONSTRAINT pk_asignacion_mesa PRIMARY KEY (id),
+    CONSTRAINT fk_asignacion_mesa_mesa FOREIGN KEY (mesa_id)
+        REFERENCES mesas(id_mesa),
+    CONSTRAINT fk_asignacion_mesa_usuario FOREIGN KEY (usuario_id)
+        REFERENCES usuarios(id_usuario)
 );
 
--- Una sola asignacion activa por mesa. El indice es parcial: solo cubre las filas
--- activas, asi que el historial de asignaciones cerradas no choca.
 CREATE UNIQUE INDEX uq_asignacion_mesa_activa
     ON asignacion_mesa (mesa_id)
     WHERE is_active;
 
--- Para listar las mesas que atiende un mesero en su turno.
 CREATE INDEX ix_asignacion_mesa_usuario
     ON asignacion_mesa (usuario_id, is_active);

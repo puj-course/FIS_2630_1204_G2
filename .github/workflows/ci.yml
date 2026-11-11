@@ -1,3 +1,7 @@
+  # Este es el flujo real para PR hacia develop, push a develop y push a ramas features-*.
+  # Incluye PostgreSQL, instalación desde el snapshot canónico, pruebas, cobertura, control
+  # de pruebas ejecutadas y Sonar.
+
   name: CI
 
   on:
@@ -8,11 +12,18 @@
     pull_request:
       branches:
         - develop
+  permissions:
+      contents: read
+
+  concurrency:
+    group: ci-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
   jobs:
     build-and-test:
       name: Compilar y ejecutar pruebas
       runs-on: ubuntu-latest
+      timeout-minutes: 30
 
       services:
         postgres:
@@ -34,8 +45,13 @@
         PGPORT: 5432
         PGUSER: postgres
         PGPASSWORD: postgres
-        # Taller de pruebas y metricas. Si el secreto no esta configurado el
-        # paso de SonarCloud se salta y el pipeline sigue pasando igual.
+        # ConexionBD lee estas variables. El nombre debe coincidir con el que
+        # crea scripts/setup.sh: gastroflow, en minúsculas.
+        GASTROFLOW_DB_URL: jdbc:postgresql://localhost:5432/gastroflow
+        GASTROFLOW_DB_USER: postgres
+        GASTROFLOW_DB_PASSWORD: postgres
+        # Taller de pruebas y metricas. Si el secreto no existe, el paso de Sonar
+        # se salta y el pipeline sigue pasando igual.
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       steps:
@@ -58,17 +74,21 @@
             sudo apt-get update
             sudo apt-get install -y postgresql-client
 
-        - name: Preparar permisos del script
-          run: chmod +x scripts/setup.sh
+        - name: Preparar permisos de los script
+          run: chmod +x scripts/setup.sh scripts/test.sh
 
         - name: Crear esquema y datos de prueba
-          run: ./scripts/setup.sh --con-datos-prueba
+          run: ./scripts/setup.sh --recrear --con-datos-prueba
 
         - name: Compilar el proyecto
-          run: mvn --batch-mode clean compile
+          run: mvn --batch-mode --no-transfer-progress clean compile
 
         - name: Ejecutar pruebas automatizadas
-          run: mvn --batch-mode test
+          run: mvn --batch-mode --no-transfer-progress verify
+
+        - name: Verificar que las pruebas se ejecutaron de verdad
+          if: always()
+          run: python3 scripts/verificar_pruebas.py
 
         # ------------------------------------------------------------------
         # Taller de pruebas y metricas
@@ -95,6 +115,7 @@
           with:
             name: informe-de-pruebas
             retention-days: 30
+            if-no-files-found: ignore
             path: |
               target/site/informe-pruebas.html
               target/site/informe-pruebas.json
@@ -106,6 +127,6 @@
           # Se salta mientras no exista el secreto SONAR_TOKEN.
           if: ${{ env.SONAR_TOKEN != '' }}
           run: >
-            mvn --batch-mode
+            mvn --batch-mode --no-transfer-progress
             org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar
-
+            -Dsonar.scanner.skipJreProvisioning=true

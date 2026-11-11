@@ -7,19 +7,11 @@ CREATE TABLE categorias (
     fecha_creacion        TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     fecha_actualizacion   TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 
-    CONSTRAINT pk_categorias
-    PRIMARY KEY (categoria_id),
-
-    CONSTRAINT uq_categorias_nombre
-    UNIQUE (nombre),
-
-    CONSTRAINT ck_categoria_orden
-    CHECK (orden_visual >= 0),
-
-    CONSTRAINT ck_categoria_estado
-    CHECK (estado IN ('ACTIVO', 'INACTIVO'))
+    CONSTRAINT pk_categorias PRIMARY KEY (categoria_id),
+    CONSTRAINT uq_categorias_nombre UNIQUE (nombre),
+    CONSTRAINT ck_categoria_orden CHECK (orden_visual >= 0),
+    CONSTRAINT ck_categoria_estado CHECK (estado IN ('ACTIVO', 'INACTIVO'))
 );
 
--- El Administrador define el orden en que las categorias se presentan en el menu.
 CREATE INDEX ix_categorias_orden
     ON categorias (orden_visual, nombre);

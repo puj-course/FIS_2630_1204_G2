@@ -18,17 +18,46 @@
         <jacoco.version>0.8.12</jacoco.version>
 
         <!--
-            Taller de pruebas y metricas. Estos tres valores salen de la pagina
+            SonarCloud: Taller de pruebas y metricas. Estos tres valores salen de la pagina
             del proyecto en https://sonarcloud.io una vez se importa el
             repositorio. El token no va aqui: va como secreto SONAR_TOKEN del
             repositorio en GitHub.
+            El projectKey y la organization deben coincidir exactamente con el proyecto
+            importado en SonarCloud.
         -->
         <sonar.organization>puj-course</sonar.organization>
         <sonar.projectKey>puj-course_FIS_2630_1204_G2</sonar.projectKey>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.coverage.jacoco.xmlReportPaths>
-            ${project.build.directory}/site/jacoco/jacoco.xml
-        </sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.projectName>GastroFlow</sonar.projectName>
+        <sonar.projectVersion>${project.version}</sonar.projectVersion>
+
+        <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
+        <sonar.java.source>21</sonar.java.source>
+        <sonar.java.target>21</sonar.java.target>
+
+        <!--
+            Delimitar qué se analiza. Sin esto, Sonar puede indexar target,
+            db, docs, scripts y .github, que no son código Java del proyecto.
+        -->
+        <sonar.sources>src/main/java</sonar.sources>
+        <sonar.tests>src/test/java</sonar.tests>
+        <sonar.java.binaries>${project.build.directory}/classes</sonar.java.binaries>
+        <sonar.java.test.binaries>${project.build.directory}/test-classes</sonar.java.test.binaries>
+
+        <!-- Resultados de Surefire: cuántas pruebas se ejecutaron. -->
+        <sonar.junit.reportPaths>${project.build.directory}/surefire-reports</sonar.junit.reportPaths>
+
+        <!--
+            Una sola línea. Sonar no interpreta bien este valor si está partido
+            en varias líneas.
+        -->
+        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+
+        <!--
+            El plugin 5.x descarga por defecto un JRE 17. El proyecto compila con
+            Java 21; así el escáner usa el JDK que ejecuta Maven.
+        -->
+        <sonar.scanner.skipJreProvisioning>true</sonar.scanner.skipJreProvisioning>
     </properties>
 
     <dependencies>
@@ -68,30 +97,18 @@
 
     <build>
         <plugins>
+            <!--  todas las fuentes compilan y no hay motivo para ocultar
+            código al análisis. Si en el futuro se excluye una clase del compilador,
+            hay que reflejarla en sonar.exclusions con el mismo patrón -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
                     <release>21</release>
-                    <!--
-                        Clases que todavia usan Spring Data JPA y jakarta.persistence.
-                        El proyecto quedo definido con JDBC en el PR #172 y esas
-                        dependencias salieron del pom, asi que estas clases no compilan.
-                        Se excluyen del build para no perderlas: siguen en el repositorio
-                        y se van sacando de esta lista a medida que se migren a JDBC.
-                    -->
-                    <excludes>
-                            <exclude>controller/PagoController.java</exclude>
-                            <exclude>entity/Mesero.java</exclude>
-                            <exclude>entity/Pago.java</exclude>
-                            <exclude>repository/DetallePedidoRepository.java</exclude>
-                            <exclude>repository/MeseroRepository.java</exclude>
-                            <exclude>repository/PagoRepository.java</exclude>
-                            <exclude>service/PagoService.java</exclude>
-                    </excludes>
                 </configuration>
             </plugin>
+            <!-- Con esto, mvn sonar:sonar usa siempre la misma versión, tanto en local como en CI.-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -128,7 +145,7 @@
                     </execution>
                     <execution>
                         <id>jacoco-report</id>
-                        <phase>test</phase>
+                        <phase>verify</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>

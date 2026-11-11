@@ -1,4 +1,4 @@
-CREATE TABLE zonas (
+    CREATE TABLE zonas (
     id_zona     INTEGER GENERATED ALWAYS AS IDENTITY,
     nombre_zona VARCHAR(50) NOT NULL,
     descripcion VARCHAR(255),
