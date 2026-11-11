@@ -87,8 +87,8 @@ fi
     error "falta db/ddl/Gastroflow_Database.sql. Ese archivo es la fuente unica del esquema."
     exit 1
 }
-[ -d "$DB_DIR/ddl/funciones" ] || {
-    error "falta la carpeta db/ddl/funciones con los archivos unitarios."
+[ -d "$DB_DIR/funciones" ] || {
+    error "falta la carpeta db/funciones con los archivos unitarios."
     exit 1
 }
 # --------------------------------------------------------------- aplicar sql --
@@ -136,7 +136,7 @@ aplicar "$DB_DIR/ddl/Gastroflow_Database.sql"
 
 paso "aplicando funciones unitarias desde la carpeta funciones/"
 # Se usa 'LC_ALL=C sort' para garantizar un orden determinista de ejecución si llevan prefijos numéricos (ej. 01_, 02_)
-for func_file in $(LC_ALL=C sort <(find "$DB_DIR/ddl/funciones" -name "*.sql")); do
+for func_file in $(LC_ALL=C sort <(find "$DB_DIR/funciones" -name "*.sql")); do
     aplicar "$func_file"
 done
 # ------------------------------------------------------------ verificacion --
