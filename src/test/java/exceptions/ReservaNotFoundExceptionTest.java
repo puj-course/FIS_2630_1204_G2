@@ -1,13 +1,59 @@
 package exceptions;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * ReservaNotFoundException avisa que se busca una reserva que no existe.
+ */
 class ReservaNotFoundExceptionTest {
+
+    private static final String MENSAJE = "No existe la reserva con id 45";
+
     @Test
     void conservaElMensajeDelDominio() throws Exception {
-        assertEquals("Operación rechazada", new ReservaNotFoundException("Operación rechazada").getMessage());
+        assertEquals(MENSAJE, new ReservaNotFoundException(MENSAJE).getMessage());
+    }
+
+    @Test
+    @DisplayName("no obliga a declararla: es una excepcion sin revisar")
+    void esSinRevisar() {
+        // Importa porque los servicios la dejan subir sin ponerla en el throws
+        // y el rollback la atrapa junto con las demas RuntimeException.
+        var error = new ReservaNotFoundException(MENSAJE);
+        assertInstanceOf(RuntimeException.class, error);
+        assertFalse(java.sql.SQLException.class.isInstance(error));
+    }
+
+    @Test
+    @DisplayName("se lanza y se atrapa por su propio tipo")
+    void seAtrapaPorSuTipo() {
+        var atrapada = assertThrows(ReservaNotFoundException.class, () -> {
+            throw new ReservaNotFoundException(MENSAJE);
+        });
+        assertEquals(MENSAJE, atrapada.getMessage());
+    }
+
+    @Test
+    @DisplayName("no se confunde con las otras excepciones del dominio")
+    void noSeConfundeConOtra() {
+        var error = new ReservaNotFoundException(MENSAJE);
+        assertFalse(ReservaNoCancelableException.class.isInstance(error));
+    }
+
+    @Test
+    @DisplayName("nace sin causa: el mensaje es toda la explicacion")
+    void naceSinCausa() {
+        assertNull(new ReservaNotFoundException(MENSAJE).getCause());
+    }
+
+    @Test
+    @DisplayName("tambien acepta quedarse sin mensaje, aunque no ayude")
+    void aceptaMensajeNulo() {
+        // Queda documentado: no valida la entrada, asi que el mensaje nulo
+        // llega hasta la pantalla del usuario.
+        assertNull(new ReservaNotFoundException(null).getMessage());
     }
 }
-

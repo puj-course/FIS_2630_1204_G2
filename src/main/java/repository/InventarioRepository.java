@@ -12,18 +12,45 @@ import java.util.List;
 
 public class InventarioRepository {
 
+    /** Resta del stock de un ingrediente. */
+    private static final String SQL_DESCONTAR_STOCK =
+            "UPDATE ingredientes "
+                    + "SET stock_actual = stock_actual - ?, "
+                    + "fecha_actualizacion = CURRENT_TIMESTAMP "
+                    + "WHERE ingrediente_id = ?";
+
+    /** Suma al stock de un ingrediente. */
+    private static final String SQL_DEVOLVER_STOCK =
+            "UPDATE ingredientes "
+                    + "SET stock_actual = stock_actual + ?, "
+                    + "fecha_actualizacion = CURRENT_TIMESTAMP "
+                    + "WHERE ingrediente_id = ?";
+
+    /** Deja constancia de una salida de inventario. */
+    private static final String SQL_MOVIMIENTO_SALIDA =
+            "INSERT INTO movimientos_inventario "
+                    + "(producto_id, ingrediente_id, tipo_movimiento, "
+                    + "cantidad, motivo, usuario_id, fecha_movimiento) "
+                    + "VALUES (NULL, ?, 'SALIDA', ?, ?, ?, CURRENT_TIMESTAMP)";
+
+    /** Deja constancia de una entrada de inventario. */
+    private static final String SQL_MOVIMIENTO_ENTRADA =
+            "INSERT INTO movimientos_inventario "
+                    + "(producto_id, ingrediente_id, tipo_movimiento, "
+                    + "cantidad, motivo, usuario_id, fecha_movimiento) "
+                    + "VALUES (NULL, ?, 'ENTRADA', ?, ?, ?, CURRENT_TIMESTAMP)";
+
     /**
-     * Representa una receta asociada a un producto.
+     * Un ingrediente con una cantidad. Es lo unico que comparten una linea de
+     * receta y una salida de inventario, y esta aqui para no escribir dos
+     * veces los mismos campos y los mismos getters.
      */
-    public static class IngredienteReceta {
+    public abstract static class CantidadDeIngrediente {
 
         private final long ingredienteId;
         private final BigDecimal cantidad;
 
-        public IngredienteReceta(
-                long ingredienteId,
-                BigDecimal cantidad
-        ) {
+        protected CantidadDeIngrediente(long ingredienteId, BigDecimal cantidad) {
             this.ingredienteId = ingredienteId;
             this.cantidad = cantidad;
         }
@@ -38,28 +65,24 @@ public class InventarioRepository {
     }
 
     /**
-     * Representa una salida de inventario asociada
-     * a un pedido.
+     * Representa una receta asociada a un producto: cuanto de un ingrediente
+     * lleva el plato.
      */
-    public static class MovimientoPedido {
+    public static class IngredienteReceta extends CantidadDeIngrediente {
 
-        private final long ingredienteId;
-        private final BigDecimal cantidad;
-
-        public MovimientoPedido(
-                long ingredienteId,
-                BigDecimal cantidad
-        ) {
-            this.ingredienteId = ingredienteId;
-            this.cantidad = cantidad;
+        public IngredienteReceta(long ingredienteId, BigDecimal cantidad) {
+            super(ingredienteId, cantidad);
         }
+    }
 
-        public long getIngredienteId() {
-            return ingredienteId;
-        }
+    /**
+     * Representa una salida de inventario asociada a un pedido: cuanto de un
+     * ingrediente se descontó.
+     */
+    public static class MovimientoPedido extends CantidadDeIngrediente {
 
-        public BigDecimal getCantidad() {
-            return cantidad;
+        public MovimientoPedido(long ingredienteId, BigDecimal cantidad) {
+            super(ingredienteId, cantidad);
         }
     }
 
@@ -188,37 +211,7 @@ public class InventarioRepository {
             BigDecimal cantidad
     ) throws SQLException {
 
-        String sql =
-                "UPDATE ingredientes " +
-                        "SET stock_actual = stock_actual - ?, " +
-                        "fecha_actualizacion = CURRENT_TIMESTAMP " +
-                        "WHERE ingrediente_id = ?";
-
-        try (PreparedStatement stmt =
-                     conn.prepareStatement(sql)) {
-
-            stmt.setBigDecimal(
-                    1,
-                    cantidad
-            );
-
-            stmt.setLong(
-                    2,
-                    ingredienteId
-            );
-
-            int filasActualizadas =
-                    stmt.executeUpdate();
-
-            if (filasActualizadas != 1) {
-
-                throw new SQLException(
-                        "No se pudo actualizar el stock "
-                                + "del ingrediente "
-                                + ingredienteId
-                );
-            }
-        }
+        moverStock(conn, ingredienteId, cantidad, SQL_DESCONTAR_STOCK, "actualizar");
     }
 
     /**
@@ -233,11 +226,25 @@ public class InventarioRepository {
             BigDecimal cantidad
     ) throws SQLException {
 
-        String sql =
-                "UPDATE ingredientes " +
-                        "SET stock_actual = stock_actual + ?, " +
-                        "fecha_actualizacion = CURRENT_TIMESTAMP " +
-                        "WHERE ingrediente_id = ?";
+        moverStock(conn, ingredienteId, cantidad, SQL_DEVOLVER_STOCK, "devolver");
+    }
+
+    /**
+     * Suma o resta una cantidad al stock de un ingrediente.
+     *
+     * Descontar y devolver hacen exactamente lo mismo salvo el signo de la
+     * sentencia, asi que el resto se escribe una sola vez.
+     *
+     * @param sql   SQL_DESCONTAR_STOCK o SQL_DEVOLVER_STOCK
+     * @param verbo palabra que se usa en el mensaje de error
+     */
+    private void moverStock(
+            Connection conn,
+            long ingredienteId,
+            BigDecimal cantidad,
+            String sql,
+            String verbo
+    ) throws SQLException {
 
         try (PreparedStatement stmt =
                      conn.prepareStatement(sql)) {
@@ -258,7 +265,7 @@ public class InventarioRepository {
             if (filasActualizadas != 1) {
 
                 throw new SQLException(
-                        "No se pudo devolver el stock "
+                        "No se pudo " + verbo + " el stock "
                                 + "del ingrediente "
                                 + ingredienteId
                 );
@@ -277,37 +284,8 @@ public class InventarioRepository {
             long usuarioId
     ) throws SQLException {
 
-        String sql =
-                "INSERT INTO movimientos_inventario " +
-                        "(producto_id, ingrediente_id, tipo_movimiento, " +
-                        "cantidad, motivo, usuario_id, fecha_movimiento) " +
-                        "VALUES (NULL, ?, 'SALIDA', ?, ?, ?, CURRENT_TIMESTAMP)";
-
-        try (PreparedStatement stmt =
-                     conn.prepareStatement(sql)) {
-
-            stmt.setLong(
-                    1,
-                    ingredienteId
-            );
-
-            stmt.setBigDecimal(
-                    2,
-                    cantidad
-            );
-
-            stmt.setString(
-                    3,
-                    motivo
-            );
-
-            stmt.setLong(
-                    4,
-                    usuarioId
-            );
-
-            stmt.executeUpdate();
-        }
+        registrarMovimientoIngrediente(
+                conn, ingredienteId, cantidad, motivo, usuarioId, SQL_MOVIMIENTO_SALIDA);
     }
 
     /**
@@ -322,11 +300,27 @@ public class InventarioRepository {
             long usuarioId
     ) throws SQLException {
 
-        String sql =
-                "INSERT INTO movimientos_inventario " +
-                        "(producto_id, ingrediente_id, tipo_movimiento, " +
-                        "cantidad, motivo, usuario_id, fecha_movimiento) " +
-                        "VALUES (NULL, ?, 'ENTRADA', ?, ?, ?, CURRENT_TIMESTAMP)";
+        registrarMovimientoIngrediente(
+                conn, ingredienteId, cantidad, motivo, usuarioId, SQL_MOVIMIENTO_ENTRADA);
+    }
+
+    /**
+     * Escribe un movimiento de inventario de un ingrediente.
+     *
+     * La salida y la entrada insertan la misma fila con los mismos cuatro
+     * parametros y solo cambian el tipo de movimiento, asi que el resto se
+     * escribe una sola vez.
+     *
+     * @param sql SQL_MOVIMIENTO_SALIDA o SQL_MOVIMIENTO_ENTRADA
+     */
+    private void registrarMovimientoIngrediente(
+            Connection conn,
+            long ingredienteId,
+            BigDecimal cantidad,
+            String motivo,
+            long usuarioId,
+            String sql
+    ) throws SQLException {
 
         try (PreparedStatement stmt =
                      conn.prepareStatement(sql)) {

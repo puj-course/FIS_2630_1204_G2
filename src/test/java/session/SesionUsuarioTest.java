@@ -10,13 +10,13 @@ class SesionUsuarioTest {
         var sesion = SesionUsuario.getInstance();
         try {
             sesion.iniciarSesion(7, "Ana", "CAJERO");
-            assertTrue(SesionUsuario.estaAutenticado());
-            assertEquals(7, SesionUsuario.getUsuarioId());
+            assertTrue(SesionUsuario.getInstance().estaAutenticado());
+            assertEquals(7, SesionUsuario.getInstance().getUsuarioId());
             assertTrue(sesion.esCajero());
         } finally {
             sesion.cerrarSesion();
         }
-        assertFalse(SesionUsuario.estaAutenticado());
+        assertFalse(SesionUsuario.getInstance().estaAutenticado());
     }
 }
 
