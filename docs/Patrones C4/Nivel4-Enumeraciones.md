@@ -8,6 +8,7 @@ Este nivel detalla los valores posibles de los estados y tipos, así como las ex
 ## 2. Diagrama de código
 A continuación, se presenta el diagrama C4 de Nivel 4 – Enumeraciones y excepciones de GastroFlow.
 
+<img width="869" height="1038" alt="C4 Nivel 4 - Enumeraciones y excepciones" src="https://github.com/user-attachments/assets/abe00a8f-0aaa-47d9-9ce6-4a0c4046f062" />
 
 
 ## 3. Organización de las clases
