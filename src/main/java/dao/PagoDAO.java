@@ -12,26 +12,34 @@ import java.util.Optional;
 
 public class PagoDAO {
 
+    /**
+     * Las columnas de una cuenta. Las dos consultas que arman un CuentaPago
+     * seleccionan exactamente esto y solo cambian el filtro del final, asi que
+     * vive aqui una sola vez.
+     */
+    private static final String CONSULTA_CUENTA = """
+            SELECT
+                p.pedido_id,
+                p.numero_pedido,
+                m.numero_mesa,
+                p.subtotal,
+                p.impuestos,
+                p.descuento,
+                p.propina,
+                EXISTS (
+                    SELECT 1
+                    FROM pagos pg
+                    WHERE pg.pedido_id = p.pedido_id
+                      AND pg.estado = 'PAGADO'
+                ) AS pagada
+            FROM pedidos p
+            LEFT JOIN mesas m ON m.id_mesa = p.mesa_id
+            """;
+
     private final MesaRepository mesaRepository = new MesaRepository();
 
     public Optional<CuentaPago> buscarCuenta(String numeroPedido) throws SQLException {
-        String sql = """
-                SELECT
-                    p.pedido_id,
-                    p.numero_pedido,
-                    m.numero_mesa,
-                    p.subtotal,
-                    p.impuestos,
-                    p.descuento,
-                    p.propina,
-                    EXISTS (
-                        SELECT 1
-                        FROM pagos pg
-                        WHERE pg.pedido_id = p.pedido_id
-                          AND pg.estado = 'PAGADO'
-                    ) AS pagada
-                FROM pedidos p
-                LEFT JOIN mesas m ON m.id_mesa = p.mesa_id
+        String sql = CONSULTA_CUENTA + """
                 WHERE p.numero_pedido = ?
                   AND p.estado <> 'CANCELADO'
                 """;
@@ -61,23 +69,7 @@ public class PagoDAO {
      * escribiendo su numero.
      */
     public List<CuentaPago> listarCuentas() throws SQLException {
-        String sql = """
-                SELECT
-                    p.pedido_id,
-                    p.numero_pedido,
-                    m.numero_mesa,
-                    p.subtotal,
-                    p.impuestos,
-                    p.descuento,
-                    p.propina,
-                    EXISTS (
-                        SELECT 1
-                        FROM pagos pg
-                        WHERE pg.pedido_id = p.pedido_id
-                          AND pg.estado = 'PAGADO'
-                    ) AS pagada
-                FROM pedidos p
-                LEFT JOIN mesas m ON m.id_mesa = p.mesa_id
+        String sql = CONSULTA_CUENTA + """
                 WHERE p.estado <> 'CANCELADO'
                 ORDER BY pagada, p.fecha_pedido
                 """;

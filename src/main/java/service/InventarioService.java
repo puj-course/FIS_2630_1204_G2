@@ -138,38 +138,16 @@ public class InventarioService {
                     BigDecimal cantidad =
                             entry.getValue();
 
-                    inventarioRepository.descontarStock(
-                            conn,
-                            ingredienteId,
-                            cantidad
-                    );
+                    String motivo = "CONSUMO_COMANDA - PEDIDO_ID=" + pedidoId;
 
-                    String motivo =
-                            "CONSUMO_COMANDA - PEDIDO_ID="
-                                    + pedidoId;
-
+                    inventarioRepository.descontarStock(conn, ingredienteId, cantidad);
                     inventarioRepository.registrarSalidaIngrediente(
-                            conn,
-                            ingredienteId,
-                            cantidad,
-                            motivo,
-                            usuarioId
-                    );
+                            conn, ingredienteId, cantidad, motivo, usuarioId);
                 }
 
                 conn.commit();
 
-            } catch (StockInsuficienteException e) {
-
-                conn.rollback();
-                throw e;
-
-            } catch (SQLException e) {
-
-                conn.rollback();
-                throw e;
-
-            } catch (RuntimeException e) {
+            } catch (SQLException | RuntimeException e) {
 
                 conn.rollback();
                 throw e;
@@ -271,33 +249,16 @@ public class InventarioService {
                     BigDecimal cantidad =
                             entry.getValue();
 
-                    inventarioRepository.devolverStock(
-                            conn,
-                            ingredienteId,
-                            cantidad
-                    );
+                    String motivo = "REVERSO_COMANDA - PEDIDO_ID=" + pedidoId;
 
-                    String motivo =
-                            "REVERSO_COMANDA - PEDIDO_ID="
-                                    + pedidoId;
-
+                    inventarioRepository.devolverStock(conn, ingredienteId, cantidad);
                     inventarioRepository.registrarEntradaIngrediente(
-                            conn,
-                            ingredienteId,
-                            cantidad,
-                            motivo,
-                            usuarioId
-                    );
+                            conn, ingredienteId, cantidad, motivo, usuarioId);
                 }
 
                 conn.commit();
 
-            } catch (SQLException e) {
-
-                conn.rollback();
-                throw e;
-
-            } catch (RuntimeException e) {
+            } catch (SQLException | RuntimeException e) {
 
                 conn.rollback();
                 throw e;
@@ -389,8 +350,11 @@ public class InventarioService {
 
     // Uso del patron observer para alerta de stock bajo - GoF
     public InventarioService() {
-        // Suscribimos por defecto al administrador para que reciba las alertas
-        this.agregarObservador(new AdministradorAlertaObserver());
+        // Suscribimos por defecto al administrador para que reciba las alertas.
+        // Se agrega directamente a la lista y no con agregarObservador() porque
+        // ese metodo se puede sobrescribir y llamarlo desde el constructor deja
+        // a medio construir a cualquier clase que herede de esta.
+        observadores.add(new AdministradorAlertaObserver());
     }
 
     public void agregarObservador(InsumoObserver observer) {

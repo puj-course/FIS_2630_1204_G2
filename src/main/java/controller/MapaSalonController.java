@@ -1,5 +1,8 @@
 package controller;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -45,6 +48,8 @@ import java.util.Optional;
 import java.util.Set;
 
 public class MapaSalonController {
+
+    private static final Logger LOG = Logger.getLogger(MapaSalonController.class.getName());
 
     private static final double MESA_ANCHO = 120;
     private static final double MESA_ALTO = 78;
@@ -820,7 +825,7 @@ public class MapaSalonController {
         } catch (IllegalArgumentException e) {
             mostrarError(e.getMessage());
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.log(Level.SEVERE, "Error no controlado", e);
             mostrarError(
                     "Error al actualizar comensales:\n\n" + e.getClass().getName() + "\n" + e.getMessage()
             );
@@ -908,7 +913,7 @@ public class MapaSalonController {
             ventana.show();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.log(Level.SEVERE, "Error no controlado", e);
             mostrarError("No se pudo abrir el pedido: " + e.getMessage());
         }
     }
