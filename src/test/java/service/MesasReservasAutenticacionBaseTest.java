@@ -7,6 +7,7 @@ import entity.Producto;
 import entity.Reserva;
 import entity.Zona;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -46,6 +47,20 @@ class MesasReservasAutenticacionBaseTest {
         if (conn != null) {
             conn.close();
         }
+    }
+
+    /**
+     * Cierra la sesion despues de cada prueba.
+     *
+     * SesionUsuario es un Singleton: un inicio de sesion correcto deja al
+     * usuario abierto para toda la maquina virtual, y Maven corre todas las
+     * clases de prueba en la misma. Sin esto, las pruebas de login de aqui
+     * dejaban la sesion abierta y hacian fallar a AutenticacionServiceTest,
+     * que empieza comprobando que no haya ninguna.
+     */
+    @AfterEach
+    void cerrarLaSesionAbierta() {
+        session.SesionUsuario.getInstance().cerrarSesion();
     }
 
     private int siguienteNumeroDeMesa() throws SQLException {
