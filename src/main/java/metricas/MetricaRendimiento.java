@@ -112,6 +112,9 @@ public class MetricaRendimiento implements Metrica {
 
     /** Percentil por el método del rango más cercano. El arreglo debe venir ordenado. */
     static double percentil(long[] ordenado, double porcentaje) {
+        if (ordenado.length == 0) {
+            throw new IllegalArgumentException("No hay mediciones para calcular el percentil");
+        }
         int indice = (int) Math.ceil(porcentaje / 100.0 * ordenado.length) - 1;
         return ordenado[Math.max(0, Math.min(indice, ordenado.length - 1))];
     }

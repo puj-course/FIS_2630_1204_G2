@@ -79,6 +79,7 @@ public class MetricaEncapsulacion implements Metrica {
     }
 
     /** Calcula la encapsulación de cada clase. Visible para las pruebas. */
+    /** Calcula la encapsulación de cada clase. Visible para las pruebas. */
     List<FilaEncapsulacion> calcular(List<Class<?>> clases, List<String> noMedidas) {
         List<FilaEncapsulacion> filas = new ArrayList<>();
         for (Class<?> clase : clases) {
@@ -86,27 +87,31 @@ public class MetricaEncapsulacion implements Metrica {
                 continue;
             }
             try {
-                int evaluados = 0;
-                int privados = 0;
-                int publicosMutables = 0;
-                for (Field campo : clase.getDeclaredFields()) {
-                    if (campo.isSynthetic() || esConstante(campo)) {
-                        continue;
-                    }
-                    evaluados++;
-                    int mod = campo.getModifiers();
-                    if (Modifier.isPrivate(mod)) {
-                        privados++;
-                    } else if (Modifier.isPublic(mod) && !Modifier.isFinal(mod)) {
-                        publicosMutables++;
-                    }
-                }
-                filas.add(new FilaEncapsulacion(clase, evaluados, privados, evaluados - privados, publicosMutables));
+                filas.add(medirClase(clase));
             } catch (LinkageError e) {
                 noMedidas.add(clase.getName() + " (" + e.getClass().getSimpleName() + ")");
             }
         }
         return filas;
+    }
+
+    private static FilaEncapsulacion medirClase(Class<?> clase) {
+        int evaluados = 0;
+        int privados = 0;
+        int publicosMutables = 0;
+        for (Field campo : clase.getDeclaredFields()) {
+            if (campo.isSynthetic() || esConstante(campo)) {
+                continue;
+            }
+            evaluados++;
+            int mod = campo.getModifiers();
+            if (Modifier.isPrivate(mod)) {
+                privados++;
+            } else if (Modifier.isPublic(mod) && !Modifier.isFinal(mod)) {
+                publicosMutables++;
+            }
+        }
+        return new FilaEncapsulacion(clase, evaluados, privados, evaluados - privados, publicosMutables);
     }
 
     private static boolean esConstante(Field campo) {

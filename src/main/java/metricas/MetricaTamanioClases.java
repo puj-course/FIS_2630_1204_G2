@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -106,33 +107,38 @@ public class MetricaTamanioClases implements Metrica {
                 continue;
             }
             try {
-                int noa = (int) java.util.Arrays.stream(clase.getDeclaredFields())
-                        .filter(c -> !c.isSynthetic() && !Modifier.isStatic(c.getModifiers()))
-                        .count();
-
-                List<Integer> parametros = new ArrayList<>();
-                int nom = 0;
-                for (Method metodo : clase.getDeclaredMethods()) {
-                    if (!metodo.isSynthetic()) {
-                        nom++;
-                        parametros.add(metodo.getParameterCount());
-                    }
-                }
-                for (Constructor<?> constructor : clase.getDeclaredConstructors()) {
-                    if (!constructor.isSynthetic()) {
-                        parametros.add(constructor.getParameterCount());
-                    }
-                }
-
-                filas.add(new FilaTamanio(clase, noa, nom,
-                        parametros.stream().mapToInt(Integer::intValue).max().orElse(0),
-                        parametros.stream().mapToInt(Integer::intValue).sum(),
-                        parametros.size()));
+                filas.add(medirClase(clase));
             } catch (LinkageError e) {
                 noMedidas.add(clase.getName() + " (" + e.getClass().getSimpleName() + ")");
             }
         }
         return filas;
+    }
+
+    /** Mide los atributos, métodos y parámetros de una sola clase. */
+    private static FilaTamanio medirClase(Class<?> clase) {
+        int noa = (int) Arrays.stream(clase.getDeclaredFields())
+                .filter(c -> !c.isSynthetic() && !Modifier.isStatic(c.getModifiers()))
+                .count();
+
+        List<Integer> parametros = new ArrayList<>();
+        int nom = 0;
+        for (Method metodo : clase.getDeclaredMethods()) {
+            if (!metodo.isSynthetic()) {
+                nom++;
+                parametros.add(metodo.getParameterCount());
+            }
+        }
+        for (Constructor<?> constructor : clase.getDeclaredConstructors()) {
+            if (!constructor.isSynthetic()) {
+                parametros.add(constructor.getParameterCount());
+            }
+        }
+
+        return new FilaTamanio(clase, noa, nom,
+                parametros.stream().mapToInt(Integer::intValue).max().orElse(0),
+                parametros.stream().mapToInt(Integer::intValue).sum(),
+                parametros.size());
     }
 
     private static String formato(double valor) {
