@@ -28,36 +28,9 @@
         <sonar.organization>puj-course</sonar.organization>
         <sonar.projectKey>puj-course_FIS_2630_1204_G2</sonar.projectKey>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.projectName>GastroFlow</sonar.projectName>
-        <sonar.projectVersion>${project.version}</sonar.projectVersion>
-
-        <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
-        <sonar.java.source>21</sonar.java.source>
-        <sonar.java.target>21</sonar.java.target>
-
-        <!--
-            Delimitar qué se analiza. Sin esto, Sonar puede indexar target,
-            db, docs, scripts y .github, que no son código Java del proyecto.
-        -->
-        <sonar.sources>src/main/java</sonar.sources>
-        <sonar.tests>src/test/java</sonar.tests>
-        <sonar.java.binaries>${project.build.directory}/classes</sonar.java.binaries>
-        <sonar.java.test.binaries>${project.build.directory}/test-classes</sonar.java.test.binaries>
-
-        <!-- Resultados de Surefire: cuántas pruebas se ejecutaron. -->
-        <sonar.junit.reportPaths>${project.build.directory}/surefire-reports</sonar.junit.reportPaths>
-
-        <!--
-            Una sola línea. Sonar no interpreta bien este valor si está partido
-            en varias líneas.
-        -->
-        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-
-        <!--
-            El plugin 5.x descarga por defecto un JRE 17. El proyecto compila con
-            Java 21; así el escáner usa el JDK que ejecuta Maven.
-        -->
-        <sonar.scanner.skipJreProvisioning>true</sonar.scanner.skipJreProvisioning>
+        <sonar.coverage.jacoco.xmlReportPaths>
+            ${project.build.directory}/site/jacoco/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencies>
@@ -75,11 +48,10 @@
 
         <!-- PostgreSQL (JDBC) -->
         <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>${postgresql.version}</version>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -106,6 +78,15 @@
                 <version>3.13.0</version>
                 <configuration>
                     <release>21</release>
+                    <excludes>
+                    <exclude>controller/PagoController.java</exclude>
+                    <exclude>entity/Mesero.java</exclude>
+                    <exclude>entity/Pago.java</exclude>
+                    <exclude>repository/DetallePedidoRepository.java</exclude>
+                    <exclude>repository/MeseroRepository.java</exclude>
+                    <exclude>repository/PagoRepository.java</exclude>
+                    <exclude>service/PagoService.java</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
             <!-- Con esto, mvn sonar:sonar usa siempre la misma versión, tanto en local como en CI.-->
@@ -114,7 +95,6 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
             </plugin>
-
             <!--
                 Taller de pruebas y metricas: informe HTML de resultados.
                 Se genera con 'mvn surefire-report:report-only' despues de
@@ -125,7 +105,6 @@
                 <artifactId>maven-surefire-report-plugin</artifactId>
                 <version>3.5.2</version>
             </plugin>
-
             <!--
                 Taller de pruebas y metricas: cobertura. El agente se engancha
                 antes de las pruebas y el reporte se escribe al terminar la
@@ -145,20 +124,12 @@
                     </execution>
                     <execution>
                         <id>jacoco-report</id>
-                        <phase>verify</phase>
+                        <phase>test</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.openjfx</groupId>
-                <artifactId>javafx-maven-plugin</artifactId>
-                <version>0.0.8</version>
-                <configuration>
-                    <mainClass>Main</mainClass>
-                </configuration>
             </plugin>
         </plugins>
     </build>

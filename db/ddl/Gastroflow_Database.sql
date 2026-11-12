@@ -775,7 +775,7 @@ SELECT * FROM invalidos
 UNION ALL
 SELECT * FROM faltantes_ingredientes;
 $$;
-
+/*
 -- =============================================================================
 -- 11. DATOS DE PRUEBA
 -- =============================================================================
@@ -902,7 +902,7 @@ FROM (VALUES
          JOIN ingredientes i
               ON i.nombre = v.nombre_ingrediente
     ON CONFLICT (producto_id, ingrediente_id) DO NOTHING;
-/
+
 -- ===== 11.9 Usuarios de acceso (HU-095) =====
 INSERT INTO usuarios (
     codigo_empleado,
@@ -974,7 +974,7 @@ WHERE NOT EXISTS (
 )
 AND EXISTS (SELECT 1 FROM tipos_documento WHERE codigo = 'CC')
 AND EXISTS (SELECT 1 FROM roles WHERE nombre_rol = 'MESERO');
-*/
+
 
 -- ===== 11.11 Mesa de prueba HU-088 =====
 INSERT INTO mesas (
@@ -1041,3 +1041,5 @@ UNION ALL
 SELECT 'usuarios', COUNT(*) FROM usuarios
 UNION ALL
 SELECT 'mesas', COUNT(*) FROM mesas;
+
+ */
