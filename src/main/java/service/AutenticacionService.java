@@ -1,5 +1,8 @@
 package service;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import entity.UsuarioAutenticable;
 import org.mindrot.jbcrypt.BCrypt;
 import repository.UsuarioRepository;
@@ -26,6 +29,8 @@ import java.util.Optional;
  * después de un inicio de sesión correcto.
  */
 public class AutenticacionService {
+
+    private static final Logger LOG = Logger.getLogger(AutenticacionService.class.getName());
 
     /** Resultado de un intento de acceso. */
     public enum Resultado {
@@ -102,14 +107,14 @@ public class AutenticacionService {
             return Resultado.OK;
 
         } catch (SQLException e) {
-            System.err.println(
+            LOG.warning(
                     "No se pudo consultar o actualizar la tabla usuarios: "
                             + e.getMessage()
             );
             return Resultado.ERROR_DE_CONEXION;
 
         } catch (IllegalArgumentException e) {
-            System.err.println(
+            LOG.warning(
                     "El hash de contraseña almacenado no es válido: "
                             + e.getMessage()
             );

@@ -16,9 +16,9 @@ class AutenticacionServiceTest {
         when(repositorio.buscarPorIdentificador("M7")).thenReturn(java.util.Optional.of(usuario));
         try {
             assertEquals(AutenticacionService.Resultado.CREDENCIALES_INVALIDAS, servicio.iniciarSesion("M7", "incorrecta"));
-            assertFalse(session.SesionUsuario.estaAutenticado());
+            assertFalse(session.SesionUsuario.getInstance().estaAutenticado());
             assertEquals(AutenticacionService.Resultado.OK, servicio.iniciarSesion("M7", "clave-de-prueba"));
-            assertEquals(7, session.SesionUsuario.getUsuarioId());
+            assertEquals(7, session.SesionUsuario.getInstance().getUsuarioId());
         } finally {
             session.SesionUsuario.getInstance().cerrarSesion();
         }

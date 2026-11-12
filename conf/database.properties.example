@@ -1,0 +1,14 @@
+# Datos de conexion a la base de datos de GastroFlow.
+#
+# Copie este archivo a conf/database.properties y escriba su contrasena.
+# conf/database.properties NO se sube al repositorio.
+#
+# Como alternativa, puede definir las variables de entorno de PostgreSQL
+# (PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD), que tienen prioridad
+# sobre este archivo.
+
+db.host=localhost
+db.port=5432
+db.name=gastroflow
+db.user=postgres
+db.password=escriba-aqui-su-contrasena

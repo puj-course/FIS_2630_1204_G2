@@ -1,14 +1,19 @@
 package service;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import Interface.InsumoObserver;
 import javafx.scene.control.Alert; // Mostrarlo en JavaFX
 
 public class AdministradorAlertaObserver implements InsumoObserver {
 
+    private static final Logger LOG = Logger.getLogger(AdministradorAlertaObserver.class.getName());
+
     @Override
     public void actualizar(String nombreInsumo, double stockActual, double stockMinimo) {
         // Aquí manejas el aviso al administrador
-        System.out.println("[ALERTA DE STOCK] El insumo '" + nombreInsumo +
+        LOG.info("[ALERTA DE STOCK] El insumo '" + nombreInsumo +
                 "' está por debajo del mínimo. Stock actual: " +
                 stockActual + " (Mínimo: " + stockMinimo + ")");
 
