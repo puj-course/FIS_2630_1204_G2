@@ -1,8 +1,5 @@
 # Diagrama de Contenedores C4 – Nivel 2
 
-<img width="1540" height="616" alt="C4 Nivel 2" src="https://github.com/user-attachments/assets/5a127d34-282f-425d-976f-e89e152c5a9c" />
-
-
 ## 1. Descripción general
 El diagrama de contenedores C4 de GastroFlow muestra la vista de alto nivel del sistema, identificando los principales contenedores de software, los actores que interactúan con él y las relaciones tecnológicas entre ellos.
 
@@ -10,6 +7,8 @@ Este nivel permite comprender cómo se estructura la aplicación de escritorio y
 
 ## 2. Diagrama de contenedores
 A continuación, se presenta el diagrama C4 de Nivel 2 correspondiente a GastroFlow.
+
+<img width="1540" height="616" alt="C4 Nivel 2" src="https://github.com/user-attachments/assets/5a127d34-282f-425d-976f-e89e152c5a9c" />
 
 ## 3. Organización de los contenedores
 Los elementos se agrupan de la siguiente manera:
