@@ -24,6 +24,14 @@ public class InventarioService {
      * El cálculo se realiza utilizando la receta oficial
      * almacenada en plato_insumo.
      */
+    /**
+     * Descuenta el inventario de una comanda usando la conexion que le presten,
+     * sin abrir ni cerrar la transaccion: de eso se encarga quien la llama.
+     *
+     * La usa PedidoFacade al confirmar un pedido, para que el descuento viaje
+     * en la misma transaccion que la comanda. Estaba con el cuerpo vacio, asi
+     * que confirmar un pedido por la fachada no descontaba nada del inventario.
+     */
     public void descontarIngredientesConConexion(
             Connection conn,
             long pedidoId,
@@ -34,6 +42,8 @@ public class InventarioService {
         if (productos == null || productos.isEmpty()) {
             return;
         }
+
+        descontar(conn, pedidoId, calcularConsumoEstimado(productos), usuarioId);
     }
     
     public void descontarIngredientes(
@@ -46,112 +56,79 @@ public class InventarioService {
             return;
         }
 
-        Map<Long, BigDecimal> consumoTotal =
-                calcularConsumoEstimado(productos);
+        Map<Long, BigDecimal> consumoTotal = calcularConsumoEstimado(productos);
 
         if (consumoTotal.isEmpty()) {
             return;
         }
 
         try (Connection conn = ConexionBD.getConnection()) {
-
             conn.setAutoCommit(false);
-
             try {
-
-                /*
-                 * Evita descontar nuevamente el inventario
-                 * si la misma comanda ya fue procesada.
-                 */
-                List<InventarioRepository.MovimientoPedido> salidasExistentes =
-                        inventarioRepository.obtenerSalidasPorPedido(
-                                conn,
-                                pedidoId
-                        );
-
-                if (!salidasExistentes.isEmpty()) {
-                    conn.rollback();
-                    return;
-                }
-
-                /*
-                 * Primera fase:
-                 * validar que todos los ingredientes tengan
-                 * suficiente stock.
-                 */
-                for (Map.Entry<Long, BigDecimal> entry
-                        : consumoTotal.entrySet()) {
-
-                    long ingredienteId =
-                            entry.getKey();
-
-                    BigDecimal cantidadNecesaria =
-                            entry.getValue();
-
-                    BigDecimal stockActual =
-                            inventarioRepository.obtenerStockForUpdate(
-                                    conn,
-                                    ingredienteId
-                            );
-
-                    if (stockActual == null) {
-
-                        throw new StockInsuficienteException(
-                                "No se encontró el ingrediente con ID "
-                                        + ingredienteId
-                        );
-                    }
-
-                    if (stockActual.compareTo(
-                            cantidadNecesaria
-                    ) < 0) {
-
-                        String nombre =
-                                inventarioRepository.obtenerNombreIngrediente(
-                                        conn,
-                                        ingredienteId
-                                );
-
-                        throw new StockInsuficienteException(
-                                "Stock insuficiente para el ingrediente '"
-                                        + nombre
-                                        + "'. "
-                                        + "Disponible: "
-                                        + stockActual
-                                        + ", necesario: "
-                                        + cantidadNecesaria
-                        );
-                    }
-                }
-
-                /*
-                 * Segunda fase:
-                 * realizar los descuentos y registrar
-                 * los movimientos de salida.
-                 */
-                for (Map.Entry<Long, BigDecimal> entry
-                        : consumoTotal.entrySet()) {
-
-                    long ingredienteId =
-                            entry.getKey();
-
-                    BigDecimal cantidad =
-                            entry.getValue();
-
-                    String motivo = "CONSUMO_COMANDA - PEDIDO_ID=" + pedidoId;
-
-                    inventarioRepository.descontarStock(conn, ingredienteId, cantidad);
-                    inventarioRepository.registrarSalidaIngrediente(
-                            conn, ingredienteId, cantidad, motivo, usuarioId);
-                }
-
+                descontar(conn, pedidoId, consumoTotal, usuarioId);
                 conn.commit();
-
             } catch (SQLException | RuntimeException e) {
-
                 conn.rollback();
                 throw e;
             }
+        }
+    }
+
+    /**
+     * El descuento propiamente dicho, sobre la conexion que le den.
+     *
+     * Primero revisa que haya stock de todo y solo despues descuenta: asi la
+     * comanda no se queda a medio descontar cuando falta un ingrediente. No
+     * toca la transaccion, porque las dos formas de llamarlo la manejan
+     * distinto.
+     */
+    private void descontar(
+            Connection conn,
+            long pedidoId,
+            Map<Long, BigDecimal> consumoTotal,
+            long usuarioId
+    ) throws SQLException {
+
+        if (consumoTotal.isEmpty()) {
+            return;
+        }
+
+        // Evita descontar dos veces la misma comanda.
+        if (!inventarioRepository.obtenerSalidasPorPedido(conn, pedidoId).isEmpty()) {
+            return;
+        }
+
+        // Primera fase: que alcance el stock de todos los ingredientes.
+        for (Map.Entry<Long, BigDecimal> entrada : consumoTotal.entrySet()) {
+            long ingredienteId = entrada.getKey();
+            BigDecimal cantidadNecesaria = entrada.getValue();
+
+            BigDecimal stockActual =
+                    inventarioRepository.obtenerStockForUpdate(conn, ingredienteId);
+
+            if (stockActual == null) {
+                throw new StockInsuficienteException(
+                        "No se encontró el ingrediente con ID " + ingredienteId);
+            }
+
+            if (stockActual.compareTo(cantidadNecesaria) < 0) {
+                String nombre = inventarioRepository.obtenerNombreIngrediente(conn, ingredienteId);
+                throw new StockInsuficienteException(
+                        "Stock insuficiente para el ingrediente '" + nombre + "'. "
+                                + "Disponible: " + stockActual
+                                + ", necesario: " + cantidadNecesaria);
+            }
+        }
+
+        // Segunda fase: descontar y dejar constancia de cada salida.
+        for (Map.Entry<Long, BigDecimal> entrada : consumoTotal.entrySet()) {
+            long ingredienteId = entrada.getKey();
+            BigDecimal cantidad = entrada.getValue();
+            String motivo = "CONSUMO_COMANDA - PEDIDO_ID=" + pedidoId;
+
+            inventarioRepository.descontarStock(conn, ingredienteId, cantidad);
+            inventarioRepository.registrarSalidaIngrediente(
+                    conn, ingredienteId, cantidad, motivo, usuarioId);
         }
     }
 

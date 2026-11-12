@@ -85,24 +85,36 @@ public class MetricaRendimiento implements Metrica {
                 resumen, detalle, alertas);
     }
 
-    /** Mide una estrategia: primero la latencia de cada llamada, luego el throughput. */
+    /**
+     * Mide una estrategia: primero la latencia de cada llamada, luego el throughput.
+     *
+     * Cada bucle acumula en una variable local y escribe el sumidero una sola vez
+     * al final. Sumar directamente sobre el campo volátil tenía dos problemas: la
+     * suma sobre un campo volátil no es atómica, y además metía una escritura
+     * volátil dentro del tramo cronometrado, que es justo lo que se está midiendo.
+     */
     Medicion medirEstrategia(String nombre, CalculadoraDescuento calculadora, BigDecimal valor) {
+        int acumulado = sumidero;
+
         for (int i = 0; i < calentamiento; i++) {
-            sumidero += calculadora.calcular(SUBTOTAL, valor).signum();
+            acumulado += calculadora.calcular(SUBTOTAL, valor).signum();
         }
+        sumidero = acumulado;
 
         long[] latencias = new long[mediciones];
         for (int i = 0; i < mediciones; i++) {
             long inicio = System.nanoTime();
-            sumidero += calculadora.calcular(SUBTOTAL, valor).signum();
+            acumulado += calculadora.calcular(SUBTOTAL, valor).signum();
             latencias[i] = System.nanoTime() - inicio;
         }
+        sumidero = acumulado;
 
         long inicioTotal = System.nanoTime();
         for (int i = 0; i < mediciones; i++) {
-            sumidero += calculadora.calcular(SUBTOTAL, valor).signum();
+            acumulado += calculadora.calcular(SUBTOTAL, valor).signum();
         }
         double segundos = Math.max(System.nanoTime() - inicioTotal, 1) / 1_000_000_000.0;
+        sumidero = acumulado;
 
         Arrays.sort(latencias);
         double promedio = Arrays.stream(latencias).average().orElse(0) / 1000.0;

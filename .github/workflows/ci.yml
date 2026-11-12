@@ -20,7 +20,11 @@
           env:
             POSTGRES_DB: postgres
             POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: postgres
+            # Sin contrasena escrita aqui. La base de este contenedor vive solo
+            # mientras dura el job, no sale del runner y se tira al terminar,
+            # asi que se autentica por confianza en vez de guardar una clave en
+            # el repositorio.
+            POSTGRES_HOST_AUTH_METHOD: trust
           ports:
             - 5432:5432
           options: >-
@@ -33,7 +37,10 @@
         PGHOST: localhost
         PGPORT: 5432
         PGUSER: postgres
-        PGPASSWORD: postgres
+        # La aplicacion exige que haya una contrasena definida, pero con
+        # autenticacion por confianza su valor da igual: se usa el
+        # identificador de la ejecucion para no dejar ninguna clave fija.
+        PGPASSWORD: ${{ github.run_id }}
         # Taller de pruebas y metricas. Si el secreto no esta configurado el
         # paso de SonarCloud se salta y el pipeline sigue pasando igual.
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

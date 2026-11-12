@@ -122,32 +122,17 @@ public class IngredienteRepository {
         }
     }
 
-    public List<Ingrediente> findAllActivos()
-            throws SQLException {
-
-        String sql = """
-                SELECT ingrediente_id,
-                       nombre,
-                       stock_actual,
-                       stock_minimo,
-                       estado
-                FROM ingredientes
-                WHERE estado = 'ACTIVO'
-                ORDER BY nombre
-                """;
-
-        List<Ingrediente> ingredientes = new ArrayList<>();
-
-        try (Connection conn = ConexionBD.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                ingredientes.add(map(rs));
-            }
-        }
-
-        return ingredientes;
+    /**
+     * Los ingredientes activos, ordenados por nombre.
+     *
+     * Hace lo mismo que findActivos() y existe porque hay pantallas que la
+     * llaman con este nombre. Antes tenia su propia consulta, que traia cinco
+     * columnas y se las pasaba al mapeador que espera quince: cualquier llamada
+     * reventaba con "The column name descripcion was not found". Ahora delega,
+     * asi no hay dos consultas que mantener ni dos formas de equivocarse.
+     */
+    public List<Ingrediente> findAllActivos() throws SQLException {
+        return findActivos();
     }
 
     private void bindCampos(PreparedStatement stmt, Ingrediente i) throws SQLException {

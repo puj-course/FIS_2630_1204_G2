@@ -214,8 +214,13 @@ public class MapaSalonController {
         String colorTexto = estado != null ? "white" : "#B00020";
         btn.setText(null);
         btn.setGraphic(crearContenidoBoton(mesa, textoEstado, colorTexto));
-        btn.setLayoutX(INICIO_X + (posicion % COLUMNAS) * (MESA_ANCHO + ESPACIO_X));
-        btn.setLayoutY(INICIO_Y + (posicion / COLUMNAS) * (MESA_ALTO + ESPACIO_Y));
+        // La fila y la columna son numeros enteros a proposito: es la casilla de
+        // la cuadricula, no una fraccion. Se calculan aparte para que se vea que
+        // la division entera es intencional y no un redondeo accidental.
+        int columnaEnLaCuadricula = posicion % COLUMNAS;
+        int filaEnLaCuadricula = posicion / COLUMNAS;
+        btn.setLayoutX(INICIO_X + columnaEnLaCuadricula * (MESA_ANCHO + ESPACIO_X));
+        btn.setLayoutY(INICIO_Y + filaEnLaCuadricula * (MESA_ALTO + ESPACIO_Y));
         boolean seleccionada = mesaSeleccionada != null && mesaSeleccionada.getIdMesa() == mesa.getIdMesa();
         btn.setStyle(estado != null ? estiloMesa(estado, seleccionada) : estiloEstadoNoValido(seleccionada));
         btn.setOnAction(e -> {
