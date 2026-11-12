@@ -1,0 +1,37 @@
+# Diagrama de Código C4 – Nivel 4 (Enumeraciones y excepciones)
+
+## 1. Descripción general
+El diagrama de código C4 de GastroFlow correspondiente a enumeraciones y excepciones muestra los tipos enumerados y las excepciones de dominio utilizadas en el sistema.
+
+Este nivel detalla los valores posibles de los estados y tipos, así como las excepciones de negocio personalizadas.
+
+## 2. Diagrama de código
+A continuación, se presenta el diagrama C4 de Nivel 4 – Enumeraciones y excepciones de GastroFlow.
+
+<img width="869" height="1038" alt="C4 Nivel 4 - Enumeraciones y excepciones" src="https://github.com/user-attachments/assets/abe00a8f-0aaa-47d9-9ce6-4a0c4046f062" />
+
+
+## 3. Organización de las clases
+**Enumeraciones:**
+- `TipoDescuento` (`MONTO_FIJO`, `PORCENTAJE`)
+- `EstadoPedido` (`PENDIENTE`, `ASIGNADO_MESA`, `EN_PREPARACION`, `COMPLETADO`, `ENTREGADO`, `CANCELADO`)
+- `EstadoMesa` (`DISPONIBLE`, `OCUPADA`, `EN_LIMPIEZA`, `RESERVADA`)
+- `EstadoListaEspera`, `MetodoPago`, `TipoMovimiento`, `EstadoReserva`
+
+**Excepciones de dominio:**
+- `AdicionalNoDisponibleException`
+- `MesaConPedidoActivoException`
+- `ReservaNoCancelableException`
+- `AsignacionActivaException`
+- `MesaNotFoundException`
+- `MesaOcupadaException`
+- `PedidoNoEditableException`
+- `ReservaNotFoundException`
+- `StockInsuficienteException`
+- `CapacidadExcedidaException`
+
+## 4. Relaciones entre clases
+Las enumeraciones son utilizadas por las entidades y servicios de negocio. Las excepciones son lanzadas por los servicios cuando se violan reglas de negocio.
+
+## 5. Conclusión
+El diagrama C4 de Nivel 4 de enumeraciones y excepciones permite comprender los valores de dominio controlados y el manejo de errores de negocio implementado en GastroFlow.
