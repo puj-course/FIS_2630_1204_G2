@@ -195,6 +195,7 @@ public class MapaSalonController {
         btn.setWrapText(true);
 
         actualizarBotonMesa(btn, mesa, posicion);
+        btn.getStyleClass().add("mesa-card");
 
         return btn;
     }
