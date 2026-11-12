@@ -1,19 +1,5 @@
-https://github.com/puj-course/FIS_2630_1204_G2/blob/deb6c6da0b61fc1b174ddf40974de0509033393a/docs/Imagenes/C4%20Nivel%201.jpg
 ## Diagrama de Contexto C4 – Nivel 1
 
+![Diagrama de Contexto C4 – Nivel 1](../Imagenes/C4%20Nivel%201.jpg)
+
 El diagrama de contexto C4 de GastroFlow presenta una visión general del sistema y su interacción con los diferentes usuarios que participan en la operación de un restaurante. Su objetivo es identificar los actores principales, sus responsabilidades y la manera en que se relacionan con el sistema, sin profundizar en los detalles técnicos de su implementación.
-
-GastroFlow es una aplicación de escritorio diseñada para gestionar las operaciones internas de un restaurante, centralizando funcionalidades relacionadas con la administración de mesas, el registro de pedidos, la preparación de comandas, la gestión del inventario y los procesos de caja.
-
-El sistema contempla cuatro actores principales:
-
-- **Mesero:** Se encarga de asignar mesas a los clientes y registrar los pedidos dentro del sistema, facilitando la gestión de la atención.
-- **Personal de cocina:** Consulta las comandas registradas y actualiza el estado de preparación de los pedidos, permitiendo realizar un seguimiento de su avance.
-- **Cajero:** Gestiona los cobros, aplica descuentos, registra los pagos y realiza el cierre de caja.
-- **Administrador:** Administra el inventario, los productos, los ingredientes, las recetas y las configuraciones generales del sistema.
-
-Las relaciones representadas en el diagrama permiten identificar las funcionalidades a las que accede cada actor y su participación dentro del flujo operativo del restaurante.
-
-Finalmente, el diagrama establece que **GastroFlow funciona como un sistema independiente, sin integraciones con plataformas externas**. Los procesos de facturación, pagos y administración se realizan internamente, sin depender de pasarelas de pago ni servicios externos de facturación electrónica.
-
-Este diagrama corresponde al primer nivel del modelo C4 y sirve como punto de partida para comprender el alcance del sistema, sus usuarios y las principales interacciones que posteriormente se detallan en los diagramas de arquitectura de niveles inferiores.
