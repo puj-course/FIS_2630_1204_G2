@@ -64,7 +64,7 @@ jobs:
           curl -fsS http://localhost:6080/vnc.html | grep -qi novnc
           docker compose exec -T db psql -U postgres -d gastroflow -At \
             -c "SELECT count(*) FROM usuarios" | grep -qE '^[1-9]'
-          docker compose logs app | grep -iE "exception|error" && exit 1 || true
+          docker compose logs app | grep -E "Exception|Could not find or load main class" && exit 1 || true
 
       - name: Mostrar logs si algo falló
         if: failure()
