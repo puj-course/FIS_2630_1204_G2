@@ -1,0 +1,29 @@
+name: Convenciones de código
+
+# Revisa que no vuelvan a entrar las cosas que ya se corrigieron una vez:
+# contrasenas escritas en el codigo, llamadas a printStackTrace, salidas por
+# consola, catch vacios y excepciones sin serialVersionUID.
+#
+# Es la mas rapida de todas: no compila ni necesita base de datos, solo lee los
+# archivos. Por eso corre en cada push y en cada pull request, sin importar la
+# rama: avisa en menos de un minuto.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  convenciones:
+    name: Revisar las convenciones
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Preparar permisos del script
+        run: chmod +x scripts/verificar_convenciones.sh
+
+      - name: Revisar el código
+        run: ./scripts/verificar_convenciones.sh

@@ -1,0 +1,65 @@
+name: Análisis de seguridad (CodeQL)
+
+# CodeQL es el analizador de seguridad de GitHub. Lee el codigo compilado y
+# busca fallos que un escaner de texto no ve: inyeccion de SQL, rutas que
+# llegan sin validar a una consulta, datos que viajan de la entrada del usuario
+# hasta la base sin pasar por ningun filtro.
+#
+# Es distinto de SonarQube: aquel mira calidad y mantenibilidad, este sigue el
+# recorrido de los datos. Los hallazgos quedan en la pestana Security del
+# repositorio, no en el log del workflow.
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  schedule:
+    # Jueves a las 09:17 UTC. Las reglas de CodeQL se actualizan solas, asi que
+    # una pasada semanal encuentra cosas que la del mes pasado no detectaba.
+    - cron: '17 9 * * 4'
+  workflow_dispatch:
+
+# Hacen falta para que los hallazgos se publiquen en la pestana Security.
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  analizar:
+    name: Analizar el código con CodeQL
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 21 y caché Maven
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      - name: Preparar CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java-kotlin
+          # Las consultas de seguridad mas las de calidad relacionadas, que
+          # traen por ejemplo los recursos que se quedan sin cerrar.
+          queries: security-and-quality
+
+      # Se compila a mano en vez de dejar que CodeQL lo adivine: el proyecto
+      # necesita Java 21 y JavaFX, y el autobuild a veces escoge mal.
+      - name: Compilar el proyecto
+        run: mvn --batch-mode -DskipTests clean compile
+
+      - name: Analizar
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:java-kotlin
