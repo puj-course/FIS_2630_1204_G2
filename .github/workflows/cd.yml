@@ -1,0 +1,89 @@
+name: CD
+
+# Entrega continua: cada vez que algo entra a main se empaqueta la aplicacion,
+# se le pone un numero de version y se publica como release de GitHub, con el
+# ejecutable adjunto para que cualquiera lo descargue sin compilar nada.
+#
+# Tambien se puede lanzar a mano desde la pestana Actions con "Run workflow",
+# por ejemplo para repetir una entrega sin tener que hacer otro commit.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# El workflow crea una etiqueta y un release, asi que necesita permiso de
+# escritura sobre el contenido del repositorio.
+permissions:
+  contents: write
+
+jobs:
+  empaquetar-y-publicar:
+    name: Empaquetar y publicar el release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Java 21 y caché Maven
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      # La version sale del pom, sin el sufijo -SNAPSHOT, mas el numero de
+      # ejecucion del workflow. Asi cada entrega tiene un numero distinto y
+      # creciente sin que nadie tenga que acordarse de subirlo a mano.
+      - name: Calcular la versión de esta entrega
+        id: version
+        run: |
+          BASE=$(mvn --batch-mode -q help:evaluate \
+                 -Dexpression=project.version -DforceStdout | tr -d '[:space:]')
+          BASE=${BASE%-SNAPSHOT}
+          VERSION="v${BASE}.${{ github.run_number }}"
+          echo "numero=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Esta entrega es la $VERSION"
+
+      - name: Preparar permisos del script
+        run: chmod +x scripts/deploy.sh
+
+      # El empaquetado vive en scripts/deploy.sh y no aqui, para que cualquiera
+      # pueda correr exactamente lo mismo en su equipo antes de publicar una
+      # version. Las pruebas ya corrieron en CI y en SonarQube, asi que este
+      # paso solo construye.
+      - name: Construir el paquete de entrega
+        id: paquete
+        run: |
+          ARCHIVO=$(./scripts/deploy.sh "${{ steps.version.outputs.numero }}" | tail -1)
+          echo "archivo=$ARCHIVO" >> "$GITHUB_OUTPUT"
+          ls -lh "$ARCHIVO"
+
+      - name: Publicar el release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.numero }}
+          ARCHIVO: ${{ steps.paquete.outputs.archivo }}
+        run: |
+          gh release create "$VERSION" "$ARCHIVO" \
+            --title "GastroFlow $VERSION" \
+            --target "${{ github.sha }}" \
+            --notes "$(printf '%s\n' \
+              "Entrega automática desde main." \
+              "" \
+              "Commit: ${{ github.sha }}" \
+              "Autor: ${{ github.actor }}" \
+              "" \
+              "El archivo adjunto trae el ejecutable, sus bibliotecas y las" \
+              "instrucciones para ponerlo a andar. Lea COMO-EJECUTAR.txt.")"
+
+      - name: Guardar el paquete como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: gastroflow-${{ steps.version.outputs.numero }}
+          retention-days: 30
+          path: ${{ steps.paquete.outputs.archivo }}

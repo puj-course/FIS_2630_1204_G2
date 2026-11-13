@@ -1,0 +1,86 @@
+name: Dependencias
+
+# Vigila las bibliotecas de las que depende el proyecto, que son codigo que
+# nosotros no escribimos pero que igual termina dentro de la aplicacion.
+#
+# Hace dos cosas distintas:
+#
+#   1. En cada pull request, revisa las dependencias que se estan agregando o
+#      subiendo de version y bloquea el PR si alguna tiene una vulnerabilidad
+#      conocida o una licencia que no sirve.
+#
+#   2. Una vez por semana, saca el inventario completo: que version usa el
+#      proyecto de cada biblioteca y cual es la ultima que existe. Asi se ve
+#      cuanto nos estamos quedando atras antes de que sea un problema.
+
+on:
+  pull_request:
+  schedule:
+    # Martes a las 08:23 UTC.
+    - cron: '23 8 * * 2'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  revisar-el-cambio:
+    name: Revisar las dependencias que cambian
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Revisar las dependencias nuevas
+        uses: actions/dependency-review-action@v4
+        with:
+          # Se bloquea de vulnerabilidad moderada hacia arriba. Por debajo solo
+          # avisa, para no frenar un PR por algo sin importancia.
+          fail-on-severity: moderate
+          comment-summary-in-pr: on-failure
+
+  inventario:
+    name: Inventario de versiones
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 21 y caché Maven
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      - name: Listar las dependencias del proyecto
+        run: |
+          mkdir -p target/dependencias
+          mvn --batch-mode dependency:tree \
+              -DoutputFile=target/dependencias/arbol.txt
+          echo "--- arbol de dependencias ---"
+          cat target/dependencias/arbol.txt
+
+      - name: Buscar versiones más nuevas
+        # No falla el workflow: es informativo. Subir una version es una
+        # decision del equipo, no algo que deba imponer un pipeline.
+        continue-on-error: true
+        run: |
+          mvn --batch-mode versions:display-dependency-updates \
+              -DoutputFile=target/dependencias/actualizaciones.txt \
+              -DprocessDependencyManagement=false
+          echo "--- versiones mas nuevas disponibles ---"
+          cat target/dependencias/actualizaciones.txt || true
+
+      - name: Guardar el inventario
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: inventario-de-dependencias
+          retention-days: 90
+          path: target/dependencias/

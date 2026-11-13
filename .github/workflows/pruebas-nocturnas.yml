@@ -1,0 +1,125 @@
+name: Pruebas nocturnas
+
+# Corre la suite completa de noche, cuando nadie esta esperando, buscando los
+# fallos que una sola pasada no encuentra.
+#
+# Son tres pasadas sobre la misma base:
+#
+#   1. En orden alfabetico.
+#   2. En orden inverso, sobre una base recien creada.
+#   3. Otra vez en orden alfabetico, pero sin recrear la base.
+#
+# Las dos ultimas son las que importan. La segunda encuentra pruebas que solo
+# pasan si otra corrio antes; la tercera encuentra pruebas que dejan algo
+# abierto o a medias y rompen a las siguientes. Esa fue justamente la causa del
+# build roto del 12 de noviembre: unas pruebas de login dejaban la sesion
+# abierta en el Singleton y hacian fallar a otra clase que corria despues.
+
+on:
+  schedule:
+    # Todos los dias a las 05:41 UTC, que es medianoche y 41 en Colombia.
+    - cron: '41 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  suite-completa:
+    name: Suite completa, tres pasadas
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          # La base de este contenedor vive solo mientras dura el job y no sale
+          # del runner, asi que se autentica por confianza en vez de guardar una
+          # clave en el repositorio.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: ${{ github.run_id }}
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 21 y caché Maven
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      - name: Instalar cliente PostgreSQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Preparar permisos del script
+        run: chmod +x scripts/setup.sh
+
+      - name: Crear la base
+        run: ./scripts/setup.sh --con-datos-prueba
+
+      - name: Pasada 1, en orden alfabético
+        run: >
+          mvn --batch-mode verify
+          -Dsurefire.runOrder=alphabetical
+
+      - name: Volver a crear la base desde cero
+        run: ./scripts/setup.sh --recrear --con-datos-prueba
+
+      # Si alguna prueba solo pasa porque otra corrio antes y le dejo algo
+      # preparado, invertir el orden la delata.
+      - name: Pasada 2, en orden inverso sobre base nueva
+        run: >
+          mvn --batch-mode verify
+          -Dsurefire.runOrder=reversealphabetical
+
+      # Y si alguna deja la base o algun Singleton con estado de mas, repetir
+      # sobre la misma base sin limpiarla la delata.
+      - name: Pasada 3, sobre la base que dejó la pasada 2
+        run: >
+          mvn --batch-mode verify
+          -Dsurefire.runOrder=alphabetical
+
+      - name: Guardar los informes de las pruebas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pruebas-nocturnas
+          retention-days: 14
+          path: |
+            target/surefire-reports/
+            target/site/jacoco/
+
+      - name: Resumen
+        if: always()
+        run: |
+          echo "### Pruebas nocturnas" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          total=$(grep -ho 'tests="[0-9]*"' target/surefire-reports/*.xml 2>/dev/null \
+                  | grep -o '[0-9]*' | paste -sd+ | bc 2>/dev/null || echo 0)
+          fallos=$(grep -ho 'failures="[0-9]*"' target/surefire-reports/*.xml 2>/dev/null \
+                   | grep -o '[0-9]*' | paste -sd+ | bc 2>/dev/null || echo 0)
+          errores=$(grep -ho 'errors="[0-9]*"' target/surefire-reports/*.xml 2>/dev/null \
+                    | grep -o '[0-9]*' | paste -sd+ | bc 2>/dev/null || echo 0)
+
+          echo "- Pruebas de la ultima pasada: $total" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Fallos: $fallos" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Errores: $errores" >> "$GITHUB_STEP_SUMMARY"

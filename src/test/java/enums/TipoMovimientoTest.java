@@ -10,17 +10,19 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * TipoMovimiento dice si el movimiento de inventario descuenta por una venta o devuelve por una anulacion.
+ * TipoMovimiento dice si el inventario entra o sale.
  *
- * Los nombres de las constantes viajan a la base de datos tal cual, asi que
- * cambiarlos rompe los datos que ya estan guardados. Por eso se fijan aqui.
+ * Los nombres de las constantes viajan a la base de datos tal cual y tienen que
+ * coincidir con la restriccion ck_movimientos_tipo, que solo acepta ENTRADA y
+ * SALIDA. Si alguien los vuelve a cambiar, esta prueba falla antes de que el
+ * repositorio reviente leyendo una fila que ya estaba guardada.
  */
 class TipoMovimientoTest {
 
     @Test
     void conservaCodigosDeDominio() throws Exception {
         var codigos = Arrays.stream(TipoMovimiento.values()).map(Enum::name).collect(Collectors.toSet());
-        assertEquals(Set.of("VENTA_COMANDA", "REVERSO_COMANDA"), codigos);
+        assertEquals(Set.of("SALIDA", "ENTRADA"), codigos);
     }
 
     @Test
@@ -32,7 +34,7 @@ class TipoMovimientoTest {
     @Test
     @DisplayName("se reconstruye desde el texto que viene de la base")
     void seReconstruyeDesdeElTexto() {
-        assertSame(TipoMovimiento.VENTA_COMANDA, TipoMovimiento.valueOf("VENTA_COMANDA"));
+        assertSame(TipoMovimiento.SALIDA, TipoMovimiento.valueOf("SALIDA"));
     }
 
     @Test
@@ -49,7 +51,7 @@ class TipoMovimientoTest {
         // Es a proposito: preferimos el error aqui que un estado inventado
         // circulando por la aplicacion.
         assertThrows(IllegalArgumentException.class, () -> TipoMovimiento.valueOf("CUALQUIER_COSA"));
-        assertThrows(IllegalArgumentException.class, () -> TipoMovimiento.valueOf("venta_comanda"));
+        assertThrows(IllegalArgumentException.class, () -> TipoMovimiento.valueOf("salida"));
     }
 
     @Test
@@ -65,6 +67,6 @@ class TipoMovimientoTest {
     @Test
     @DisplayName("se comparan con == porque solo hay una instancia de cada uno")
     void seComparanConIgualIgual() {
-        assertSame(TipoMovimiento.valueOf("VENTA_COMANDA"), TipoMovimiento.valueOf("VENTA_COMANDA"));
+        assertSame(TipoMovimiento.valueOf("SALIDA"), TipoMovimiento.valueOf("SALIDA"));
     }
 }

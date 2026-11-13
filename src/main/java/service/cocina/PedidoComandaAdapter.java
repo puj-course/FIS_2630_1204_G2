@@ -5,6 +5,8 @@ import enums.EstadoPedido;
 import exceptions.PedidoNoEditableException;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.EnumSet;
 import java.util.Set;
@@ -62,7 +64,12 @@ public class PedidoComandaAdapter implements ComandaCocina {
         if (inicio == null) {
             return 0L;
         }
-        long minutos = ChronoUnit.MINUTES.between(inicio, LocalDateTime.now());
+        // La fecha del pedido viene de una columna sin zona horaria, asi que se
+        // le pone la del equipo antes de restar. Calcular la diferencia entre dos
+        // LocalDateTime se equivoca en una hora los dos dias del cambio de
+        // horario, y en los paises que lo aplican eso descuadra el tablero.
+        ZoneId zona = ZoneId.systemDefault();
+        long minutos = ChronoUnit.MINUTES.between(inicio.atZone(zona), ZonedDateTime.now(zona));
         return Math.max(minutos, 0L);
     }
 

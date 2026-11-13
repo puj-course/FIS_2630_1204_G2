@@ -18,7 +18,11 @@ jobs:
         env:
           POSTGRES_DB: postgres
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          # Sin contrasena escrita aqui. La base de este contenedor vive solo
+          # mientras dura el job, no sale del runner y se tira al terminar, asi
+          # que se autentica por confianza en vez de guardar una clave en el
+          # repositorio.
+          POSTGRES_HOST_AUTH_METHOD: trust
         ports:
           - 5432:5432
         options: >-
@@ -31,7 +35,10 @@ jobs:
       PGHOST: localhost
       PGPORT: 5432
       PGUSER: postgres
-      PGPASSWORD: postgres
+      # La aplicacion exige que haya una contrasena definida, pero con
+      # autenticacion por confianza su valor da igual: se usa el identificador
+      # de la ejecucion para no dejar ninguna clave fija en el archivo.
+      PGPASSWORD: ${{ github.run_id }}
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1

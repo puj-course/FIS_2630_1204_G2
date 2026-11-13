@@ -26,8 +26,8 @@ class MovimientoInventarioTest {
 
     @Test
     void conservaElTipoYLaCantidad() throws Exception {
-        var m = movimiento(TipoMovimiento.VENTA_COMANDA, "2.5");
-        assertEquals(TipoMovimiento.VENTA_COMANDA, m.getTipoMovimiento());
+        var m = movimiento(TipoMovimiento.SALIDA, "2.5");
+        assertEquals(TipoMovimiento.SALIDA, m.getTipoMovimiento());
         assertEquals(new BigDecimal("2.5"), m.getCantidad());
     }
 
@@ -40,9 +40,9 @@ class MovimientoInventarioTest {
 
     @Test
     @DisplayName("una venta descuenta y un reverso devuelve")
-    void laVentaDescuentaYElReversoDevuelve() {
-        var venta = movimiento(TipoMovimiento.VENTA_COMANDA, "2.5");
-        var reverso = movimiento(TipoMovimiento.REVERSO_COMANDA, "2.5");
+    void laSalidaDescuentaYLaEntradaDevuelve() {
+        var venta = movimiento(TipoMovimiento.SALIDA, "2.5");
+        var reverso = movimiento(TipoMovimiento.ENTRADA, "2.5");
         assertNotEquals(venta.getTipoMovimiento(), reverso.getTipoMovimiento());
         assertEquals(venta.getCantidad(), reverso.getCantidad());
     }
@@ -50,7 +50,7 @@ class MovimientoInventarioTest {
     @Test
     @DisplayName("el movimiento es de un ingrediente o de un producto, no de los dos")
     void esDeUnoODelOtro() {
-        var deIngrediente = movimiento(TipoMovimiento.VENTA_COMANDA, "1");
+        var deIngrediente = movimiento(TipoMovimiento.SALIDA, "1");
         assertNotNull(deIngrediente.getIngredienteId());
         assertNull(deIngrediente.getProductoId());
 
@@ -63,13 +63,13 @@ class MovimientoInventarioTest {
     @Test
     @DisplayName("guarda quien hizo el movimiento")
     void guardaQuienLoHizo() {
-        assertEquals(9L, movimiento(TipoMovimiento.VENTA_COMANDA, "1").getUsuarioId());
+        assertEquals(9L, movimiento(TipoMovimiento.SALIDA, "1").getUsuarioId());
     }
 
     @Test
     @DisplayName("usa BigDecimal, no double, porque las cantidades no se pueden redondear")
     void usaBigDecimal() {
-        var m = movimiento(TipoMovimiento.VENTA_COMANDA, "0.10");
+        var m = movimiento(TipoMovimiento.SALIDA, "0.10");
         assertEquals(2, m.getCantidad().scale());
         assertEquals(new BigDecimal("0.10"), m.getCantidad());
     }
@@ -78,7 +78,7 @@ class MovimientoInventarioTest {
     @DisplayName("se puede fijar la fecha a mano al leerlo de la base")
     void seFijaLaFechaAlLeerlo() {
         var cuando = LocalDateTime.of(2026, 11, 10, 20, 30);
-        var m = movimiento(TipoMovimiento.VENTA_COMANDA, "1");
+        var m = movimiento(TipoMovimiento.SALIDA, "1");
         m.setFechaMovimiento(cuando);
         assertEquals(cuando, m.getFechaMovimiento());
     }
@@ -86,7 +86,7 @@ class MovimientoInventarioTest {
     @Test
     @DisplayName("guarda el motivo cuando hay uno que explicar")
     void guardaElMotivo() {
-        var m = movimiento(TipoMovimiento.REVERSO_COMANDA, "1");
+        var m = movimiento(TipoMovimiento.ENTRADA, "1");
         m.setMotivo("Se cancelo el pedido PED-0007");
         assertTrue(m.getMotivo().contains("PED-0007"));
     }
