@@ -6,6 +6,7 @@ set -euo pipefail
 
 Xvfb "$DISPLAY" -screen 0 "${RESOLUCION:-1280x800x24}" -nolisten tcp &
 sleep 1
+openbox &
 
 x11vnc -display "$DISPLAY" -forever -shared -nopw -quiet -rfbport 5900 -localhost &
 websockify --web=/usr/share/novnc 6080 localhost:5900 &

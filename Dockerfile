@@ -39,6 +39,7 @@ FROM eclipse-temurin:21-jre-jammy AS runtime
 # necesita en Linux (GTK, OpenGL por software, fuentes).
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
+	xvfb x11vnc novnc websockify curl procps openbox \
         xvfb x11vnc novnc websockify curl procps \
         libgtk-3-0 libgl1 libgl1-mesa-dri libxtst6 libxxf86vm1 libasound2 \
         fonts-dejavu-core \
