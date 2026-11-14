@@ -1,0 +1,64 @@
+# GastroFlow - sistema completo: base de datos + esquema + aplicación.
+#
+#   cp .env.example .env        (y cambie la contraseña)
+#   docker compose up --build
+#   abrir http://localhost:6080/vnc.html
+#
+# Usuarios de prueba: ADM-001/admin123  MES-001/mesero123
+#                     COC-001/cocina123 CAJ-001/cajero123
+
+services:
+  # 1. PostgreSQL con los datos guardados en un volumen.
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${PGUSER:-postgres}
+      POSTGRES_PASSWORD: ${PGPASSWORD:?Defina PGPASSWORD en .env}
+      POSTGRES_DB: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-postgres} -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # 2. Tarea de una sola vez: crea el esquema y los datos de prueba con el mismo
+  #    scripts/setup.sh que usa el equipo. Es idempotente, así que correrlo en
+  #    cada "up" es seguro.
+  db-init:
+    image: postgres:16
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGUSER: ${PGUSER:-postgres}
+      PGPASSWORD: ${PGPASSWORD:?Defina PGPASSWORD en .env}
+    volumes:
+      - ./db:/work/db:ro
+      - ./scripts/setup.sh:/work/scripts/setup.sh:ro
+    command: ["bash", "/work/scripts/setup.sh", "--con-datos-prueba"]
+    restart: "no"
+
+  # 3. La aplicación, que arranca cuando la base ya está lista.
+  app:
+    build: .
+    image: ${DOCKERHUB_USER:-gastroflow}/gastroflow:${TAG:-latest}
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: gastroflow
+      PGUSER: ${PGUSER:-postgres}
+      PGPASSWORD: ${PGPASSWORD:?Defina PGPASSWORD en .env}
+    ports:
+      - "6080:6080"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
