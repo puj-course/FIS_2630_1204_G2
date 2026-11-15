@@ -24,12 +24,10 @@
         <jacoco.version>0.8.12</jacoco.version>
 
         <!--
-            SonarCloud: Taller de pruebas y metricas. Estos tres valores salen de la pagina
+            Taller de pruebas y metricas. Estos tres valores salen de la pagina
             del proyecto en https://sonarcloud.io una vez se importa el
             repositorio. El token no va aqui: va como secreto SONAR_TOKEN del
             repositorio en GitHub.
-            El projectKey y la organization deben coincidir exactamente con el proyecto
-            importado en SonarCloud.
         -->
         <sonar.organization>puj-course</sonar.organization>
         <sonar.projectKey>puj-course_FIS_2630_1204_G2</sonar.projectKey>
@@ -40,21 +38,31 @@
     </properties>
 
     <dependencies>
-        <!-- JavaFX Controls -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- JavaFX -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
             <version>${javafx.version}</version>
         </dependency>
-
-        <!-- JavaFX FXML -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
         </dependency>
 
-        <!-- JUnit para pruebas -->
+        <!-- PostgreSQL (JDBC) -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -68,44 +76,40 @@
             <artifactId>jbcrypt</artifactId>
             <version>0.4</version>
         </dependency>
-
-        <!-- PostgreSQL (JDBC) -->
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>42.7.3</version>
-        </dependency>
-
     </dependencies>
 
     <build>
         <plugins>
-            <!--  todas las fuentes compilan y no hay motivo para ocultar
-            código al análisis. Si en el futuro se excluye una clase del compilador,
-            hay que reflejarla en sonar.exclusions con el mismo patrón -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
                     <release>21</release>
+                    <!--
+                        Clases que todavia usan Spring Data JPA y jakarta.persistence.
+                        El proyecto quedo definido con JDBC en el PR #172 y esas
+                        dependencias salieron del pom, asi que estas clases no compilan.
+                        Se excluyen del build para no perderlas: siguen en el repositorio
+                        y se van sacando de esta lista a medida que se migren a JDBC.
+                    -->
                     <excludes>
-                    <exclude>controller/PagoController.java</exclude>
-                    <exclude>entity/Mesero.java</exclude>
-                    <exclude>entity/Pago.java</exclude>
-                    <exclude>repository/DetallePedidoRepository.java</exclude>
-                    <exclude>repository/MeseroRepository.java</exclude>
-                    <exclude>repository/PagoRepository.java</exclude>
-                    <exclude>service/PagoService.java</exclude>
+                        <exclude>controller/PagoController.java</exclude>
+                        <exclude>entity/Mesero.java</exclude>
+                        <exclude>entity/Pago.java</exclude>
+                        <exclude>repository/DetallePedidoRepository.java</exclude>
+                        <exclude>repository/MeseroRepository.java</exclude>
+                        <exclude>repository/PagoRepository.java</exclude>
+                        <exclude>service/PagoService.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
-            <!-- Con esto, mvn sonar:sonar usa siempre la misma versión, tanto en local como en CI.-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
             </plugin>
+
             <!--
                 Taller de pruebas y metricas: informe HTML de resultados.
                 Se genera con 'mvn surefire-report:report-only' despues de
@@ -116,6 +120,7 @@
                 <artifactId>maven-surefire-report-plugin</artifactId>
                 <version>3.5.2</version>
             </plugin>
+
             <!--
                 Taller de pruebas y metricas: cobertura. El agente se engancha
                 antes de las pruebas y el reporte se escribe al terminar la
@@ -141,6 +146,14 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <configuration>
+                    <mainClass>Main</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>
