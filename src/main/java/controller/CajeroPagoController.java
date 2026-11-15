@@ -7,6 +7,7 @@ import service.descuento.DescuentoMontoFijo;
 import service.descuento.DescuentoPorcentaje;
 import service.descuento.DescuentoStrategy;
 import session.SesionUsuario;
+import util.MensajeTelegram;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -41,6 +42,7 @@ public class CajeroPagoController {
     @FXML private Button eliminarDescuentoButton;
     @FXML private Button eliminarPropinaButton;
     @FXML private Button cerrarPagoButton;
+    @FXML private Button btnEnviarMensaje;
 
     private final PagoDAO pagoDAO = new PagoDAO();
     private final CalculadoraDescuento calculadoraDescuento = new CalculadoraDescuento();
@@ -96,7 +98,7 @@ public class CajeroPagoController {
         propinaField.textProperty().addListener((obs, anterior, nuevo) -> recalcular());
         motivoDescuentoField.textProperty().addListener((obs, anterior, nuevo) -> recalcular());
 
-        if (!SesionUsuario.getInstance().estaAutenticado() || !SesionUsuario.getInstance().esCajero()) { //cambio a instance por singleton
+        if (!SesionUsuario.getInstance().estaAutenticado() || !SesionUsuario.getInstance().esCajero()) {
             cajeroLabel.setText("Sin sesión de Cajero");
             bloquearPantalla(true);
             Platform.runLater(() -> mostrarAlerta(
@@ -105,7 +107,7 @@ public class CajeroPagoController {
                     "Debe iniciar sesión con el rol Cajero para gestionar pagos."
             ));
         } else {
-            cajeroLabel.setText(SesionUsuario.getInstance().getNombre()); //cambio por singleton inicio sesión
+            cajeroLabel.setText(SesionUsuario.getInstance().getNombre());
             bloquearPantalla(false);
             recargarCuentas();
         }
@@ -113,10 +115,6 @@ public class CajeroPagoController {
 
     /**
      * HU-144: recarga las cuentas de la lista desplegable.
-     *
-     * Se llama al abrir la pantalla, con el boton "Actualizar" y despues de
-     * cerrar un pago, para que la cuenta recien cobrada aparezca ya marcada
-     * como pagada.
      */
     @FXML
     private void recargarCuentas() {
@@ -159,6 +157,7 @@ public class CajeroPagoController {
             setEdicionCuenta(true);
         }
 
+        btnEnviarMensaje.setDisable(false); // Habilitar botón de mensaje al tener cuenta seleccionada
         recalcular();
     }
 
@@ -169,22 +168,17 @@ public class CajeroPagoController {
             descuentoResumenLabel.setText(moneda.format(BigDecimal.ZERO));
             propinaResumenLabel.setText(moneda.format(BigDecimal.ZERO));
             totalLabel.setText(moneda.format(BigDecimal.ZERO));
+            btnEnviarMensaje.setDisable(true);
             return;
         }
 
         BigDecimal valorDescuento = leerValor(descuentoField.getText());
-        // El valor escrito se convierte a pesos con la estrategia elegida.
-        // Taller de pruebas: antes se llamaba directamente a la estrategia del
-        // combo, de modo que calculadoraDescuento se construia, recibia la
-        // estrategia y nunca se usaba. El contexto del patron Strategy estaba
-        // fuera del camino de ejecucion.
         BigDecimal descuento;
         try {
             descuento = valorDescuento == null
                     ? null
                     : calculadoraDescuento.calcular(cuentaActual.getSubtotal(), valorDescuento);
         } catch (IllegalArgumentException e) {
-            // La estrategia ahora valida el descuento; aqui solo se muestra.
             totalLabel.setText(e.getMessage());
             cerrarPagoButton.setDisable(true);
             return;
@@ -237,6 +231,22 @@ public class CajeroPagoController {
         motivoDescuentoField.clear();
     }
 
+    /**
+     * Envía el mensaje estático con el recibo de pago, agradecimiento y recomendación.
+     */
+    @FXML
+    private void handleEnviarMensaje() {
+        String mensaje = "¡Pago recibido con éxito! 🧾\n" +
+                "Gracias por tu compra en nuestro restaurante. 🍔\n" +
+                "¡Te esperamos de vuelta muy pronto!";
+
+        mostrarAlerta(
+                Alert.AlertType.INFORMATION,
+                "Recibo de Pago",
+                mensaje
+        );
+    }
+
     @FXML
     private void cerrarPago() {
         if (cuentaActual == null || cuentaActual.isPagada()) {
@@ -266,7 +276,7 @@ public class CajeroPagoController {
         try {
             pagoDAO.cerrarPago(
                     cuentaActual,
-                    SesionUsuario.getInstance().getUsuarioId(), //cambio por singleton iniciar sesión
+                    SesionUsuario.getInstance().getUsuarioId(),
                     motivoDescuentoField.getText()
             );
 
@@ -326,6 +336,7 @@ public class CajeroPagoController {
         propinaResumenLabel.setText(moneda.format(BigDecimal.ZERO));
         totalLabel.setText(moneda.format(BigDecimal.ZERO));
         setEdicionCuenta(false);
+        btnEnviarMensaje.setDisable(true);
     }
 
     private void setEdicionCuenta(boolean habilitada) {
@@ -343,6 +354,7 @@ public class CajeroPagoController {
         recargarButton.setDisable(bloqueada);
         if (bloqueada) {
             setEdicionCuenta(false);
+            btnEnviarMensaje.setDisable(true);
         }
     }
 

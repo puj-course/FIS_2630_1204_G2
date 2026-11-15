@@ -108,6 +108,10 @@
                         maxWidth="Infinity"
                         onAction="#cerrarPago"
                         styleClass="boton-principal"/>
+                <Button fx:id="btnEnviarMensaje"
+                        text="Enviar Recibo y Agradecimiento"
+                        maxWidth="Infinity"
+                        onAction="#handleEnviarMensaje"/>
 
             </VBox>
         </ScrollPane>
