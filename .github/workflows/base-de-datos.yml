@@ -1,0 +1,118 @@
+name: Base de datos
+
+# Comprueba que la base se pueda instalar desde cero con un solo comando y que
+# el script se pueda volver a correr sin romper nada.
+#
+# Es importante porque scripts/setup.sh es lo que usa todo el equipo para
+# montar su entorno y lo que usan los demas pipelines para levantar la base: si
+# se rompe, nadie puede trabajar y ningun otro workflow pasa.
+#
+# Corre cuando cambia algo de la base o del script, y una vez por semana para
+# detectar roturas que vengan de fuera, como un cambio en la imagen de Postgres.
+
+on:
+  push:
+    paths:
+      - 'db/**'
+      - 'scripts/setup.sh'
+      - '.github/workflows/base-de-datos.yml'
+  pull_request:
+    paths:
+      - 'db/**'
+      - 'scripts/setup.sh'
+  schedule:
+    # Lunes a las 07:13 UTC, que son las 2:13 de la manana en Colombia.
+    - cron: '13 7 * * 1'
+  workflow_dispatch:
+
+jobs:
+  instalar:
+    name: Instalar la base desde cero
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          # La base de este contenedor vive solo mientras dura el job y no sale
+          # del runner, asi que se autentica por confianza en vez de guardar una
+          # clave en el repositorio.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: ${{ github.run_id }}
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Instalar cliente PostgreSQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Preparar permisos del script
+        run: chmod +x scripts/setup.sh
+
+      - name: Instalar la base con datos de prueba
+        run: ./scripts/setup.sh --con-datos-prueba
+
+      # El script promete que se puede volver a correr sin duplicar datos ni
+      # fallar. Aqui se comprueba de verdad en vez de confiar en el comentario.
+      - name: Volver a correrlo para comprobar que no rompe nada
+        run: ./scripts/setup.sh --con-datos-prueba
+
+      - name: Comprobar que las tablas y los catálogos quedaron
+        run: |
+          faltan=0
+
+          contar() {
+            psql -At -d gastroflow -c "$1"
+          }
+
+          tablas=$(contar "SELECT count(*) FROM pg_tables WHERE schemaname = 'public'")
+          echo "tablas creadas: $tablas"
+          if [ "$tablas" -lt 25 ]; then
+            echo "ERROR: se esperaban al menos 25 tablas y hay $tablas"
+            faltan=1
+          fi
+
+          for tabla in estados_mesa roles usuarios zonas productos unidades_medida; do
+            filas=$(contar "SELECT count(*) FROM $tabla")
+            echo "  $tabla: $filas filas"
+            if [ "$filas" -eq 0 ]; then
+              echo "ERROR: la tabla $tabla quedo vacia"
+              faltan=1
+            fi
+          done
+
+          exit $faltan
+
+      - name: Comprobar que correrlo dos veces no duplicó datos
+        run: |
+          repetidos=$(psql -At -d gastroflow -c "
+            SELECT count(*) FROM (
+              SELECT codigo_estado FROM estados_mesa
+              GROUP BY codigo_estado HAVING count(*) > 1
+            ) AS repetidos")
+
+          echo "estados de mesa repetidos: $repetidos"
+          if [ "$repetidos" -ne 0 ]; then
+            echo "ERROR: la segunda corrida del script duplico datos"
+            exit 1
+          fi
+
+      - name: Comprobar que la base se puede volver a crear
+        run: ./scripts/setup.sh --recrear --con-datos-prueba

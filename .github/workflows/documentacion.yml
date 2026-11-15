@@ -1,0 +1,91 @@
+name: Documentación
+
+# Genera el Javadoc del proyecto y lo deja descargable como artefacto.
+#
+# Sirve para dos cosas. La primera es tener la documentacion de las clases sin
+# que nadie la arme a mano. La segunda, que en la practica importa mas, es que
+# el Javadoc falla cuando un comentario esta mal escrito: un @param que nombra
+# un parametro que ya no existe, una etiqueta sin cerrar, un @return en un
+# metodo void. Eso avisa que el comentario y el codigo se separaron.
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generar:
+    name: Generar el Javadoc
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 21 y caché Maven
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      # Primero la pasada estricta, que es la que avisa de los comentarios
+      # desactualizados. Si falla, se ve en el log cual es el problema, pero no
+      # se tumba el pipeline: el proyecto todavia tiene comentarios viejos y
+      # bloquear por eso frenaria a todo el equipo.
+      - name: Revisar que los comentarios estén bien escritos
+        id: estricto
+        continue-on-error: true
+        run: mvn --batch-mode javadoc:javadoc
+
+      - name: Avisar si hay comentarios por corregir
+        if: steps.estricto.outcome == 'failure'
+        run: |
+          echo "::warning::El Javadoc estricto encontro comentarios mal escritos."
+          echo "Revise el paso anterior: suele ser un @param que nombra un"
+          echo "parametro que ya no existe, o una etiqueta HTML sin cerrar."
+
+      # Y ahora la pasada permisiva, que siempre produce la documentacion.
+      - name: Generar la documentación
+        run: >
+          mvn --batch-mode javadoc:javadoc
+          -Dmaven.javadoc.failOnError=false
+          -Ddoclint=none
+
+      - name: Comprobar que la documentación quedó
+        run: |
+          destino=$(find target -name 'index.html' -path '*javadoc*' -o \
+                         -name 'index.html' -path '*apidocs*' | head -1)
+
+          if [ -z "$destino" ]; then
+            echo "ERROR: no se genero ninguna pagina de Javadoc"
+            exit 1
+          fi
+
+          carpeta=$(dirname "$destino")
+          paginas=$(find "$carpeta" -name '*.html' | wc -l)
+          echo "Javadoc generado en $carpeta con $paginas paginas"
+
+          if [ "$paginas" -lt 50 ]; then
+            echo "ERROR: solo se generaron $paginas paginas, el proyecto tiene"
+            echo "mas de cien clases. Algo quedo sin documentar."
+            exit 1
+          fi
+
+      - name: Publicar la documentación
+        uses: actions/upload-artifact@v4
+        with:
+          name: javadoc
+          retention-days: 30
+          path: |
+            target/site/apidocs/
+            target/reports/apidocs/

@@ -1,5 +1,8 @@
 package controller;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 import dao.ProductoDAO;
 import dto.ItemPedido;
@@ -23,6 +26,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MenuMeseroController {
+
+    private static final Logger LOG = Logger.getLogger(MenuMeseroController.class.getName());
 
     @FXML private VBox categoriasBox;
     @FXML private VBox pedidoBox;
@@ -64,11 +69,11 @@ public class MenuMeseroController {
         this.mesaId = mesaId;
         this.usuarioId = usuarioId;
 
-        System.out.println("======================================");
-        System.out.println(" PEDIDO CONFIGURADO");
-        System.out.println(" Mesa: " + mesaId);
-        System.out.println(" Usuario: " + usuarioId);
-        System.out.println("======================================");
+        LOG.fine("======================================");
+        LOG.fine(" PEDIDO CONFIGURADO");
+        LOG.fine(" Mesa: " + mesaId);
+        LOG.fine(" Usuario: " + usuarioId);
+        LOG.fine("======================================");
 
         /*
          * initialize() se ejecuta antes de configurarMesa().
@@ -104,22 +109,22 @@ public class MenuMeseroController {
             @Override
             protected Map<String, List<Producto>> call()
                     throws SQLException {
-                        System.out.println(">>> INICIANDO CARGA DEL MENU");
+                        LOG.fine(">>> INICIANDO CARGA DEL MENU");
                         Map<String, List<Producto>> resultado = productoDAO.obtenerMenuPorCategorias();
-                        System.out.println(">>> MENU CARGADO CORRECTAMENTE");
-                        System.out.println(">>> CATEGORIAS: " + resultado.keySet());
+                        LOG.fine(">>> MENU CARGADO CORRECTAMENTE");
+                        LOG.fine(">>> CATEGORIAS: " + resultado.keySet());
                         return resultado;
                     }
                 };
 
         tarea.setOnSucceeded(e -> {
-            System.out.println(">>> ENTRANDO A setOnSucceeded");
+            LOG.fine(">>> ENTRANDO A setOnSucceeded");
             menuCompleto = tarea.getValue();
-            System.out.println(">>> menuCompleto asignado");
+            LOG.fine(">>> menuCompleto asignado");
             actualizarCategorias();
-            System.out.println(">>> actualizarCategorias TERMINO");
+            LOG.fine(">>> actualizarCategorias TERMINO");
             mostrarMenuFiltrado();
-            System.out.println(">>> mostrarMenuFiltrado TERMINO");
+            LOG.fine(">>> mostrarMenuFiltrado TERMINO");
             /*
              * IMPORTANTE:
              *
@@ -133,9 +138,9 @@ public class MenuMeseroController {
             }
         });
 
-        tarea.setOnFailed(e -> {System.out.println(">>> TASK FALLO");
+        tarea.setOnFailed(e -> {LOG.fine(">>> TASK FALLO");
             if (e.getSource().getException() != null) {
-                e.getSource().getException().printStackTrace();
+                LOG.log(Level.SEVERE, "Error no controlado", e.getSource().getException());
             }
             mostrarError(tarea.getException());
         });
@@ -173,29 +178,29 @@ public class MenuMeseroController {
             @Override
             protected Optional<Pedido> call()
                     throws SQLException {
-                        System.out.println(">>> BUSCANDO PEDIDO ACTIVO");
+                        LOG.fine(">>> BUSCANDO PEDIDO ACTIVO");
                         return pedidoService.obtenerPedidoActivo(mesaId);
                     }
                 };
 
         tarea.setOnSucceeded(e -> {Optional<Pedido> resultado = tarea.getValue();
             if (resultado.isEmpty()) {
-                System.out.println(">>> NO HAY PEDIDO ACTIVO PARA LA MESA " + mesaId);
+                LOG.fine(">>> NO HAY PEDIDO ACTIVO PARA LA MESA " + mesaId);
                 return;
             }
 
             pedidoActual = resultado.get();
-            System.out.println(">>> PEDIDO ACTIVO ENCONTRADO: " + pedidoActual.getNumeroPedido());
-            System.out.println(">>> PRODUCTOS GUARDADOS: " + pedidoActual.getProductos());
+            LOG.fine(">>> PEDIDO ACTIVO ENCONTRADO: " + pedidoActual.getNumeroPedido());
+            LOG.fine(">>> PRODUCTOS GUARDADOS: " + pedidoActual.getProductos());
 
             try {
                 cargarProductosDesdeJson(pedidoActual.getProductos());
                 actualizarPedido();
-                System.out.println(">>> PEDIDO ACTIVO CARGADO EN LA INTERFAZ");
+                LOG.fine(">>> PEDIDO ACTIVO CARGADO EN LA INTERFAZ");
             } catch (Exception ex) {
                 pedidoActivoCargado = false;
-                System.out.println(">>> ERROR CARGANDO PRODUCTOS DEL PEDIDO");
-                ex.printStackTrace();
+                LOG.fine(">>> ERROR CARGANDO PRODUCTOS DEL PEDIDO");
+                LOG.log(Level.SEVERE, "Error no controlado", ex);
                 mostrarError(ex);
             }
         });
@@ -203,9 +208,9 @@ public class MenuMeseroController {
         tarea.setOnFailed(e -> {
             pedidoActivoCargado = false;
             Throwable error = tarea.getException();
-            System.out.println(">>> ERROR BUSCANDO PEDIDO ACTIVO");
+            LOG.fine(">>> ERROR BUSCANDO PEDIDO ACTIVO");
             if (error != null) {
-                error.printStackTrace();
+                LOG.log(Level.SEVERE, "Error no controlado", error);
             }
             mostrarError(error);
         });
@@ -251,13 +256,13 @@ public class MenuMeseroController {
 
             Producto producto = buscarProductoEnMenu(productoId);
             if (producto == null) {
-                System.out.println(">>> PRODUCTO " + productoId + " NO ENCONTRADO EN EL MENU");
+                LOG.fine(">>> PRODUCTO " + productoId + " NO ENCONTRADO EN EL MENU");
                 continue;
             }
 
             ItemPedido item = new ItemPedido(producto, cantidad);
             pedido.put(productoId, item);
-            System.out.println(">>> CARGADO: " + producto.getNombre() + " x " + cantidad);
+            LOG.fine(">>> CARGADO: " + producto.getNombre() + " x " + cantidad);
         }
     }
 
@@ -283,6 +288,8 @@ public class MenuMeseroController {
             try {
                 return Long.parseLong(matcher.group(1));
             } catch (NumberFormatException ignored) {
+                // El texto no traia un numero: se devuelve null mas abajo y
+                // el que llama decide que hacer.
             }
         }
         return null;
@@ -296,6 +303,8 @@ public class MenuMeseroController {
                         matcher.group(1)
                 );
             } catch (NumberFormatException ignored) {
+                // El texto no traia un numero: se devuelve null mas abajo y
+                // el que llama decide que hacer.
             }
         }
         return null;

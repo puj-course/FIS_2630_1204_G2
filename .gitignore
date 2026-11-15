@@ -43,3 +43,6 @@ temp/
 
 # Carpetas de herramientas externas
 Claude outputs/
+
+# Datos de conexion locales (HU de seguridad): cada quien el suyo
+conf/database.properties

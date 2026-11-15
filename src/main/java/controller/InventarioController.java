@@ -116,41 +116,8 @@ public class InventarioController {
                 )
         );
 
-        columnaStock.setCellFactory(
-                columna -> new TableCell<>() {
-                    @Override
-                    protected void updateItem(
-                            BigDecimal valor,
-                            boolean empty
-                    ) {
-                        super.updateItem(valor, empty);
-
-                        if (empty || valor == null) {
-                            setText(null);
-                        } else {
-                            setText(valor.stripTrailingZeros().toPlainString());
-                        }
-                    }
-                }
-        );
-
-        columnaStockMinimo.setCellFactory(
-                columna -> new TableCell<>() {
-                    @Override
-                    protected void updateItem(
-                            BigDecimal valor,
-                            boolean empty
-                    ) {
-                        super.updateItem(valor, empty);
-
-                        if (empty || valor == null) {
-                            setText(null);
-                        } else {
-                            setText(valor.stripTrailingZeros().toPlainString());
-                        }
-                    }
-                }
-        );
+        columnaStock.setCellFactory(columna -> celdaDeCantidad());
+        columnaStockMinimo.setCellFactory(columna -> celdaDeCantidad());
 
         columnaAlerta.setCellFactory(
                 columna -> new TableCell<>() {
@@ -307,6 +274,28 @@ public class InventarioController {
         etiquetaStockBajo.setText(
                 "Stock bajo: " + stockBajo
         );
+    }
+
+    /**
+     * Celda que muestra una cantidad de inventario sin los ceros de sobra:
+     * 12.50 se ve como 12.5 y 12.00 como 12.
+     *
+     * La usan la columna de stock actual y la de stock minimo, que antes
+     * repetian la misma celda palabra por palabra.
+     */
+    private TableCell<Ingrediente, BigDecimal> celdaDeCantidad() {
+        return new TableCell<>() {
+            @Override
+            protected void updateItem(BigDecimal valor, boolean empty) {
+                super.updateItem(valor, empty);
+
+                if (empty || valor == null) {
+                    setText(null);
+                } else {
+                    setText(valor.stripTrailingZeros().toPlainString());
+                }
+            }
+        };
     }
 
     /**

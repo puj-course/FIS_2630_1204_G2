@@ -24,7 +24,7 @@ public class DetallePedidoRepository {
      */
     public DetallePedido saveWithConn(Connection conn, DetallePedido d) throws SQLException {
         if (d.getId() == null) {
-            String sql = "INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario, subtotal) " +
+            String sql = "INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, subtotal) " +
                     "VALUES (?, ?, ?, ?, ?) RETURNING id";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setLong(1, d.getPedidoId());
@@ -39,7 +39,7 @@ public class DetallePedidoRepository {
                 }
             }
         } else {
-            String sql = "UPDATE detalle_pedido SET pedido_id = ?, producto_id = ?, cantidad = ?, precio_unitario = ?, subtotal = ? WHERE id = ?";
+            String sql = "UPDATE detalle_pedido SET pedido_id = ?, plato_id = ?, cantidad = ?, precio_unitario = ?, subtotal = ? WHERE id = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setLong(1, d.getPedidoId());
                 stmt.setLong(2, d.getProductoId());
@@ -61,7 +61,7 @@ public class DetallePedidoRepository {
             return;
         }
 
-        String sql = "INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             for (DetallePedido detalle : detalles) {
@@ -81,7 +81,7 @@ public class DetallePedidoRepository {
      */
     public List<DetallePedido> findByPedidoId(long pedidoId) throws SQLException {
         List<DetallePedido> detalles = new ArrayList<>();
-        String sql = "SELECT id, pedido_id, producto_id, cantidad, precio_unitario, subtotal " +
+        String sql = "SELECT id, pedido_id, plato_id AS producto_id, cantidad, precio_unitario, subtotal " +
                 "FROM detalle_pedido WHERE pedido_id = ?";
 
         try (Connection conn = ConexionBD.getConnection();

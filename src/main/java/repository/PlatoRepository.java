@@ -8,9 +8,21 @@ import entity.Plato;
 
 public class PlatoRepository {
 
+    /**
+     * Guarda un plato nuevo en la carta.
+     *
+     * La consulta escribia en una columna llamada "categoria", que no existe:
+     * la tabla productos guarda categoria_id, una llave foranea a categorias.
+     * Con eso, cualquier llamada terminaba en "column categoria does not
+     * exist". Ahora el nombre de la categoria se traduce a su identificador, y
+     * si no coincide con ninguna, el plato queda en la primera categoria en vez
+     * de perderse.
+     */
     public void guardar(Plato plato) throws SQLException {
-        String sql = "INSERT INTO productos (codigo, nombre, descripcion, categoria, precio_venta, costo) " +
-                "VALUES (?, ?, ?, ?, ?, ?)"; //variable que contiene la consulta en sql
+        String sql = "INSERT INTO productos (codigo, nombre, descripcion, categoria_id, precio_venta, costo) "
+                + "VALUES (?, ?, ?, "
+                + "COALESCE((SELECT categoria_id FROM categorias WHERE nombre = ? LIMIT 1), "
+                + "(SELECT min(categoria_id) FROM categorias)), ?, ?)";
 
         try (Connection conn = ConexionBD.getConnection(); //conecta con la base de datos
              PreparedStatement stmt = conn.prepareStatement(sql)) {

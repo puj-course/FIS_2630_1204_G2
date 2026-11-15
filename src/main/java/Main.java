@@ -1,3 +1,5 @@
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import session.SesionUsuario;
 import javafx.application.Application;
 import controller.LoginController;
@@ -38,6 +40,8 @@ import java.util.Optional;
  * Toda la apariencia vive en /css/navegacion.css; aquí solo se asignan clases.
  */
 public class Main extends Application {
+
+    private static final Logger LOG = Logger.getLogger(Main.class.getName());
 
     /** Un módulo del sistema, el rol que lo tiene asignado y su icono. */
     private record Modulo(String nombre, String detalle, String rol, String icono,
@@ -141,7 +145,7 @@ public class Main extends Application {
             ventana.setScene(escena);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.log(Level.SEVERE, "Error no controlado", e);
 
             Alert alerta = new Alert(Alert.AlertType.ERROR);
             alerta.setTitle("No se pudo abrir el inicio de sesión");
@@ -407,7 +411,7 @@ public class Main extends Application {
             ventana.show();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.log(Level.SEVERE, "Error no controlado", e);
 
             moduloAbierto = null;
             refrescarNavegacion();
@@ -430,7 +434,7 @@ public class Main extends Application {
     private boolean configurarMenuMeseroDesdeNavegacion(MenuMeseroController controller)
             throws Exception {
 
-        if (!SesionUsuario.estaAutenticado()) {
+        if (!SesionUsuario.getInstance().estaAutenticado()) {
             Alert alerta = new Alert(Alert.AlertType.WARNING);
             alerta.setTitle("Sesión requerida");
             alerta.setHeaderText(null);
@@ -477,7 +481,7 @@ public class Main extends Application {
         }
 
         Mesa mesa = elegida.get();
-        controller.configurarMesa(mesa.getIdMesa(), SesionUsuario.getUsuarioId());
+        controller.configurarMesa(mesa.getIdMesa(), SesionUsuario.getInstance().getUsuarioId());
         return true;
     }
 

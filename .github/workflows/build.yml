@@ -1,51 +1,86 @@
-  # Si el repositorio no usa main sino develop como rama principal, entonces
-  # build.yml puede quedar solo con workflow_dispatch y el análisis de develop
-  # lo hace ci.yml. Lo importante es que no haya dos workflows analizando el mismo PR.
-  name: SonarQube
+name: SonarQube
 
-  on:
-    push:
-      branches:
-        - main
-    pull_request:
-      types: [opened, synchronize, reopened]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
 
-  jobs:
-    build:
-      name: Build and analyze
-      runs-on: ubuntu-latest
+jobs:
+  build:
+    name: Build and analyze
+    runs-on: ubuntu-latest
 
-      steps:
-        - uses: actions/checkout@v4
-          with:
-            fetch-depth: 0
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          # Sin contrasena escrita aqui. La base de este contenedor vive solo
+          # mientras dura el job, no sale del runner y se tira al terminar, asi
+          # que se autentica por confianza en vez de guardar una clave en el
+          # repositorio.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
-        - name: Set up JDK 21
-          uses: actions/setup-java@v4
-          with:
-            java-version: 21
-            distribution: zulu
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      # La aplicacion exige que haya una contrasena definida, pero con
+      # autenticacion por confianza su valor da igual: se usa el identificador
+      # de la ejecucion para no dejar ninguna clave fija en el archivo.
+      PGPASSWORD: ${{ github.run_id }}
 
-        - name: Cache SonarQube packages
-          uses: actions/cache@v4
-          with:
-            path: ~/.sonar/cache
-            key: ${{ runner.os }}-sonar
-            restore-keys: ${{ runner.os }}-sonar
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
 
-        - name: Cache Maven packages
-          uses: actions/cache@v4
-          with:
-            path: ~/.m2
-            key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-            restore-keys: ${{ runner.os }}-m2
+      - name: Set up JDK 21
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.8.0
+        with:
+          java-version: 21
+          distribution: zulu
 
-        - name: Build and analyze
-          env:
-            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          run: >
-            mvn -B verify
-            org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
-            -Dsonar.projectKey=puj-course_FIS_2630_1204_G2
-            -Dsonar.organization=puj-course
-            -Dsonar.host.url=https://sonarcloud.io
+      - name: Cache SonarQube packages
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache Maven packages
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Instalar cliente PostgreSQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Crear esquema y datos de prueba
+        run: |
+          chmod +x scripts/setup.sh
+          ./scripts/setup.sh --con-datos-prueba
+
+      - name: Build and analyze
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: >
+          mvn -B verify
+          org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          -Dsonar.projectKey=puj-course_FIS_2630_1204_G2
+          -Dsonar.organization=puj-course
+          -Dsonar.host.url=https://sonarcloud.io

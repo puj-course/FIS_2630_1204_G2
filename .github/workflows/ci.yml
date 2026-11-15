@@ -1,7 +1,3 @@
-  # Este es el flujo real para PR hacia develop, push a develop y push a ramas features-*.
-  # Incluye PostgreSQL, instalación desde el snapshot canónico, pruebas, cobertura, control
-  # de pruebas ejecutadas y Sonar.
-
   name: CI
 
   on:
@@ -24,7 +20,11 @@
           env:
             POSTGRES_DB: postgres
             POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: postgres
+            # Sin contrasena escrita aqui. La base de este contenedor vive solo
+            # mientras dura el job, no sale del runner y se tira al terminar,
+            # asi que se autentica por confianza en vez de guardar una clave en
+            # el repositorio.
+            POSTGRES_HOST_AUTH_METHOD: trust
           ports:
             - 5432:5432
           options: >-
@@ -37,13 +37,20 @@
         PGHOST: localhost
         PGPORT: 5432
         PGUSER: postgres
-        PGPASSWORD: postgres
+        # La aplicacion exige que haya una contrasena definida, pero con
+        # autenticacion por confianza su valor da igual: se usa el
+        # identificador de la ejecucion para no dejar ninguna clave fija.
+        PGPASSWORD: ${{ github.run_id }}
+        # Taller de pruebas y metricas. Si el secreto no esta configurado el
+        # paso de SonarCloud se salta y el pipeline sigue pasando igual.
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       steps:
         - name: Descargar código
           uses: actions/checkout@v4
           with:
+            # SonarCloud necesita el historial completo para atribuir el codigo
+            # nuevo; con el clon superficial por defecto reporta mal.
             fetch-depth: 0
 
         - name: Configurar Java 21 y caché Maven
@@ -70,9 +77,24 @@
         - name: Ejecutar pruebas automatizadas
           run: mvn --batch-mode test
 
+        # ------------------------------------------------------------------
+        # Taller de pruebas y metricas
+        # ------------------------------------------------------------------
+
         - name: Generar el informe HTML de resultados
+          # Se genera aunque alguna prueba falle: el informe de un pipeline
+          # rojo es justamente el que hay que mirar.
           if: always()
           run: mvn --batch-mode surefire-report:report-only
+
+        - name: Generar el informe con la plantilla del plan de pruebas
+          # Cruza los resultados de Surefire con docs/planDePruebas.md y emite
+          # el informe con las mismas columnas del plan (punto 2 del taller).
+          # No tumba el build si el plan y las pruebas no coinciden: lo avisa
+          # en el log y lo marca en rojo dentro del propio informe.
+          if: always()
+          continue-on-error: true
+          run: python3 scripts/informe_pruebas.py
 
         - name: Publicar el informe de pruebas y la cobertura
           if: always()
@@ -81,11 +103,14 @@
             name: informe-de-pruebas
             retention-days: 30
             path: |
+              target/site/informe-pruebas.html
+              target/site/informe-pruebas.json
               target/site/surefire-report.html
               target/site/jacoco/
               target/surefire-reports/
 
         - name: Analizar la calidad con SonarCloud
+          # Se salta mientras no exista el secreto SONAR_TOKEN.
           if: ${{ env.SONAR_TOKEN != '' }}
           run: >
             mvn --batch-mode
@@ -103,16 +128,27 @@
             CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
             RESULTADO: ${{ needs.build-and-test.result }}
             REPO: ${{ github.repository }}
+            EVENTO: ${{ github.event_name == 'pull_request' && 'PR hacia develop' || 'push a develop' }}
+            AUTOR: ${{ github.event.head_commit.author.name || github.actor }}
+            MENSAJE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+            URL_COMMIT: ${{ github.event.head_commit.url || github.event.pull_request.html_url }}
             URL_RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           run: |
             if [ "$RESULTADO" = "success" ]; then
               ESTADO="✅ Pruebas OK"
+            elif [ "$RESULTADO" = "cancelled" ]; then
+              ESTADO="⚪ Ejecución cancelada"
             else
               ESTADO="❌ Pruebas FALLARON"
-            }
-            
-            TEXTO="${ESTADO} | Repo: ${REPO} | Ejecución: ${URL_RUN}"
-            
+            fi
+
+            TEXTO="${ESTADO} (${EVENTO})
+            Repo: ${REPO}
+            Autor: ${AUTOR}
+            Detalle: ${MENSAJE}
+            ${URL_COMMIT}
+            Ejecución: ${URL_RUN}"
+
             curl -sS -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
               --data-urlencode "chat_id=${CHAT_ID}" \
               --data-urlencode "text=${TEXTO}"

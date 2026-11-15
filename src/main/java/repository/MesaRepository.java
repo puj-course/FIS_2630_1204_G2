@@ -10,9 +10,25 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class MesaRepository {
+
+    /**
+     * Las consultas que leen las columnas opcionales de la tabla mesas.
+     *
+     * El esquema ha cambiado de nombres entre versiones, asi que el programa
+     * prueba varios hasta dar con el que existe. Antes la consulta se armaba
+     * pegando el nombre de la columna dentro del texto del SQL; ahora cada una
+     * esta escrita completa aqui y el nombre solo sirve para elegir cual usar.
+     */
+    private static final Map<String, String> CONSULTA_POR_COLUMNA = Map.of(
+            "cantidad_comensales", "SELECT cantidad_comensales FROM mesas WHERE id_mesa = ?",
+            "comensales",          "SELECT comensales FROM mesas WHERE id_mesa = ?",
+            "numero_comensales",   "SELECT numero_comensales FROM mesas WHERE id_mesa = ?",
+            "mesero_responsable",  "SELECT mesero_responsable FROM mesas WHERE id_mesa = ?",
+            "nombre_mesero",       "SELECT nombre_mesero FROM mesas WHERE id_mesa = ?");
 
     private static final String SELECT_BASE =
             "SELECT m.id_mesa, m.numero_mesa, m.codigo_mesa, m.capacidad, " +
@@ -100,7 +116,7 @@ public class MesaRepository {
             if (!existeColumna(conn, "mesas", columna)) {
                 continue;
             }
-            String sql = "SELECT " + columna + " FROM mesas WHERE id_mesa = ?";
+            String sql = consultaDe(columna);
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, idMesa);
                 try (ResultSet rs = stmt.executeQuery()) {
@@ -271,7 +287,7 @@ public class MesaRepository {
      * Obtiene un texto directamente de la tabla mesas.
      */
     private String obtenerTextoMesa(Connection conn, int idMesa, String columna) throws SQLException {
-        String sql = "SELECT " + columna + " FROM mesas WHERE id_mesa = ?";
+        String sql = consultaDe(columna);
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idMesa);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -282,6 +298,21 @@ public class MesaRepository {
             }
         }
     }
+    /**
+     * Devuelve la consulta ya escrita para una de las columnas opcionales.
+     *
+     * Si llega un nombre que no esta en la lista es un error de programacion,
+     * no un dato del usuario, asi que corta de una en vez de armar un SQL.
+     */
+    private static String consultaDe(String columna) {
+        String sql = CONSULTA_POR_COLUMNA.get(columna);
+        if (sql == null) {
+            throw new IllegalArgumentException(
+                    "No hay una consulta escrita para la columna '" + columna + "'.");
+        }
+        return sql;
+    }
+
     /**
      * Busca la primera tabla que exista.
      */
