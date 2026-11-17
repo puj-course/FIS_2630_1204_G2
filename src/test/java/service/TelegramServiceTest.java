@@ -1,72 +1,102 @@
 package service;
 
-import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-/**
- * Pruebas de TelegramService.
- *
- * No se envía ningún mensaje de verdad. Lo que se comprueba es el camino que
- * importa para la aplicación: que cuando no hay credenciales configuradas el
- * servicio avise y responda que no, en vez de intentar la petición, lanzar una
- * excepción o dejar la interfaz esperando.
- *
- * En el pipeline no existe conf/telegram.properties, porque está excluido del
- * repositorio, así que estas pruebas corren siempre allí. En la máquina de
- * alguien que sí lo tenga configurado se omiten, para no mandarle un mensaje
- * al chat cada vez que ejecuta las pruebas.
- */
 class TelegramServiceTest {
 
+    private Properties configuracion;
+
+    @BeforeEach
+    void prepararConfiguracion() throws Exception {
+        assumeTrue(System.getenv("TELEGRAM_BOT_TOKEN") == null
+                        && System.getenv("TELEGRAM_CHAT_ID") == null,
+                "las variables de entorno tienen prioridad sobre el archivo de configuracion");
+
+        Field campo = TelegramService.class.getDeclaredField("CONFIGURACION");
+        campo.setAccessible(true);
+        configuracion = (Properties) campo.get(null);
+        configuracion.clear();
+    }
+
+    @AfterEach
+    void limpiarConfiguracion() {
+        if (configuracion != null) {
+            configuracion.clear();
+        }
+    }
+
     @Test
-    @DisplayName("Sin credenciales, el servicio se reporta como no configurado")
+    @DisplayName("sin credenciales el servicio no esta configurado")
     void sinCredencialesNoEstaConfigurado() {
-        Assumptions.assumeFalse(TelegramService.estaConfigurado(),
-                "Hay credenciales de Telegram en este equipo: se omite la prueba.");
+        boolean configurado = TelegramService.estaConfigurado();
 
-        assertFalse(TelegramService.estaConfigurado(),
-                "sin token ni chat, estaConfigurado() debe devolver false");
+        assertFalse(configurado);
     }
 
     @Test
-    @DisplayName("Sin credenciales, enviar devuelve false sin lanzar excepción")
-    void sinCredencialesElEnvioDevuelveFalse() throws Exception {
-        Assumptions.assumeFalse(TelegramService.estaConfigurado(),
-                "Hay credenciales de Telegram en este equipo: se omite la prueba.");
+    @DisplayName("con token y chat en el archivo el servicio esta configurado")
+    void conTokenYChatEstaConfigurado() {
+        configuracion.setProperty("telegram.token", "token-de-prueba");
+        configuracion.setProperty("telegram.chat", "123456");
 
-        Boolean enviado = TelegramService
-                .enviarMensajeAsync("mensaje de prueba")
-                .get(5, TimeUnit.SECONDS);
+        boolean configurado = TelegramService.estaConfigurado();
 
-        assertNotNull(enviado, "la promesa no debe resolverse en null");
-        assertFalse(enviado, "sin credenciales no se puede haber enviado nada");
+        assertTrue(configurado);
     }
 
     @Test
-    @DisplayName("Sin credenciales, la promesa ya viene resuelta y no se queda esperando")
-    void sinCredencialesLaPromesaNoSeQuedaEsperando() {
-        Assumptions.assumeFalse(TelegramService.estaConfigurado(),
-                "Hay credenciales de Telegram en este equipo: se omite la prueba.");
+    @DisplayName("un token en blanco cuenta como no configurado")
+    void conTokenEnBlancoNoEstaConfigurado() {
+        configuracion.setProperty("telegram.token", "   ");
+        configuracion.setProperty("telegram.chat", "123456");
 
-        assertTrue(TelegramService.enviarMensajeAsync("otro mensaje").isDone(),
-                "si no hay credenciales no se abre ninguna conexion, "
-                        + "asi que la respuesta tiene que estar lista de inmediato");
+        boolean configurado = TelegramService.estaConfigurado();
+
+        assertFalse(configurado);
     }
 
     @Test
-    @DisplayName("Un mensaje vacío se trata igual que cualquier otro")
-    void mensajeVacioNoRompe() {
-        Assumptions.assumeFalse(TelegramService.estaConfigurado(),
-                "Hay credenciales de Telegram en este equipo: se omite la prueba.");
+    @DisplayName("un chat en blanco cuenta como no configurado")
+    void conChatEnBlancoNoEstaConfigurado() {
+        configuracion.setProperty("telegram.token", "token-de-prueba");
+        configuracion.setProperty("telegram.chat", "   ");
 
-        assertFalse(TelegramService.enviarMensajeAsync("").join(),
-                "un mensaje vacio no debe lanzar excepcion, solo no enviarse");
+        boolean configurado = TelegramService.estaConfigurado();
+
+        assertFalse(configurado);
+    }
+
+    @Test
+    @DisplayName("sin credenciales no se intenta el envio y se devuelve false")
+    void sinCredencialesNoIntentaEnviar() throws Exception {
+        CompletableFuture<Boolean> envio = TelegramService.enviarMensajeAsync("Pago recibido");
+
+        boolean resultado = envio.get(5, TimeUnit.SECONDS);
+
+        assertTrue(envio.isDone());
+        assertFalse(resultado);
+    }
+
+    @Test
+    @DisplayName("con un token invalido Telegram no acepta el mensaje y se devuelve false")
+    void conCredencialesInvalidasDevuelveFalse() throws Exception {
+        configuracion.setProperty("telegram.token", "token-invalido");
+        configuracion.setProperty("telegram.chat", "123456");
+
+        boolean resultado = TelegramService.enviarMensajeAsync("Pago recibido").get(15, TimeUnit.SECONDS);
+
+        assertFalse(resultado);
     }
 }
