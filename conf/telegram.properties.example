@@ -1,2 +1,2 @@
-telegram.token=TOKEN_DEL_BOT
-telegram.chat=ID_DEL_CHAT
+telegram.bot.token=9199856212:AAEOfCgI8x0V7v9l8oHtN8XrQCKV4AXtgrw
+telegram.chat.id=9028284763
