@@ -281,6 +281,27 @@ public class MenuMeseroController {
         return null;
     }
 
+    /**
+     * Avisa, y responde si el pedido ya no se puede modificar.
+     *
+     * Una vez descontado el inventario, cambiar el pedido dejaria el pedido y
+     * el inventario desincronizados. Este aviso estaba escrito tres veces en
+     * la clase, palabra por palabra.
+     */
+    private boolean pedidoYaConfirmado(String detalle) {
+        if (pedidoActual == null || !pedidoActual.isInventarioDescontado()) {
+            return false;
+        }
+
+        Alert alerta = new Alert(Alert.AlertType.WARNING);
+        alerta.setTitle("Pedido confirmado");
+        alerta.setHeaderText("No se puede modificar el pedido");
+        alerta.setContentText(detalle);
+        alerta.showAndWait();
+
+        return true;
+    }
+
     private Long extraerLong(String texto, String expresion) {
         Pattern pattern = Pattern.compile(expresion);
         Matcher matcher = pattern.matcher(texto);
@@ -294,20 +315,20 @@ public class MenuMeseroController {
         }
         return null;
     }
+    /**
+     * Igual que extraerLong, pero acotado al rango de un int. Se apoya en el
+     * otro metodo en vez de repetir la misma busqueda: un numero fuera de
+     * rango devuelve null, que es lo que hacia antes Integer.parseInt al
+     * fallar.
+     */
     private Integer extraerInteger(String texto, String expresion) {
-        Pattern pattern = Pattern.compile(expresion);
-        Matcher matcher = pattern.matcher(texto);
-        if (matcher.find()) {
-            try {
-                return Integer.parseInt(
-                        matcher.group(1)
-                );
-            } catch (NumberFormatException ignored) {
-                // El texto no traia un numero: se devuelve null mas abajo y
-                // el que llama decide que hacer.
-            }
+        Long valor = extraerLong(texto, expresion);
+
+        if (valor == null || valor < Integer.MIN_VALUE || valor > Integer.MAX_VALUE) {
+            return null;
         }
-        return null;
+
+        return valor.intValue();
     }
 
     @FXML
@@ -423,12 +444,8 @@ public class MenuMeseroController {
          * Esto evita que el pedido y el inventario queden
          * desincronizados.
          */
-        if (pedidoActual != null && pedidoActual.isInventarioDescontado()) {
-            Alert alerta = new Alert(Alert.AlertType.WARNING);
-            alerta.setTitle("Pedido confirmado");
-            alerta.setHeaderText("No se puede modificar el pedido");
-            alerta.setContentText("El inventario de este pedido ya fue descontado. " + "No puedes agregar más productos.");
-            alerta.showAndWait();
+        if (pedidoYaConfirmado("El inventario de este pedido ya fue descontado. "
+                + "No puedes agregar más productos.")) {
             return;
         }
         try {
@@ -474,12 +491,7 @@ public class MenuMeseroController {
                 Button eliminar = new Button("Eliminar");
                 mas.setOnAction(e -> agregarProducto(item.getProducto()));
                 menos.setOnAction(e -> {
-                    if (pedidoActual != null && pedidoActual.isInventarioDescontado()) {
-                        Alert alerta = new Alert(Alert.AlertType.WARNING);
-                        alerta.setTitle("Pedido confirmado");
-                        alerta.setHeaderText("No se puede modificar el pedido");
-                        alerta.setContentText("El inventario de este pedido ya fue descontado.");
-                        alerta.showAndWait();
+                    if (pedidoYaConfirmado("El inventario de este pedido ya fue descontado.")) {
                         return;
                     }
                     if (item.getCantidad() == 1) {
@@ -491,12 +503,7 @@ public class MenuMeseroController {
                 });
 
                 eliminar.setOnAction(e -> {
-                    if (pedidoActual != null && pedidoActual.isInventarioDescontado()) {
-                        Alert alerta = new Alert(Alert.AlertType.WARNING);
-                        alerta.setTitle("Pedido confirmado");
-                        alerta.setHeaderText("No se puede modificar el pedido");
-                        alerta.setContentText("El inventario de este pedido ya fue descontado.");
-                        alerta.showAndWait();
+                    if (pedidoYaConfirmado("El inventario de este pedido ya fue descontado.")) {
                         return;
                     }
                     pedido.remove(item.getProducto().getProductoId());
