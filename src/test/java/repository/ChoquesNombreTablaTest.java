@@ -69,7 +69,7 @@ class ChoquesNombreTablaTest {
             st.executeUpdate("DELETE FROM clientes WHERE numero_documento LIKE 'HU115-%'");
             st.executeUpdate("DELETE FROM plato_insumo WHERE plato_id = " + idProducto);
             st.executeUpdate("UPDATE productos SET estado = 'DISPONIBLE' "
-                           + "WHERE producto_id = " + idProducto);
+                    + "WHERE producto_id = " + idProducto);
         }
     }
 
@@ -89,12 +89,12 @@ class ChoquesNombreTablaTest {
     void guardarCliente() throws SQLException {
         new ClienteRepository().guardar(
                 new Cliente("CC", DOCUMENTO, "Ana", "Perez",
-                            "hu115.ana@prueba.com", "3001112233"));
+                        "hu115.ana@prueba.com", "3001112233"));
 
         try (Connection cn = ConexionBD.getConnection();
              PreparedStatement st = cn.prepareStatement(
                      "SELECT nombre, apellido, telefono, id_tipo_documento "
-                   + "FROM clientes WHERE numero_documento = ?")) {
+                             + "FROM clientes WHERE numero_documento = ?")) {
             st.setString(1, DOCUMENTO);
             ResultSet rs = st.executeQuery();
 
@@ -113,7 +113,7 @@ class ChoquesNombreTablaTest {
         SQLException e = assertThrows(SQLException.class, () ->
                 new ClienteRepository().guardar(
                         new Cliente("NO-EXISTE", DOCUMENTO, "Ana", "Perez",
-                                    "hu115.ana@prueba.com", "3001112233")));
+                                "hu115.ana@prueba.com", "3001112233")));
 
         assertTrue(e.getMessage().contains("no existe"),
                 "El mensaje deberia decir que el tipo de documento no existe: " + e.getMessage());
@@ -154,7 +154,7 @@ class ChoquesNombreTablaTest {
         try (Connection cn = ConexionBD.getConnection();
              Statement st = cn.createStatement()) {
             st.executeUpdate("UPDATE productos SET estado = 'INACTIVO' "
-                           + "WHERE producto_id = " + idProducto);
+                    + "WHERE producto_id = " + idProducto);
         }
 
         new DisponibilidadService().actualizarDisponibilidad((int) idProducto);
@@ -175,7 +175,7 @@ class ChoquesNombreTablaTest {
         try (Connection cn = ConexionBD.getConnection();
              Statement st = cn.createStatement()) {
             st.executeUpdate("UPDATE ingredientes SET stock_actual = " + cantidad
-                           + " WHERE ingrediente_id = " + idIngrediente);
+                    + " WHERE ingrediente_id = " + idIngrediente);
         }
     }
 

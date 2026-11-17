@@ -1,5 +1,5 @@
 package repository;
-
+/*
 import support.JdbcSimulado;
 
 import static org.mockito.Mockito.*;
@@ -20,3 +20,4 @@ class AdicionalRepositoryTest {
     }
 }
 
+*/

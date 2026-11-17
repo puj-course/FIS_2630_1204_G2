@@ -2,7 +2,7 @@ INSERT INTO ingredientes
 (
     nombre,
     descripcion,
-    unidad_medida_id,
+    unidad_medida,
     costo_unitario,
     stock_actual,
     stock_minimo,
@@ -13,7 +13,7 @@ VALUES
     (
         'Carne de res',
         'Carne de res para hamburguesas',
-        (SELECT unidad_medida_id FROM unidades_medida WHERE codigo = 'KG'),
+        'KG',
         25000,
         10.0000,
         2.0000,
@@ -23,7 +23,7 @@ VALUES
     (
         'Pan de hamburguesa',
         'Pan para hamburguesas',
-        (SELECT unidad_medida_id FROM unidades_medida WHERE codigo = 'UND'),
+        'UND',
         1500,
         20.0000,
         5.0000,
@@ -33,7 +33,7 @@ VALUES
     (
         'Pollo',
         'Pechuga de pollo',
-        (SELECT unidad_medida_id FROM unidades_medida WHERE codigo = 'KG'),
+        'KG',
         18000,
         10.0000,
         2.0000,
@@ -43,7 +43,7 @@ VALUES
     (
         'Queso',
         'Queso para hamburguesas',
-        (SELECT unidad_medida_id FROM unidades_medida WHERE codigo = 'G'),
+        'G',
         20,
         1000.0000,
         200.0000,

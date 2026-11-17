@@ -94,13 +94,13 @@
                         y se van sacando de esta lista a medida que se migren a JDBC.
                     -->
                     <excludes>
-                            <exclude>controller/PagoController.java</exclude>
-                            <exclude>entity/Mesero.java</exclude>
-                            <exclude>entity/Pago.java</exclude>
-                            <exclude>repository/DetallePedidoRepository.java</exclude>
-                            <exclude>repository/MeseroRepository.java</exclude>
-                            <exclude>repository/PagoRepository.java</exclude>
-                            <exclude>service/PagoService.java</exclude>
+                        <exclude>controller/PagoController.java</exclude>
+                        <exclude>entity/Mesero.java</exclude>
+                        <exclude>entity/Pago.java</exclude>
+                        <exclude>repository/DetallePedidoRepository.java</exclude>
+                        <exclude>repository/MeseroRepository.java</exclude>
+                        <exclude>repository/PagoRepository.java</exclude>
+                        <exclude>service/PagoService.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>

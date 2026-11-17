@@ -8,6 +8,7 @@ INSERT INTO mesas (
     capacidad,
     id_zona,
     id_estado_mesa,
+    cantidad_comensales,
     is_active,
     created_at,
     updated_at
@@ -18,10 +19,11 @@ SELECT
     4,
     (SELECT id_zona FROM zonas WHERE nombre_zona = 'Salón principal'),
     (SELECT id_estado_mesa FROM estados_mesa WHERE codigo_estado = 'DISPONIBLE'),
+    NULL,
     1,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
-WHERE NOT EXISTS (
+    WHERE NOT EXISTS (
     SELECT 1 FROM mesas WHERE codigo_mesa = 'MESA-001'
 )
 AND EXISTS (SELECT 1 FROM zonas WHERE nombre_zona = 'Salón principal')
