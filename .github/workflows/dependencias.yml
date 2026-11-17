@@ -20,15 +20,22 @@ on:
     - cron: '23 8 * * 2'
   workflow_dispatch:
 
+# Solo lectura por defecto. El permiso de escritura lo pide unicamente el
+# trabajo que lo necesita, mas abajo.
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   revisar-el-cambio:
     name: Revisar las dependencias que cambian
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+
+    # dependency-review-action escribe un comentario en el pull request.
+    # El permiso vive aqui y no arriba, para que el otro trabajo no lo herede.
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Descargar código
