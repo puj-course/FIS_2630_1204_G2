@@ -14,12 +14,11 @@ import java.util.Optional;
 public class AlertaInventarioRepository {
 
     /**
-     * Obtiene todas las alertas pendientes.
+     * Columnas que lee map(). Estaba escrita dos veces, palabra por palabra,
+     * en las dos consultas de esta clase: agregar una columna a la tabla
+     * obligaba a acordarse de tocar los dos sitios.
      */
-    public List<AlertaInventario> findPendientes()
-            throws SQLException {
-
-        String sql = """
+    private static final String SELECT_BASE = """
                 SELECT id,
                        ingrediente_id,
                        producto_id,
@@ -30,6 +29,15 @@ public class AlertaInventarioRepository {
                        created_at,
                        resolved_at
                 FROM alerta_inventario
+            """;
+
+    /**
+     * Obtiene todas las alertas pendientes.
+     */
+    public List<AlertaInventario> findPendientes()
+            throws SQLException {
+
+        String sql = SELECT_BASE + """
                 WHERE estado = 'PENDIENTE'
                 ORDER BY created_at DESC
                 """;
@@ -55,17 +63,7 @@ public class AlertaInventarioRepository {
             long ingredienteId
     ) throws SQLException {
 
-        String sql = """
-                SELECT id,
-                       ingrediente_id,
-                       producto_id,
-                       stock_actual,
-                       stock_minimo,
-                       cantidad_sugerida,
-                       estado,
-                       created_at,
-                       resolved_at
-                FROM alerta_inventario
+        String sql = SELECT_BASE + """
                 WHERE ingrediente_id = ?
                   AND estado = 'PENDIENTE'
                 ORDER BY created_at DESC

@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import service.PedidoService;
+import support.DatosDeMesas;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -69,11 +70,11 @@ class PedidoModuloFuncionalTest {
     @BeforeAll
     static void prepararDatos() {
         try (Connection conn = ConexionBD.getConnection()) {
-            asegurarEstados(conn);
+            DatosDeMesas.asegurarEstados(conn);
             idUsuario = buscarUsuario(conn);
-            idZona = crearZonaDePrueba(conn);
-            idMesaUno = crearMesa(conn, NUMERO_BASE + 1);
-            idMesaDos = crearMesa(conn, NUMERO_BASE + 2);
+            idZona = DatosDeMesas.crearZona(conn, ZONA_PRUEBA);
+            idMesaUno = DatosDeMesas.crearMesa(conn, idZona, NUMERO_BASE + 1, 4);
+            idMesaDos = DatosDeMesas.crearMesa(conn, idZona, NUMERO_BASE + 2, 4);
         } catch (SQLException e) {
             Assumptions.abort("No hay base de datos disponible, se omiten las pruebas "
                     + "del modulo de pedidos: " + e.getMessage());
@@ -376,67 +377,4 @@ class PedidoModuloFuncionalTest {
         }
     }
 
-    private static void asegurarEstados(Connection conn) throws SQLException {
-        try (PreparedStatement stmt = conn.prepareStatement(
-                "INSERT INTO estados_mesa (codigo_estado, descripcion) " +
-                "SELECT ?, ? WHERE NOT EXISTS " +
-                "  (SELECT 1 FROM estados_mesa WHERE UPPER(codigo_estado) = ?)")) {
-
-            for (String[] estado : new String[][]{{"LIBRE", "Libre"}, {"OCUPADA", "Ocupada"}}) {
-                stmt.setString(1, estado[0]);
-                stmt.setString(2, estado[1]);
-                stmt.setString(3, estado[0]);
-                stmt.executeUpdate();
-            }
-        }
-    }
-
-    private static int crearZonaDePrueba(Connection conn) throws SQLException {
-        try (PreparedStatement buscar = conn.prepareStatement(
-                "SELECT id_zona FROM zonas WHERE nombre_zona = ?")) {
-            buscar.setString(1, ZONA_PRUEBA);
-            try (ResultSet rs = buscar.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("id_zona");
-                }
-            }
-        }
-
-        try (PreparedStatement insertar = conn.prepareStatement(
-                "INSERT INTO zonas (nombre_zona) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
-            insertar.setString(1, ZONA_PRUEBA);
-            insertar.executeUpdate();
-
-            try (ResultSet llaves = insertar.getGeneratedKeys()) {
-                assertTrue(llaves.next(), "no se pudo crear la zona de prueba");
-                return llaves.getInt(1);
-            }
-        }
-    }
-
-    private static int crearMesa(Connection conn, int numeroMesa) throws SQLException {
-        try (PreparedStatement borrar = conn.prepareStatement(
-                "DELETE FROM mesas WHERE numero_mesa = ?")) {
-            borrar.setInt(1, numeroMesa);
-            borrar.executeUpdate();
-        }
-
-        try (PreparedStatement insertar = conn.prepareStatement(
-                "INSERT INTO mesas (numero_mesa, codigo_mesa, capacidad, id_zona, " +
-                "                   id_estado_mesa, is_active) " +
-                "VALUES (?, ?, 4, ?, (SELECT id_estado_mesa FROM estados_mesa " +
-                "                     WHERE UPPER(codigo_estado) = 'LIBRE'), 1)",
-                Statement.RETURN_GENERATED_KEYS)) {
-
-            insertar.setInt(1, numeroMesa);
-            insertar.setString(2, String.format("P-%04d", numeroMesa));
-            insertar.setInt(3, idZona);
-            insertar.executeUpdate();
-
-            try (ResultSet llaves = insertar.getGeneratedKeys()) {
-                assertTrue(llaves.next(), "no se pudo crear la mesa de prueba " + numeroMesa);
-                return llaves.getInt(1);
-            }
-        }
-    }
 }

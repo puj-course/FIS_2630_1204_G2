@@ -3,7 +3,6 @@ package repository;
 import ConexionBD.ConexionBD;
 import entity.Mesa;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +10,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import support.DatosDeMesas;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -64,10 +64,10 @@ class MesaModuloFuncionalTest {
     @BeforeAll
     static void prepararDatos() throws SQLException {
         try (Connection conn = ConexionBD.getConnection()) {
-            asegurarEstados(conn);
-            idZona = crearZonaDePrueba(conn);
-            idMesaCuatro = crearMesa(conn, NUMERO_BASE + 1, 4);
-            idMesaDos = crearMesa(conn, NUMERO_BASE + 2, 2);
+            DatosDeMesas.asegurarEstados(conn);
+            idZona = DatosDeMesas.crearZona(conn, ZONA_PRUEBA);
+            idMesaCuatro = DatosDeMesas.crearMesa(conn, idZona, NUMERO_BASE + 1, 4);
+            idMesaDos = DatosDeMesas.crearMesa(conn, idZona, NUMERO_BASE + 2, 2);
         } catch (SQLException e) {
             System.err.println("ERROR preparando las pruebas de mesas:");
             e.printStackTrace();
@@ -384,69 +384,4 @@ class MesaModuloFuncionalTest {
         }
     }
 
-    private static void asegurarEstados(Connection conn) throws SQLException {
-        try (PreparedStatement stmt = conn.prepareStatement(
-                "INSERT INTO estados_mesa (codigo_estado, descripcion) " +
-                        "SELECT ?, ? WHERE NOT EXISTS " +
-                        "  (SELECT 1 FROM estados_mesa WHERE UPPER(codigo_estado) = ?)")) {
-
-            for (String[] estado : new String[][]{
-                    {"LIBRE", "Libre"}, {"OCUPADA", "Ocupada"}, {"RESERVADA", "Reservada"}}) {
-                stmt.setString(1, estado[0]);
-                stmt.setString(2, estado[1]);
-                stmt.setString(3, estado[0]);
-                stmt.executeUpdate();
-            }
-        }
-    }
-
-    private static int crearZonaDePrueba(Connection conn) throws SQLException {
-        try (PreparedStatement buscar = conn.prepareStatement(
-                "SELECT id_zona FROM zonas WHERE nombre_zona = ?")) {
-            buscar.setString(1, ZONA_PRUEBA);
-            try (ResultSet rs = buscar.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("id_zona");
-                }
-            }
-        }
-
-        try (PreparedStatement insertar = conn.prepareStatement(
-                "INSERT INTO zonas (nombre_zona) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
-            insertar.setString(1, ZONA_PRUEBA);
-            insertar.executeUpdate();
-
-            try (ResultSet llaves = insertar.getGeneratedKeys()) {
-                assertTrue(llaves.next(), "no se pudo crear la zona de prueba");
-                return llaves.getInt(1);
-            }
-        }
-    }
-
-    private static int crearMesa(Connection conn, int numeroMesa, int capacidad) throws SQLException {
-        try (PreparedStatement borrar = conn.prepareStatement(
-                "DELETE FROM mesas WHERE numero_mesa = ?")) {
-            borrar.setInt(1, numeroMesa);
-            borrar.executeUpdate();
-        }
-
-        try (PreparedStatement insertar = conn.prepareStatement(
-                "INSERT INTO mesas (numero_mesa, codigo_mesa, capacidad, id_zona, " +
-                "                   id_estado_mesa, is_active) " +
-                "VALUES (?, ?, ?, ?, (SELECT id_estado_mesa FROM estados_mesa " +
-                "                     WHERE UPPER(codigo_estado) = 'LIBRE'), 1)",
-                Statement.RETURN_GENERATED_KEYS)) {
-
-            insertar.setInt(1, numeroMesa);
-            insertar.setString(2, String.format("P-%04d", numeroMesa));
-            insertar.setInt(3, capacidad);
-            insertar.setInt(4, idZona);
-            insertar.executeUpdate();
-
-            try (ResultSet llaves = insertar.getGeneratedKeys()) {
-                assertTrue(llaves.next(), "no se pudo crear la mesa de prueba " + numeroMesa);
-                return llaves.getInt(1);
-            }
-        }
-    }
 }
