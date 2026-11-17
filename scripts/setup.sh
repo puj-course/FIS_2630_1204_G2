@@ -37,15 +37,15 @@ RECREAR=0
 while [ $# -gt 0 ]; do
     case "$1" in
         --db)
-            [ $# -ge 2 ] || { echo "Falta el nombre después de --db" >&2; exit 2; }
+            [ $# -ge 2 ] || { echo "Falta el nombre despues de --db" >&2; exit 2; }
             DB_NOMBRE="$2"; shift 2 ;;
         --con-datos-prueba) CON_DATOS=1; shift ;;
         --recrear)          RECREAR=1;  shift ;;
         --help|-h)
-            sed -n '2,25p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+            sed -n '2,28p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
             exit 0 ;;
         *)
-            echo "Opción desconocida: $1" >&2
+            echo "Opcion desconocida: $1" >&2
             echo "Use --help para ver las opciones." >&2
             exit 2 ;;
     esac
@@ -71,14 +71,14 @@ error() { printf '%serror:%s %s\n' "$ROJO" "$FIN" "$1" >&2; }
 
 for cmd in psql createdb dropdb; do
     command -v "$cmd" >/dev/null 2>&1 || {
-        error "no se encontró '$cmd'. Instale PostgreSQL y agregue su carpeta bin al PATH."
+        error "no se encontro '$cmd'. Instale PostgreSQL y agregue su carpeta bin al PATH."
         exit 1
     }
 done
 
 if ! psql -d postgres -c 'SELECT 1' >/dev/null 2>&1; then
     error "no se pudo conectar a PostgreSQL en $PGHOST:$PGPORT como '$PGUSER'."
-    echo  "       Revise que el servidor esté corriendo y que PGUSER y PGPASSWORD sean correctos." >&2
+    echo  "       Revise que el servidor este corriendo y que PGUSER y PGPASSWORD sean correctos." >&2
     exit 1
 fi
 
@@ -89,7 +89,6 @@ fi
 # Corre un archivo .sql o .ddl contra la base. ON_ERROR_STOP hace que psql
 # devuelva un codigo distinto de cero ante cualquier error, que es lo que
 # convierte un fallo silencioso en un fallo visible.
-
 aplicar() {
     local archivo="$1"
     local nombre="${archivo#$DB_DIR/}"
@@ -97,7 +96,7 @@ aplicar() {
     [ -f "$archivo" ] || { error "falta el archivo $nombre"; exit 1; }
 
     if ! salida=$(psql -q -v ON_ERROR_STOP=1 -d "$DB_NOMBRE" -f "$archivo" 2>&1); then
-        error "falló $nombre"
+        error "fallo $nombre"
         printf '%s\n' "$salida" | sed 's/^/       /' >&2
         exit 1
     fi
@@ -120,6 +119,7 @@ crear_tabla_si_falta() {
         aplicar "$DB_DIR/ddl/$tabla.ddl"
     fi
 }
+
 # ------------------------------------------------------------- crear la base --
 
 existe=$(psql -At -d postgres \
@@ -132,6 +132,8 @@ if [ "$existe" = "1" ]; then
         createdb "$DB_NOMBRE"
         ok "base '$DB_NOMBRE' recreada"
     else
+        # La base ya existe: se completa lo que falte en lugar de fallar. Correr
+        # el script dos veces seguidas tiene que ser seguro.
         paso "la base '$DB_NOMBRE' ya existe: se completa lo que falte"
         echo "   (use --recrear para borrarla y empezar de cero)"
     fi
@@ -143,40 +145,35 @@ fi
 
 # ---------------------------------------------------------------------- DDL --
 #
-# El orden importa por las llaves foráneas. Se crea directamente desde db/ddl/
-# sin depender de scripts de migración ni columnas JSONB obsoletas.
+# El orden importa: hay llaves foraneas entre las tablas. Esta lista es la unica
+# fuente del orden; el README de db/ddl la refleja.
 
 paso "creando las tablas"
 
 TABLAS=(
-    # 1. Catálogos sin dependencias
-    roles
-    tipos_documento
-    zonas
-    estados_mesa
-    categorias
-    # 2. Personal y clientes
+    # catalogos, sin dependencias
+    roles tipos_documento zonas estados_mesa unidades_medida categorias proveedores categoria_ingrediente
+    # dependen de los catalogos
     usuarios                  # roles, tipos_documento
     clientes                  # tipos_documento, usuarios
-    # 3. Mesas
     mesas                     # zonas, estados_mesa
-    historial_estado_mesa     # mesas, estados_mesa
-    nota_mesa                 # mesas
-    # 4. Inventario y menú (modelo centralizado en ingredientes)
+    ingredientes              # unidades_medida
+    lote_ingrediente          # ingredientes (HU-138)
     productos                 # categorias
-    ingredientes
-    producto_ingrediente      # productos, ingredientes
-    # 5. Pedidos
+    precios_producto          # productos
     pedidos                   # clientes, mesas, usuarios
     detalle_pedido            # pedidos, productos
-    # 6. Adicionales, movimientos y alertas
-    adicional
-    detalle_pedido_adicional  # detalle_pedido, adicional
     movimientos_inventario    # productos, ingredientes, usuarios
     alerta_inventario         # ingredientes, productos
-    # 7. Proceso de venta general
-    reservas                  # mesas, clientes
+    pagos                     # pedidos, usuarios
+    historial_estado_mesa     # mesas, estados_mesa
+    nota_mesa                 # mesas
+    reservas                  # mesas
+    # HU-115
+    adicional
     asignacion_mesa           # mesas, usuarios
+    detalle_pedido_adicional  # detalle_pedido, adicional
+    plato_insumo              # productos, ingredientes
     regla_descuento
 )
 
@@ -186,39 +183,47 @@ done
 
 # --------------------------------------------------------------- funciones --
 #
-# Las funciones almacenadas y triggers (disponibilidad, cálculo de faltantes,
-# limpieza de notas de mesa) se aplican desde db/functions/.
+# db-hu082-login.sql queda fuera a proposito: inserta en una tabla "usuario" que
+# creaba Hibernate cuando el proyecto iba a usar Spring. Con la arquitectura JDBC
+# esa tabla no existe. Los usuarios de acceso los siembra la migracion 008.
 
+# Las cinco funciones se declaran con CREATE OR REPLACE, asi que volver a
+# aplicarlas sobre una base ya armada es seguro.
 paso "creando las funciones almacenadas"
-for f in "$DB_DIR"/functions/*.sql; do
-    [ -e "$f" ] || break
-    aplicar "$f"
+aplicar "$DB_DIR/functions/hu28_disponibilidad.sql"
+
+# ------------------------------------------------------------- migraciones --
+#
+# Todas son idempotentes. En una base recien creada varias no cambian nada,
+# porque el DDL ya trae la columna; se corren igual para que el resultado sea el
+# mismo que en una base que venia de antes.
+
+paso "aplicando las migraciones"
+for m in "$DB_DIR"/migrations/[0-9]*.sql; do
+    [ -e "$m" ] || break
+    aplicar "$m"
 done
 
 # ----------------------------------------------------------- datos de prueba --
 
 if [ "$CON_DATOS" -eq 1 ]; then
-    paso "sembrando catálogos y datos de prueba"
+    paso "sembrando catalogos y datos de prueba"
 
     SEMILLAS=(
         generar_roles_pruebas
         generar_tipos_documento_prueba
         generar_zonas_prueba
         generar_estado_mesa_prueba
+        generar_unidades_de_medida
         generar_categorias_pruebas
         generar_ingredientes_pruebas
-        generar_productos_prueba       # necesita categorias
-        generar_producto_ingrediente   # necesita productos e ingredientes
-        generar_usuario_prueba         # necesita roles y tipos_documento
-        generar_mesa_prueba            # necesita zonas y estados_mesa
+        generar_productos_prueba    # necesita categorias
+        generar_usuario_prueba      # necesita roles y tipos_documento
+        generar_mesa_prueba         # necesita zonas y estados_mesa
     )
 
     for s in "${SEMILLAS[@]}"; do
-        if [ -f "$DB_DIR/functions/$s.ddl" ]; then
-            aplicar "$DB_DIR/functions/$s.ddl"
-        elif [ -f "$DB_DIR/functions/$s.sql" ]; then
-            aplicar "$DB_DIR/functions/$s.sql"
-        fi
+        aplicar "$DB_DIR/functions/$s.ddl"
     done
 fi
 
@@ -235,7 +240,7 @@ funciones=$(psql -At -d "$DB_NOMBRE" -c \
        JOIN pg_namespace n ON n.oid = p.pronamespace
       WHERE n.nspname = 'public' AND p.proname LIKE 'fn\\_%'")
 
-esperadas=${#TABLAS[@]}
+esperadas=$((${#TABLAS[@]} + 1)) # auditoria_recetas_hu134 (HU-134)
 
 if [ "$tablas" -ne "$esperadas" ]; then
     error "se esperaban $esperadas tablas y hay $tablas."
@@ -244,7 +249,7 @@ if [ "$tablas" -ne "$esperadas" ]; then
 fi
 
 if [ "$funciones" -lt 4 ]; then
-    error "se esperaban al menos 4 funciones fn_* y hay $funciones."
+    error "se esperaban 4 funciones fn_* y hay $funciones."
     exit 1
 fi
 
@@ -258,9 +263,7 @@ if [ "$CON_DATOS" -eq 1 ]; then
         UNION ALL SELECT 'estados_mesa', count(*) FROM estados_mesa
         UNION ALL SELECT 'usuarios', count(*) FROM usuarios
         UNION ALL SELECT 'mesas', count(*) FROM mesas
-        UNION ALL SELECT 'ingredientes', count(*) FROM ingredientes
         UNION ALL SELECT 'productos', count(*) FROM productos
-        UNION ALL SELECT 'producto_ingrediente', count(*) FROM producto_ingrediente
         ORDER BY 1" | while read -r t n; do ok "$t: $n filas"; done
 fi
 

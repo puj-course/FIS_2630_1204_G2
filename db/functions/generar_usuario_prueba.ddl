@@ -11,9 +11,7 @@ INSERT INTO usuarios (
     correo,
     password_hash,
     id_rol,
-    is_active,
-    created_at,
-    updated_at
+    is_active
 )
 SELECT
     'HU088-001',
@@ -25,8 +23,6 @@ SELECT
     'HU088_TEST',
     (SELECT id_rol FROM roles WHERE nombre_rol = 'MESERO'),
     1,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP
 WHERE NOT EXISTS (
     SELECT 1 FROM usuarios u WHERE u.codigo_empleado = 'HU088-001'
 )
