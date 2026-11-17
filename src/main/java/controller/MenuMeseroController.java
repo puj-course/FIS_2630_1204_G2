@@ -604,70 +604,97 @@ final BigDecimal subtotalFinal = pedidoFacade.calcularSubtotal(pedido.values());
         hilo.start();
     }
 
-    @FXML
-    private void anularPedido() {
+    /**
+     * Textos de una operacion que termina un pedido. Van juntos en un objeto y
+     * no como parametros sueltos para que la llamada se lea de corrido.
+     */
+    private record TextosDeCierre(String titulo,
+                                  String sinPedido,
+                                  String pregunta,
+                                  String consecuencia,
+                                  String tituloExito,
+                                  String encabezadoExito,
+                                  String mensajeExito) {
+    }
+
+    /** Lo que hace cada operacion sobre el pedido una vez confirmada. */
+    @FunctionalInterface
+    private interface AccionSobrePedido {
+        void ejecutar(long pedidoId) throws SQLException;
+    }
+
+    /**
+     * Flujo comun de anular y de cerrar un pedido: comprobar que exista, pedir
+     * confirmacion, ejecutar la accion y dejar la pantalla limpia.
+     *
+     * Las dos operaciones estaban escritas enteras por separado y solo se
+     * diferenciaban en los textos y en el metodo del servicio que llaman.
+     */
+    private void terminarPedido(TextosDeCierre textos, AccionSobrePedido accion) {
         if (pedidoActual == null || pedidoActual.getId() == null) {
             Alert alerta = new Alert(Alert.AlertType.WARNING);
-            alerta.setTitle("Anular pedido");
+            alerta.setTitle(textos.titulo());
             alerta.setHeaderText("No hay un pedido guardado");
-            alerta.setContentText("Primero debes tener un pedido confirmado para poder anularlo.");
+            alerta.setContentText(textos.sinPedido());
             alerta.showAndWait();
             return;
         }
+
         Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmacion.setTitle("Anular pedido");
-        confirmacion.setHeaderText("¿Deseas anular este pedido?");
-        confirmacion.setContentText("El pedido se marcará como cancelado y la mesa quedará disponible.");
+        confirmacion.setTitle(textos.titulo());
+        confirmacion.setHeaderText(textos.pregunta());
+        confirmacion.setContentText(textos.consecuencia());
+
         Optional<ButtonType> resultado = confirmacion.showAndWait();
-        if (resultado.isEmpty() || resultado.get() != ButtonType.OK) {return;
+
+        if (resultado.isEmpty() || resultado.get() != ButtonType.OK) {
+            return;
         }
+
         try {
-            pedidoService.cancelarPedido(pedidoActual.getId(), "DISPONIBLE");
+            accion.ejecutar(pedidoActual.getId());
+
             pedidoActual = null;
             pedido.clear();
             actualizarPedido();
+
             Alert exito = new Alert(Alert.AlertType.INFORMATION);
-            exito.setTitle("Pedido anulado");
-            exito.setHeaderText("Pedido anulado correctamente");
-            exito.setContentText("El pedido fue cancelado y la mesa quedó disponible.");
+            exito.setTitle(textos.tituloExito());
+            exito.setHeaderText(textos.encabezadoExito());
+            exito.setContentText(textos.mensajeExito());
             exito.showAndWait();
+
         } catch (Exception ex) {
             mostrarError(ex);
         }
     }
+
+    @FXML
+    private void anularPedido() {
+        terminarPedido(
+                new TextosDeCierre(
+                        "Anular pedido",
+                        "Primero debes tener un pedido confirmado para poder anularlo.",
+                        "¿Deseas anular este pedido?",
+                        "El pedido se marcará como cancelado y la mesa quedará disponible.",
+                        "Pedido anulado",
+                        "Pedido anulado correctamente",
+                        "El pedido fue cancelado y la mesa quedó disponible."),
+                id -> pedidoService.cancelarPedido(id, "DISPONIBLE"));
+    }
+
     @FXML
     private void cerrarPedido() {
-        if (pedidoActual == null || pedidoActual.getId() == null) {
-            Alert alerta = new Alert(Alert.AlertType.WARNING);
-            alerta.setTitle("Cerrar pedido");
-            alerta.setHeaderText("No hay un pedido guardado");
-            alerta.setContentText("Confirma el pedido antes de intentar cerrarlo.");
-            alerta.showAndWait();
-            return;
-        }
-
-        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmacion.setTitle("Cerrar pedido");
-        confirmacion.setHeaderText("¿Deseas cerrar este pedido?");
-        confirmacion.setContentText("El pedido se marcará como completado y se liberará la mesa.");
-        Optional<ButtonType> resultado = confirmacion.showAndWait();
-        if (resultado.isEmpty() || resultado.get() != ButtonType.OK) {return;
-        }
-
-        try {
-            pedidoService.cerrarPedido(pedidoActual.getId(), "DISPONIBLE");
-            pedidoActual = null;
-            pedido.clear();
-            actualizarPedido();
-
-            Alert exito = new Alert(Alert.AlertType.INFORMATION);
-            exito.setTitle("Pedido cerrado");
-            exito.setHeaderText("Pedido cerrado correctamente");
-            exito.setContentText("El pedido se cerró y se solicitó liberar la mesa.");
-            exito.showAndWait();
-        } catch (Exception ex) {
-            mostrarError(ex);
-        }
+        terminarPedido(
+                new TextosDeCierre(
+                        "Cerrar pedido",
+                        "Confirma el pedido antes de intentar cerrarlo.",
+                        "¿Deseas cerrar este pedido?",
+                        "El pedido se marcará como completado y se liberará la mesa.",
+                        "Pedido cerrado",
+                        "Pedido cerrado correctamente",
+                        "El pedido se cerró y se solicitó liberar la mesa."),
+                id -> pedidoService.cerrarPedido(id, "DISPONIBLE"));
     }
 
     private void mostrarError(Throwable e) {
